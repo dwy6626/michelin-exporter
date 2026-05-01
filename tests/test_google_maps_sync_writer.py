@@ -102,26 +102,20 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             "入選 | 台菜 | 2026-05-01 更新\n經典風味。",
         )
 
-    async def test_sync_rows_by_level_fails_when_required_list_already_exists_on_first_use(self) -> None:
+    async def test_initialize_run_fails_when_required_list_already_exists_at_startup(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()
             fake_driver.existing_lists.add("Taiwan|one-star")
             writer = self._build_writer(temp_dir, driver=fake_driver)
 
-            await writer.initialize_run(scope_name="Taiwan", level_slugs=("one-star",))
-            with self.assertRaises(GoogleMapsListAlreadyExistsError):
-                await writer.sync_rows_by_level(
-                    {
-                        "one-star": [
-                            {
-                                "Name": "Alpha",
-                                "City": "Taipei",
-                                "Address": "No. 1 Example Street",
-                                "Cuisine": "Taiwanese",
-                            }
-                        ]
-                    }
-                )
+            with self.assertRaisesRegex(
+                GoogleMapsListAlreadyExistsError,
+                "List already exists at startup: Taiwan\\|one-star",
+            ):
+                await writer.initialize_run(scope_name="Taiwan", level_slugs=("one-star",))
+            self.assertEqual(fake_driver.created_lists, [])
+            self.assertEqual(fake_driver.queries, [])
+            self.assertEqual(fake_driver.save_calls, [])
 
     async def test_sync_rows_by_level_reuses_existing_list_when_check_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

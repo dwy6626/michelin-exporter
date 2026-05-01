@@ -325,6 +325,12 @@ class GoogleMapsSyncWriter:
             raise GoogleMapsAuthRequiredError(
                 "Google Maps session is not authenticated."
             )
+        if not self._ignore_existing_lists_check:
+            for level_slug, list_name in self._list_names_by_level.items():
+                if await self._driver.list_exists(list_name):
+                    raise GoogleMapsListAlreadyExistsError(
+                        f"List already exists at startup: {list_name} (level={level_slug})"
+                    )
 
     async def sync_row(
         self,
