@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 from ..catalog.levels import LEVEL_LABELS
 
 _AWARD_ICON_CLASS = "michelin-award"
-_ONE_STAR_ICON_TOKEN = "1star"
+_STAR_ICON_TOKENS = ("1star", "michelin-star")
 _BIB_GOURMAND_ICON_TOKEN = "bib-gourmand"
 _MENU_SEGMENT_SEPARATOR = "·"
 _COORDINATE_QUERY_PARAM = "q"
@@ -33,7 +33,8 @@ def parse_rating(distinction_icon_container: Any) -> str:
         return _BIB_GOURMAND_RATING_LABEL
 
     star_icon_count = sum(
-        _ONE_STAR_ICON_TOKEN in icon_source for icon_source in award_icon_sources
+        any(star_icon_token in icon_source for star_icon_token in _STAR_ICON_TOKENS)
+        for icon_source in award_icon_sources
     )
     return _RATING_LABEL_BY_STAR_ICON_COUNT.get(star_icon_count, _DEFAULT_RATING_LABEL)
 

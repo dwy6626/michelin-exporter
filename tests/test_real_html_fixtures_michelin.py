@@ -19,6 +19,8 @@ _BASE_URL = "https://guide.michelin.com"
 _LISTING_URL = f"{_BASE_URL}/en/jp/tokyo-region/tokyo/restaurants"
 _DETAIL_ALPHA_URL = f"{_BASE_URL}/en/jp/tokyo-region/tokyo/restaurant/alpha"
 _DETAIL_BETA_URL = f"{_BASE_URL}/en/jp/tokyo-region/tokyo/restaurant/beta"
+_LISTING_ZH_TW_URL = f"{_BASE_URL}/tw/zh_TW/selection/taiwan/restaurants"
+_DETAIL_GAMMA_URL = f"{_BASE_URL}/tw/zh_TW/taipei-region/restaurant/gamma"
 
 
 class _FakeResponse:
@@ -103,7 +105,9 @@ class RealHtmlMichelinFixtureTests(unittest.TestCase):
         )
         self.assertEqual(page_result.restaurant_rows[0]["Name"], "Alpha")
         self.assertEqual(page_result.restaurant_rows[0]["Rating"], "2 Stars")
+        self.assertEqual(page_result.restaurant_rows[0]["GuideYear"], "2025")
         self.assertEqual(page_result.restaurant_rows[1]["Rating"], "Bib Gourmand")
+        self.assertEqual(page_result.restaurant_rows[1]["GuideYear"], "2025")
 
     def test_listing_fixture_routes_real_rows_into_default_level_buckets(self) -> None:
         html_by_url = {
@@ -139,6 +143,29 @@ class RealHtmlMichelinFixtureTests(unittest.TestCase):
         soup = BeautifulSoup(_read_fixture_text("listing-zh-tw.html"), "html.parser")
         scope_name = extract_scope_name_from_listing_soup(soup)
         self.assertEqual(scope_name, "臺北餐廳")
+
+    def test_zh_tw_listing_fixture_parses_modern_star_icon_rating(self) -> None:
+        html_by_url = {
+            _LISTING_ZH_TW_URL: _read_fixture_text("listing-zh-tw.html"),
+            _DETAIL_GAMMA_URL: _read_fixture_text("detail-alpha.html"),
+        }
+        page_result = scrape_results_single_page(
+            session=_FixtureSession(html_by_url),  # type: ignore[arg-type]
+            url=_LISTING_ZH_TW_URL,
+            headers={},
+            tls_verify=True,
+            page_number=1,
+            estimated_total_pages=None,
+            total_restaurants_so_far=0,
+            progress_reporter=_NoOpReporter(),
+            item_sleep_seconds=0.0,
+        )
+
+        self.assertFalse(page_result.fetch_failed)
+        self.assertEqual(len(page_result.restaurant_rows), 1)
+        self.assertEqual(page_result.restaurant_rows[0]["Name"], "Gamma")
+        self.assertEqual(page_result.restaurant_rows[0]["Rating"], "1 Star")
+        self.assertEqual(page_result.restaurant_rows[0]["GuideYear"], "2025")
 
     def test_target_resolution_keeps_language_specific_path(self) -> None:
         resolved = resolve_target(normalize_target("taipei"), language="zh-tw")

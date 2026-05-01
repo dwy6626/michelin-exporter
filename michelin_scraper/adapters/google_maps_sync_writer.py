@@ -93,6 +93,32 @@ _LEVEL_BADGES_BY_LANGUAGE = {
         "selected": "\u5165\u9078",
     }
 }
+_NOTE_LEVEL_LABELS_BY_LANGUAGE = {
+    "zh_tw": {
+        "stars": "星級",
+        "one-star": "一星",
+        "two-star": "二星",
+        "three-star": "三星",
+        "bib-gourmand": "必比登",
+        "selected": "入選",
+    },
+    "zh_hk": {
+        "stars": "星級",
+        "one-star": "一星",
+        "two-star": "二星",
+        "three-star": "三星",
+        "bib-gourmand": "必比登",
+        "selected": "入選",
+    },
+    "zh_cn": {
+        "stars": "星级",
+        "one-star": "一星",
+        "two-star": "二星",
+        "three-star": "三星",
+        "bib-gourmand": "必比登",
+        "selected": "入选",
+    },
+}
 
 
 def _normalize_language_key(value: str) -> str:
@@ -822,7 +848,11 @@ class GoogleMapsSyncWriter:
         probe_only: bool,
     ) -> _RowSyncOutcome:
         attempted_queries = build_place_query_attempts(row)
-        note_text = _build_place_note_text(row)
+        note_text = _build_place_note_text(
+            row,
+            level_slug=level_slug,
+            language=self._language,
+        )
         saw_candidate = False
         saw_matchable_candidate = False
         _row_name = str(row.get("Name", ""))
@@ -1055,9 +1085,63 @@ def _normalize_note_line(value: Any) -> str:
     return " ".join(str(value or "").split()).strip()
 
 
-def _build_place_note_text(row: dict[str, Any]) -> str:
+def _resolve_note_level_label(
+    *,
+    rating: str,
+    level_slug: str | None,
+    language: str,
+) -> str:
+    normalized_rating = _normalize_note_line(rating).casefold()
+    normalized_level_slug = _normalize_note_line(level_slug or "").lower()
+    note_level_labels = _NOTE_LEVEL_LABELS_BY_LANGUAGE.get(_normalize_language_key(language), {})
+
+    rating_to_level_slug: dict[str, str] = {}
+    for known_level_slug, known_label in LEVEL_LABELS.items():
+        rating_to_level_slug[_normalize_note_line(known_label).casefold()] = known_level_slug
+        rating_to_level_slug[_normalize_note_line(known_level_slug).casefold()] = known_level_slug
+        badge = LEVEL_BADGES.get(known_level_slug, "")
+        if badge:
+            rating_to_level_slug[_normalize_note_line(badge).casefold()] = known_level_slug
+
+    resolved_level_slug = rating_to_level_slug.get(normalized_rating, normalized_level_slug)
+    if resolved_level_slug in note_level_labels:
+        return note_level_labels[resolved_level_slug]
+    if resolved_level_slug in LEVEL_LABELS:
+        return LEVEL_LABELS[resolved_level_slug]
+    return _normalize_note_line(rating)
+
+
+def _build_place_note_header(
+    row: dict[str, Any],
+    *,
+    level_slug: str | None = None,
+    language: str = "en",
+) -> str:
+    rating = _normalize_note_line(row.get("Rating", ""))
+    level_label = _resolve_note_level_label(
+        rating=rating,
+        level_slug=level_slug,
+        language=language,
+    )
+    guide_year_text = _normalize_note_line(row.get("GuideYear", ""))
+    cuisine = _normalize_note_line(row.get("Cuisine", ""))
+    header_parts = [part for part in (guide_year_text, level_label, cuisine) if part]
+    return " | ".join(header_parts)
+
+
+def _build_place_note_text(
+    row: dict[str, Any],
+    *,
+    level_slug: str | None = None,
+    language: str = "en",
+) -> str:
+    header = _build_place_note_header(
+        row,
+        level_slug=level_slug,
+        language=language,
+    )
     cuisine = _normalize_note_line(row.get("Cuisine", ""))
     description = _normalize_note_line(row.get("Description", ""))
-    if cuisine and description:
-        return f"{cuisine}\n{description}"
-    return cuisine or description
+    del cuisine
+    note_lines = [line for line in (header, description) if line]
+    return "\n".join(note_lines)

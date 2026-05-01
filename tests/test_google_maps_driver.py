@@ -91,6 +91,13 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
             title_text="",
             first_result_signature="same-result",
             no_results_visible=False,
+            loading_visible=False,
+        )
+        loading_state = _SearchPanelState(
+            page_url="https://www.google.com/maps/search/foo",
+            title_text="",
+            first_result_signature="same-result",
+            no_results_visible=False,
             loading_visible=True,
         )
         current_state = _SearchPanelState(
@@ -101,7 +108,11 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
             loading_visible=False,
         )
 
-        with patch.object(driver, "_capture_search_panel_state", return_value=current_state):
+        with patch.object(
+            driver,
+            "_capture_search_panel_state",
+            side_effect=[loading_state, current_state],
+        ):
             with patch.object(driver, "_wait_for_timeout") as wait_for_timeout:
                 outcome = await driver._wait_for_search_outcome(
                     page=object(),
@@ -110,7 +121,53 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                 )
 
         self.assertEqual(outcome, driver._SEARCH_OUTCOME_RESULT_READY)
-        wait_for_timeout.assert_not_called()
+        wait_for_timeout.assert_called_once()
+
+    async def test_wait_for_search_outcome_does_not_accept_stale_previous_place_details(self) -> None:
+        driver = GoogleMapsDriver(
+            GoogleMapsDriverConfig(
+                user_data_dir=Path("/tmp/michelin-driver-contract-stale-place"),
+                headless=True,
+                sync_delay_seconds=0.0,
+            )
+        )
+        driver._SEARCH_OUTCOME_MIN_SETTLE_MS = 0
+        previous_state = _SearchPanelState(
+            page_url="https://www.google.com/maps/place/ya-ge",
+            title_text="Ya Ge",
+            first_result_signature="",
+            no_results_visible=False,
+            loading_visible=True,
+        )
+        stale_state = _SearchPanelState(
+            page_url="https://www.google.com/maps/place/ya-ge",
+            title_text="Ya Ge",
+            first_result_signature="",
+            no_results_visible=False,
+            loading_visible=False,
+        )
+        fresh_state = _SearchPanelState(
+            page_url="https://www.google.com/maps/place/impromptu",
+            title_text="Impromptu by Paul Lee",
+            first_result_signature="",
+            no_results_visible=False,
+            loading_visible=False,
+        )
+
+        with patch.object(
+            driver,
+            "_capture_search_panel_state",
+            side_effect=[stale_state, fresh_state],
+        ):
+            with patch.object(driver, "_wait_for_timeout") as wait_for_timeout:
+                outcome = await driver._wait_for_search_outcome(
+                    page=object(),
+                    query="Impromptu by Paul Lee Taipei, 臺灣",
+                    previous_state=previous_state,
+                )
+
+        self.assertEqual(outcome, driver._SEARCH_OUTCOME_RESULT_READY)
+        wait_for_timeout.assert_called_once()
 
     def test_build_launch_options_includes_automation_suppression_when_enabled(self) -> None:
         launch_options = _build_launch_options(
