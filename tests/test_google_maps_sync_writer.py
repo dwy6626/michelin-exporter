@@ -14,6 +14,7 @@ from michelin_scraper.adapters.google_maps_driver import (
 from michelin_scraper.adapters.google_maps_sync_writer import (
     GoogleMapsRowSyncFailFastError,
     GoogleMapsSyncWriter,
+    _build_place_note_text,
     _is_saved_list_landing_candidate,
 )
 from michelin_scraper.application.place_matcher import PlaceCandidate
@@ -45,6 +46,40 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             driver=driver,
         )
         return writer
+
+    def test_build_place_note_text_uses_english_locale_format(self) -> None:
+        note_text = _build_place_note_text(
+            {
+                "GuideYear": "2025",
+                "Rating": "3 Stars",
+                "Cuisine": "Cantonese",
+                "Description": "Refined banquet-style cooking.",
+            },
+            level_slug="three-star",
+            language="en",
+        )
+
+        self.assertEqual(
+            note_text,
+            "2025 | 3 Stars | Cantonese\nRefined banquet-style cooking.",
+        )
+
+    def test_build_place_note_text_uses_traditional_chinese_locale_format(self) -> None:
+        note_text = _build_place_note_text(
+            {
+                "GuideYear": "2025",
+                "Rating": "3 Stars",
+                "Cuisine": "粵菜",
+                "Description": "精緻宴席料理。",
+            },
+            level_slug="three-star",
+            language="zh-tw",
+        )
+
+        self.assertEqual(
+            note_text,
+            "2025 | 三星 | 粵菜\n精緻宴席料理。",
+        )
 
     async def test_sync_rows_by_level_fails_when_required_list_already_exists_on_first_use(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -339,6 +374,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                     "bib-gourmand": [
                         {
                             "Name": "\u963f\u7f8e\u98ef\u5e97",
+                            "GuideYear": "2025",
                             "City": "Tainan",
                             "Cuisine": "Taiwanese",
                             "Description": "Authentic Cuisine",
@@ -349,12 +385,15 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
 
             # The place was saved in attempt 2 (after already being saved in attempt 1);
             # this should be treated as success (added).
-            # The note write should have seen "Taiwanese\nAuthentic Cuisine" and matched correctly.
+            # The note write should include a compact Michelin header on line 1.
             self.assertEqual(result.added_count_by_level["bib-gourmand"], 1)
             self.assertEqual(result.skipped_count_by_level["bib-gourmand"], 0)
             self.assertEqual(len(result.failed_items), 0)
             self.assertEqual(call_count, 2)
-            self.assertEqual(fake_driver.save_calls[1][1], "Taiwanese\nAuthentic Cuisine")
+            self.assertEqual(
+                fake_driver.save_calls[1][1],
+                "2025 | Bib Gourmand | Taiwanese\nAuthentic Cuisine",
+            )
 
     async def test_sync_rows_by_level_treats_transient_retry_failure_as_success_when_place_already_saved(
         self,
@@ -418,6 +457,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                     "bib-gourmand": [
                         {
                             "Name": "\u963f\u7f8e\u98ef\u5e97",
+                            "GuideYear": "2025",
                             "City": "Tainan",
                             "Cuisine": "Taiwanese",
                             "Description": "Authentic Cuisine",
@@ -494,6 +534,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                     "one-star": [
                         {
                             "Name": "Alpha",
+                            "GuideYear": "2025",
                             "City": "Taipei",
                             "Address": "No. 1 Example Street",
                             "Cuisine": "Jiangzhe",
@@ -509,7 +550,8 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 [
                     (
                         "Taiwan|one-star",
-                        "Jiangzhe\nA vibrant dining room with a skyline view.",
+                        "2025 | 1 Star | Jiangzhe\n"
+                        "A vibrant dining room with a skyline view.",
                     )
                 ],
             )
@@ -536,6 +578,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                     "one-star": [
                         {
                             "Name": "Alpha",
+                            "GuideYear": "2025",
                             "City": "Taipei",
                             "Address": "No. 1 Example Street",
                             "Cuisine": "Jiangzhe",
@@ -551,7 +594,13 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(result.failed_items[0].reason.startswith("NoteWriteFailed:"))
             self.assertEqual(
                 fake_driver.save_calls,
-                [("Taiwan|one-star", "Jiangzhe\nA vibrant dining room with a skyline view.")],
+                [
+                    (
+                        "Taiwan|one-star",
+                        "2025 | 1 Star | Jiangzhe\n"
+                        "A vibrant dining room with a skyline view.",
+                    )
+                ],
             )
 
     async def test_sync_rows_by_level_smoke_preserves_runtime_context_on_selector_failure(self) -> None:

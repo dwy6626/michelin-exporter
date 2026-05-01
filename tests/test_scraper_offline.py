@@ -59,6 +59,12 @@ LISTING_PAGE_2_HTML = """
 
 RESTAURANT_1_HTML = """
 <html>
+  <head>
+    <meta
+      name="description"
+      content="Alpha - a One Star: High quality cooking restaurant in the 2025 MICHELIN Guide Taiwan."
+    />
+  </head>
   <body>
     <div class="data-sheet__block--text">No. 1 Example Street</div>
     <div class="data-sheet__description">First test restaurant</div>
@@ -73,6 +79,12 @@ RESTAURANT_1_HTML = """
 
 RESTAURANT_2_HTML = """
 <html>
+  <head>
+    <meta
+      name="description"
+      content="Beta - a Bib Gourmand restaurant in the 2025 MICHELIN Guide Taiwan."
+    />
+  </head>
   <body>
     <div class="data-sheet__block--text">No. 2 Example Street</div>
     <div class="data-sheet__description">Second test restaurant</div>
@@ -164,6 +176,7 @@ class ScraperOfflineTests(unittest.TestCase):
         self.assertEqual(all_rows[0]["Name"], "Alpha")
         self.assertEqual(all_rows[0]["Rating"], "1 Star")
         self.assertEqual(all_rows[0]["Cuisine"], "Taiwanese")
+        self.assertEqual(all_rows[0]["GuideYear"], "2025")
         self.assertEqual(all_rows[0]["Restaurant Telephone Number"], "+88620001111")
         self.assertEqual(all_rows[0]["Latitude"], 25.033)
         self.assertEqual(all_rows[0]["Longitude"], 121.565)
@@ -172,6 +185,7 @@ class ScraperOfflineTests(unittest.TestCase):
         self.assertEqual(all_rows[1]["Rating"], "Bib Gourmand")
         self.assertEqual(all_rows[1]["Price Range"], "$")
         self.assertEqual(all_rows[1]["Cuisine"], "Noodles")
+        self.assertEqual(all_rows[1]["GuideYear"], "2025")
 
     @patch("michelin_scraper.scraping.fetcher.requests.Session.get")
     def test_crawl_stops_when_max_pages_limit_is_reached(self, mock_get: Any) -> None:

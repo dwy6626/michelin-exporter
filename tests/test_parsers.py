@@ -41,6 +41,19 @@ class ParseRatingTests(unittest.TestCase):
 
         self.assertEqual(parse_rating(distinction_icon), LEVEL_LABELS["two-star"])
 
+    def test_returns_star_rating_for_modern_michelin_star_icon_sources(self) -> None:
+        distinction_icon = self._build_distinction_icon(
+            """
+            <span class="distinction-icon">
+              <img class="michelin-award" src="https://guide.michelin.com/assets/images/icons/michelin-star_8519.svg" />
+              <img class="michelin-award" src="https://guide.michelin.com/assets/images/icons/michelin-star_8519.svg" />
+              <img class="michelin-award" src="https://guide.michelin.com/assets/images/icons/michelin-star_8519.svg" />
+            </span>
+            """
+        )
+
+        self.assertEqual(parse_rating(distinction_icon), LEVEL_LABELS["three-star"])
+
     def test_ignores_non_string_image_sources(self) -> None:
         distinction_icon = self._build_distinction_icon(
             """

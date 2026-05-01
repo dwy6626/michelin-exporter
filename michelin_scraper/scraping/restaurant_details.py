@@ -1,6 +1,7 @@
 """Restaurant detail page scraping utilities."""
 
 
+import re
 import time
 from typing import Any
 from urllib.parse import urlparse
@@ -21,6 +22,7 @@ _WEBSITE_EVENT_NAME = "CTA_website"
 _TELEPHONE_EVENT_NAME = "CTA_tel"
 _RESERVATION_BUTTON_CLASS = "js-restaurant-book-btn"
 _RESTAURANT_PAGE_TYPE = "restaurant"
+_GUIDE_YEAR_PATTERN = re.compile(r"\b(20\d{2})\s+MICHELIN Guide\b", re.IGNORECASE)
 
 
 def build_empty_data() -> RestaurantPageData:
@@ -29,6 +31,7 @@ def build_empty_data() -> RestaurantPageData:
     return {
         "Name": "",
         "NameLocal": "",
+        "GuideYear": "",
         "Address": "",
         "Description": "",
         "Restaurant Website": "",
@@ -63,6 +66,7 @@ def build_restaurant_record(
     return {
         "Name": name,
         "NameLocal": page_data.get("NameLocal") or page_data.get("Name") or name,
+        "GuideYear": page_data.get("GuideYear", ""),
         "Rating": rating,
         "City": city,
         "Price Range": price,
@@ -205,6 +209,7 @@ def extract_telephone(href: str) -> str:
 def _extract_restaurant_page_data(restaurant_page_soup: BeautifulSoup) -> RestaurantPageData:
     """Extract all supported detail fields from a restaurant page soup."""
 
+    guide_year = _extract_guide_year(restaurant_page_soup)
     address = _extract_text_by_selector(restaurant_page_soup, _ADDRESS_SELECTOR)
     description = _extract_text_by_selector(restaurant_page_soup, _DESCRIPTION_SELECTOR)
 
@@ -219,6 +224,7 @@ def _extract_restaurant_page_data(restaurant_page_soup: BeautifulSoup) -> Restau
     latitude, longitude = _extract_coordinates(restaurant_page_soup)
 
     return {
+        "GuideYear": guide_year,
         "Address": address,
         "Description": description,
         "Restaurant Website": website_link,
@@ -227,6 +233,25 @@ def _extract_restaurant_page_data(restaurant_page_soup: BeautifulSoup) -> Restau
         "Latitude": latitude,
         "Longitude": longitude,
     }
+
+
+def _extract_guide_year(restaurant_page_soup: BeautifulSoup) -> str:
+    """Extract Michelin Guide year from description metadata when available."""
+
+    meta_description_tags = (
+        restaurant_page_soup.find("meta", attrs={"name": "description"}),
+        restaurant_page_soup.find("meta", attrs={"property": "og:description"}),
+    )
+    for meta_tag in meta_description_tags:
+        if meta_tag is None:
+            continue
+        content = meta_tag.get("content")
+        if not isinstance(content, str):
+            continue
+        match = _GUIDE_YEAR_PATTERN.search(content)
+        if match is not None:
+            return match.group(1)
+    return ""
 
 
 def _extract_text_by_selector(restaurant_page_soup: BeautifulSoup, selector: str) -> str:

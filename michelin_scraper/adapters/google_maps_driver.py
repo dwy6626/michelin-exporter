@@ -2495,7 +2495,7 @@ class GoogleMapsDriver:
         timeout_ms = self._resolve_search_outcome_timeout_ms()
         deadline = monotonic() + (timeout_ms / 1000)
         elapsed_ms = 0
-        saw_loading_indicator = previous_state.loading_visible
+        observed_post_submit_loading = False
         loading_settle_cycle_pending = False
         loading_stuck_threshold_ms = max(settle_delay_ms * 8, 3000)
 
@@ -2518,7 +2518,7 @@ class GoogleMapsDriver:
             has_stable_result_list_after_settle = bool(
                 current_state.first_result_signature
                 and current_state.first_result_signature == previous_state.first_result_signature
-                and saw_loading_indicator
+                and observed_post_submit_loading
                 and elapsed_ms >= settle_delay_ms
                 and not current_state.no_results_visible
             )
@@ -2537,7 +2537,7 @@ class GoogleMapsDriver:
             has_stable_place_details_after_settle = bool(
                 current_state.title_text
                 and current_state.title_text == previous_state.title_text
-                and saw_loading_indicator
+                and observed_post_submit_loading
                 and elapsed_ms >= settle_delay_ms
                 and not current_state.no_results_visible
             )
@@ -2552,7 +2552,7 @@ class GoogleMapsDriver:
                 return self._SEARCH_OUTCOME_RESULT_READY
 
             if current_state.loading_visible:
-                saw_loading_indicator = True
+                observed_post_submit_loading = True
                 loading_settle_cycle_pending = True
                 if url_changed and elapsed_ms >= loading_stuck_threshold_ms:
                     return self._SEARCH_OUTCOME_RESULT_READY
@@ -2595,7 +2595,9 @@ class GoogleMapsDriver:
 
         controls_snapshot = await self._summarize_search_controls_for_debug(page)
         loading_hint = (
-            "Search loading indicator remained visible. " if saw_loading_indicator else ""
+            "Search loading indicator remained visible. "
+            if observed_post_submit_loading
+            else ""
         )
         raise GoogleMapsTransientError(
             
