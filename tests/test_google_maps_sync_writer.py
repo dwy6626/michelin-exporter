@@ -30,6 +30,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
         ignore_existing_lists_check: bool = False,
         probe_only: bool = False,
         language: str = "en",
+        updated_on: str = "2026-05-01",
         driver: FakeDriver | None = None,
     ) -> GoogleMapsSyncWriter:
         writer = GoogleMapsSyncWriter(
@@ -43,6 +44,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             ignore_existing_lists_check=ignore_existing_lists_check,
             probe_only=probe_only,
             language=language,
+            updated_on=updated_on,
             driver=driver,
         )
         return writer
@@ -57,11 +59,12 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             },
             level_slug="three-star",
             language="en",
+            updated_on="2026-05-01",
         )
 
         self.assertEqual(
             note_text,
-            "2025 | 3 Stars | Cantonese\nRefined banquet-style cooking.",
+            "2025 | 3 Stars | Cantonese | updated 2026-05-01\nRefined banquet-style cooking.",
         )
 
     def test_build_place_note_text_uses_traditional_chinese_locale_format(self) -> None:
@@ -74,11 +77,29 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             },
             level_slug="three-star",
             language="zh-tw",
+            updated_on="2026-05-01",
         )
 
         self.assertEqual(
             note_text,
-            "2025 | 三星 | 粵菜\n精緻宴席料理。",
+            "2025 | 三星 | 粵菜 | 2026-05-01 更新\n精緻宴席料理。",
+        )
+
+    def test_build_place_note_text_without_guide_year_still_uses_updated_date(self) -> None:
+        note_text = _build_place_note_text(
+            {
+                "Rating": "Selected",
+                "Cuisine": "台菜",
+                "Description": "經典風味。",
+            },
+            level_slug="selected",
+            language="zh-tw",
+            updated_on="2026-05-01",
+        )
+
+        self.assertEqual(
+            note_text,
+            "入選 | 台菜 | 2026-05-01 更新\n經典風味。",
         )
 
     async def test_sync_rows_by_level_fails_when_required_list_already_exists_on_first_use(self) -> None:
@@ -339,6 +360,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 list_name_prefix="",
                 on_missing_list="stop",
                 ignore_existing_lists_check=False,
+                updated_on="2026-05-01",
                 driver=fake_driver,
             )
             await writer.initialize_run(scope_name="Taiwan", level_slugs=("bib-gourmand",))
@@ -392,7 +414,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(call_count, 2)
             self.assertEqual(
                 fake_driver.save_calls[1][1],
-                "2025 | Bib Gourmand | Taiwanese\nAuthentic Cuisine",
+                "2025 | Bib Gourmand | Taiwanese | updated 2026-05-01\nAuthentic Cuisine",
             )
 
     async def test_sync_rows_by_level_treats_transient_retry_failure_as_success_when_place_already_saved(
@@ -412,6 +434,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 list_name_prefix="",
                 on_missing_list="stop",
                 ignore_existing_lists_check=False,
+                updated_on="2026-05-01",
                 driver=fake_driver,
             )
             await writer.initialize_run(scope_name="Taiwan", level_slugs=("bib-gourmand",))
@@ -550,7 +573,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 [
                     (
                         "Taiwan|one-star",
-                        "2025 | 1 Star | Jiangzhe\n"
+                        "2025 | 1 Star | Jiangzhe | updated 2026-05-01\n"
                         "A vibrant dining room with a skyline view.",
                     )
                 ],
@@ -597,7 +620,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 [
                     (
                         "Taiwan|one-star",
-                        "2025 | 1 Star | Jiangzhe\n"
+                        "2025 | 1 Star | Jiangzhe | updated 2026-05-01\n"
                         "A vibrant dining room with a skyline view.",
                     )
                 ],
