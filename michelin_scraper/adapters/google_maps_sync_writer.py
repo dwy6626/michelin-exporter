@@ -4,6 +4,7 @@ import asyncio
 import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from time import monotonic
 from typing import Any
@@ -118,6 +119,11 @@ _NOTE_LEVEL_LABELS_BY_LANGUAGE = {
         "bib-gourmand": "必比登",
         "selected": "入选",
     },
+}
+_NOTE_UPDATED_LABELS_BY_LANGUAGE = {
+    "zh_tw": "{date} 更新",
+    "zh_hk": "{date} 更新",
+    "zh_cn": "{date} 更新",
 }
 
 
@@ -247,6 +253,7 @@ class GoogleMapsSyncWriter:
         initial_synced_row_keys: frozenset[str] = frozenset(),
         probe_only: bool = False,
         language: str = "en",
+        updated_on: str | None = None,
         state_dir: str = "",
         driver: GoogleMapsDriverPort | None = None,
     ) -> None:
@@ -264,6 +271,7 @@ class GoogleMapsSyncWriter:
         self._ignore_existing_lists_check = ignore_existing_lists_check
         self._probe_only = probe_only
         self._language = language
+        self._updated_on = updated_on or date.today().isoformat()
         self._on_row_synced = on_row_synced
         self._synced_row_keys: set[str] = set(initial_synced_row_keys)
         self._state_dir = state_dir
@@ -852,6 +860,7 @@ class GoogleMapsSyncWriter:
             row,
             level_slug=level_slug,
             language=self._language,
+            updated_on=self._updated_on,
         )
         saw_candidate = False
         saw_matchable_candidate = False
@@ -1116,6 +1125,7 @@ def _build_place_note_header(
     *,
     level_slug: str | None = None,
     language: str = "en",
+    updated_on: str = "",
 ) -> str:
     rating = _normalize_note_line(row.get("Rating", ""))
     level_label = _resolve_note_level_label(
@@ -1125,7 +1135,12 @@ def _build_place_note_header(
     )
     guide_year_text = _normalize_note_line(row.get("GuideYear", ""))
     cuisine = _normalize_note_line(row.get("Cuisine", ""))
-    header_parts = [part for part in (guide_year_text, level_label, cuisine) if part]
+    updated_label_template = _NOTE_UPDATED_LABELS_BY_LANGUAGE.get(
+        _normalize_language_key(language),
+        "updated {date}",
+    )
+    updated_label = updated_label_template.format(date=updated_on) if updated_on else ""
+    header_parts = [part for part in (guide_year_text, level_label, cuisine, updated_label) if part]
     return " | ".join(header_parts)
 
 
@@ -1134,11 +1149,13 @@ def _build_place_note_text(
     *,
     level_slug: str | None = None,
     language: str = "en",
+    updated_on: str = "",
 ) -> str:
     header = _build_place_note_header(
         row,
         level_slug=level_slug,
         language=language,
+        updated_on=updated_on,
     )
     cuisine = _normalize_note_line(row.get("Cuisine", ""))
     description = _normalize_note_line(row.get("Description", ""))
