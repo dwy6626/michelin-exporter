@@ -7,7 +7,10 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
-from michelin_scraper.adapters.google_maps_driver import GoogleMapsAuthRequiredError
+from michelin_scraper.adapters.google_maps_driver import (
+    GoogleMapsAuthRequiredError,
+    GoogleMapsListAlreadyExistsError,
+)
 from michelin_scraper.adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
 from michelin_scraper.application.html_redaction import redact_html_text
 from michelin_scraper.application.sync_enums import SyncRowStatus
@@ -180,6 +183,14 @@ class _NoOpWriter:
 
     async def finalize_run(self) -> None:
         return
+
+
+class _ListExistsWriter(_NoOpWriter):
+    async def initialize_run(self, *, scope_name: str, level_slugs: tuple[str, ...]) -> None:
+        del scope_name, level_slugs
+        raise GoogleMapsListAlreadyExistsError(
+            "List already exists at startup: 臺灣 餐廳 米其林 星級 (level=stars)"
+        )
 
 
 class _FailingWriterWithOneRow(_NoOpWriter):
@@ -407,6 +418,31 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertEqual(exit_code, 1)
         self.assertEqual(len(output.failures), 1)
         self.assertIn("uv run playwright install chromium", output.failures[0])
+
+    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_run_scrape_sync_fails_before_crawl_when_required_list_exists_at_startup(
+        self,
+        mock_create_sync_writer: Mock,
+        mock_crawl: Mock,
+    ) -> None:
+        mock_create_sync_writer.return_value = _ListExistsWriter()
+        output = _FakeOutput()
+        command = ScrapeSyncCommand(
+            target="taiwan",
+            google_user_data_dir="~/.michelin-gmaps-profile",
+            levels=("stars",),
+            dry_run=False,
+        )
+
+        exit_code = run_scrape_sync(command=command, output=output)
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(
+            output.failures,
+            ["List already exists at startup: 臺灣 餐廳 米其林 星級 (level=stars)"],
+        )
+        mock_crawl.assert_not_called()
 
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_writes_debug_html_on_runtime_failure(
