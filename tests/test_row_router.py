@@ -3,6 +3,7 @@
 import unittest
 
 from michelin_scraper.application.row_router import LevelRowRouter, UnrecognizedRatingError
+from michelin_scraper.catalog.levels import build_rating_to_output_level_slug_map
 
 # Mapping that covers all known Michelin ratings, mirroring _build_row_router().
 _ALL_RATINGS: dict[str, str] = {
@@ -24,6 +25,23 @@ _ALL_RATINGS: dict[str, str] = {
 
 
 class LevelRowRouterTests(unittest.TestCase):
+    def test_group_rows_by_level_combines_all_star_ratings_into_stars_bucket(self) -> None:
+        router = LevelRowRouter(
+            level_slugs=("stars", "selected"),
+            rating_to_level_slug=build_rating_to_output_level_slug_map(("stars", "selected")),
+        )
+
+        grouped = router.group_rows_by_level(
+            [
+                {"Name": "Alpha", "Rating": "1 Star"},
+                {"Name": "Beta", "Rating": "3 Stars"},
+                {"Name": "Gamma", "Rating": "Selected"},
+            ]
+        )
+
+        self.assertEqual([row["Name"] for row in grouped["stars"]], ["Alpha", "Beta"])
+        self.assertEqual([row["Name"] for row in grouped["selected"]], ["Gamma"])
+
     def test_group_rows_by_level_uses_rating_mapping(self) -> None:
         router = LevelRowRouter(
             level_slugs=("one-star", "selected"),

@@ -154,7 +154,10 @@ rows already recorded in the journal.
 - If the same value exists in both lists, city target takes precedence.
 - The command automatically checks login state; if no session is found, it
   prompts whether to run interactive login immediately.
-- Each selected Michelin level maps to one Google Maps list name generated from
+- Default level buckets are `stars`, `selected`, and `bib-gourmand`. Use
+  `--levels one-star,two-star,three-star,selected,bib-gourmand` to keep star
+  levels split into separate lists.
+- Each selected output bucket maps to one Google Maps list name generated from
   `{prefix}{scope} Michelin {level_badge}`.
 - Please respect Michelin Guide and Google Maps terms of use and rate limits.
 

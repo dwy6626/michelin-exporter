@@ -25,7 +25,8 @@ from ..adapters.path_builder import (
     resolve_debug_html_path,
     resolve_error_report_path,
 )
-from ..catalog import LEVEL_BADGES, LEVEL_LABELS, normalize_target, resolve_language, resolve_target
+from ..catalog import LEVEL_LABELS, normalize_target, resolve_language, resolve_target
+from ..catalog.levels import build_rating_to_output_level_slug_map, resolve_output_level_slug
 from ..config import (
     CRAWL_DELAY_OPTION_FLAGS,
     HEADERS,
@@ -133,16 +134,9 @@ def _contains_ascii_letters(value: str) -> bool:
 def _build_row_router(level_slugs: Sequence[str]) -> LevelRowRouter:
     # Register ALL known Michelin ratings so the router can distinguish
     # "known but not selected" (skip) from "truly unknown" (error).
-    rating_to_level_slug: dict[str, str] = {}
-    for slug in LEVEL_LABELS:
-        rating_to_level_slug[LEVEL_LABELS[slug]] = slug
-        rating_to_level_slug[slug] = slug
-        badge = LEVEL_BADGES.get(slug, "")
-        if badge:
-            rating_to_level_slug[badge] = slug
     return LevelRowRouter(
         level_slugs=level_slugs,
-        rating_to_level_slug=rating_to_level_slug,
+        rating_to_level_slug=build_rating_to_output_level_slug_map(tuple(level_slugs)),
     )
 
 
@@ -495,22 +489,23 @@ def _group_probe_rows_by_level(
 ) -> dict[str, list[dict[str, Any]]]:
     grouped_rows: dict[str, list[dict[str, Any]]] = {level_slug: [] for level_slug in level_slugs}
     rows_for_rating_router: list[dict[str, Any]] = []
-    level_slug_set = set(level_slugs)
 
     for row in rows:
         explicit_level_slug = str(row.get("LevelSlug", "")).strip().lower()
         if not explicit_level_slug:
             rows_for_rating_router.append(row)
             continue
-        if explicit_level_slug not in level_slug_set:
+        resolved_output_level_slug = resolve_output_level_slug(
+            explicit_level_slug,
+            tuple(level_slugs),
+        )
+        if resolved_output_level_slug is None:
             allowed_values = ", ".join(level_slugs)
             raise ValueError(
-                
-                    f"Unsupported LevelSlug value in maps-probe-rows-file: '{explicit_level_slug}'. "
-                    f"Allowed values: {allowed_values}."
-                
+                f"Unsupported LevelSlug value in maps-probe-rows-file: '{explicit_level_slug}'. "
+                f"Allowed values: {allowed_values}."
             )
-        grouped_rows[explicit_level_slug].append(row)
+        grouped_rows[resolved_output_level_slug].append(row)
 
     if rows_for_rating_router:
         routed_rows = _build_row_router(level_slugs).group_rows_by_level(rows_for_rating_router)

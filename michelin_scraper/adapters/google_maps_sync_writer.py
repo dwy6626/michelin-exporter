@@ -75,6 +75,7 @@ RowFailureCallback = Callable[[SyncItemFailure], Any]
 RowSyncedCallback = Callable[[str, str, str], None]
 _LEVEL_LABELS_BY_LANGUAGE = {
     "zh_tw": {
+        "stars": "星級",
         "one-star": "1 \u661f",
         "two-star": "2 \u661f",
         "three-star": "3 \u661f",
@@ -84,10 +85,11 @@ _LEVEL_LABELS_BY_LANGUAGE = {
 }
 _LEVEL_BADGES_BY_LANGUAGE = {
     "zh_tw": {
+        "stars": "星級",
         "one-star": "\u2b50",
         "two-star": "\u2b50\u2b50",
         "three-star": "\u2b50\u2b50\u2b50",
-        "bib-gourmand": "\U0001F60B",
+        "bib-gourmand": "\u5fc5\u6bd4\u767b",
         "selected": "\u5165\u9078",
     }
 }

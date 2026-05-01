@@ -1059,6 +1059,74 @@ class SyncUseCaseTests(unittest.TestCase):
 
     @patch("michelin_scraper.application.sync_use_case.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_run_scrape_sync_routes_probe_rows_explicit_split_star_levelslug_into_stars_bucket(
+        self,
+        mock_create_sync_writer: Mock,
+        mock_crawl: Mock,
+    ) -> None:
+        writer = _ProbeRowsWriter()
+        mock_create_sync_writer.return_value = writer
+        output = _FakeOutput()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            probe_file = Path(temp_dir) / "probe.jsonl"
+            probe_file.write_text(
+                '{"Name":"Alpha","City":"Tokyo","Cuisine":"French","LevelSlug":"one-star"}\n',
+                encoding="utf-8",
+            )
+            command = ScrapeSyncCommand(
+                target="tokyo",
+                google_user_data_dir="~/.michelin-gmaps-profile",
+                levels=("stars", "selected", "bib-gourmand"),
+                dry_run=False,
+                maps_probe_rows_file=str(probe_file),
+                state_dir=temp_dir,
+            )
+
+            exit_code = run_scrape_sync(command=command, output=output)
+
+        self.assertEqual(exit_code, 0)
+        mock_crawl.assert_not_called()
+        self.assertEqual(len(writer.rows_by_level_calls), 1)
+        self.assertEqual(len(writer.rows_by_level_calls[0]["stars"]), 1)
+        self.assertEqual(len(writer.rows_by_level_calls[0]["selected"]), 0)
+        self.assertEqual(len(writer.rows_by_level_calls[0]["bib-gourmand"]), 0)
+
+    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_run_scrape_sync_routes_probe_rows_rating_slug_into_stars_bucket_by_default(
+        self,
+        mock_create_sync_writer: Mock,
+        mock_crawl: Mock,
+    ) -> None:
+        writer = _ProbeRowsWriter()
+        mock_create_sync_writer.return_value = writer
+        output = _FakeOutput()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            probe_file = Path(temp_dir) / "probe.jsonl"
+            probe_file.write_text(
+                '{"Name":"Alpha","City":"Tokyo","Cuisine":"French","Rating":"one-star"}\n',
+                encoding="utf-8",
+            )
+            command = ScrapeSyncCommand(
+                target="tokyo",
+                google_user_data_dir="~/.michelin-gmaps-profile",
+                levels=("stars", "selected", "bib-gourmand"),
+                dry_run=False,
+                maps_probe_rows_file=str(probe_file),
+                state_dir=temp_dir,
+            )
+
+            exit_code = run_scrape_sync(command=command, output=output)
+
+        self.assertEqual(exit_code, 0)
+        mock_crawl.assert_not_called()
+        self.assertEqual(len(writer.rows_by_level_calls), 1)
+        self.assertEqual(len(writer.rows_by_level_calls[0]["stars"]), 1)
+        self.assertEqual(len(writer.rows_by_level_calls[0]["selected"]), 0)
+        self.assertEqual(len(writer.rows_by_level_calls[0]["bib-gourmand"]), 0)
+
+    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_routes_probe_rows_rating_slug_without_falling_to_selected(
         self,
         mock_create_sync_writer: Mock,
