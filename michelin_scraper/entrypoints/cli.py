@@ -173,7 +173,8 @@ def main(
             help=(
                 "Comma-separated level slugs to sync. "
                 f"Supported values: {LEVEL_CHOICES_HELP}. "
-                "Empty value means all levels."
+                "Empty value means default buckets: stars, selected, bib-gourmand. "
+                "Use one-star,two-star,three-star to keep star lists separate."
             ),
             rich_help_panel=USER_OPTIONS_HELP_PANEL,
         ),
@@ -337,7 +338,7 @@ def main(
             help=(
                 "List naming template using placeholders: "
                 f"{LIST_NAME_TEMPLATE_PLACEHOLDERS_HELP}. "
-                "Use {level_badge} for star emoji names, {level_label} for readable text, "
+                "Use {level_badge} for the default list suffixes, {level_label} for readable text, "
                 "and {level_slug} (or {level}) for slugs."
             ),
             rich_help_panel=USER_OPTIONS_HELP_PANEL,

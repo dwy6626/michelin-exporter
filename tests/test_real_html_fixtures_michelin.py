@@ -8,6 +8,8 @@ from typing import Any
 import requests
 from bs4 import BeautifulSoup
 
+from michelin_scraper.application.row_router import LevelRowRouter
+from michelin_scraper.catalog.levels import build_rating_to_output_level_slug_map
 from michelin_scraper.catalog.targets import normalize_target, resolve_target
 from michelin_scraper.scraping.listing_page import scrape_results_single_page
 from michelin_scraper.scraping.listing_scope import extract_scope_name_from_listing_soup
@@ -102,6 +104,36 @@ class RealHtmlMichelinFixtureTests(unittest.TestCase):
         self.assertEqual(page_result.restaurant_rows[0]["Name"], "Alpha")
         self.assertEqual(page_result.restaurant_rows[0]["Rating"], "2 Stars")
         self.assertEqual(page_result.restaurant_rows[1]["Rating"], "Bib Gourmand")
+
+    def test_listing_fixture_routes_real_rows_into_default_level_buckets(self) -> None:
+        html_by_url = {
+            _LISTING_URL: _read_fixture_text("listing-en.html"),
+            _DETAIL_ALPHA_URL: _read_fixture_text("detail-alpha.html"),
+            _DETAIL_BETA_URL: _read_fixture_text("detail-alpha.html"),
+        }
+        page_result = scrape_results_single_page(
+            session=_FixtureSession(html_by_url),  # type: ignore[arg-type]
+            url=_LISTING_URL,
+            headers={},
+            tls_verify=True,
+            page_number=1,
+            estimated_total_pages=None,
+            total_restaurants_so_far=0,
+            progress_reporter=_NoOpReporter(),
+            item_sleep_seconds=0.0,
+        )
+        router = LevelRowRouter(
+            level_slugs=("stars", "selected", "bib-gourmand"),
+            rating_to_level_slug=build_rating_to_output_level_slug_map(
+                ("stars", "selected", "bib-gourmand")
+            ),
+        )
+
+        grouped = router.group_rows_by_level(page_result.restaurant_rows)
+
+        self.assertEqual([row["Name"] for row in grouped["stars"]], ["Alpha"])
+        self.assertEqual(grouped["selected"], [])
+        self.assertEqual([row["Name"] for row in grouped["bib-gourmand"]], ["Beta"])
 
     def test_zh_tw_listing_fixture_extracts_local_scope_name(self) -> None:
         soup = BeautifulSoup(_read_fixture_text("listing-zh-tw.html"), "html.parser")

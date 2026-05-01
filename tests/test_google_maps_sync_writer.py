@@ -721,9 +721,17 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(writer.list_names_by_level["three-star"], "Tokyo Michelin \u2b50\u2b50\u2b50")
             self.assertEqual(writer.list_created_by_level["three-star"], False)
 
+            await writer.initialize_run(scope_name="Tokyo", level_slugs=("stars",))
+
+            self.assertEqual(writer.list_names_by_level["stars"], "Tokyo Michelin Stars")
+            self.assertEqual(writer.list_created_by_level["stars"], False)
+
             await writer.initialize_run(scope_name="Tokyo", level_slugs=("bib-gourmand",))
 
-            self.assertEqual(writer.list_names_by_level["bib-gourmand"], "Tokyo Michelin \U0001f60b")
+            self.assertEqual(
+                writer.list_names_by_level["bib-gourmand"],
+                "Tokyo Michelin Bib Gourmand",
+            )
             self.assertEqual(writer.list_created_by_level["bib-gourmand"], False)
 
     async def test_initialize_run_renders_selected_level_badge_with_language_override(self) -> None:
@@ -740,6 +748,11 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(writer.list_names_by_level["selected"], "\u81fa\u5357 \u7c73\u5176\u6797 \u5165\u9078")
             self.assertEqual(writer.list_created_by_level["selected"], False)
+
+            await writer.initialize_run(scope_name="\u81fa\u5357", level_slugs=("stars",))
+
+            self.assertEqual(writer.list_names_by_level["stars"], "\u81fa\u5357 \u7c73\u5176\u6797 \u661f\u7d1a")
+            self.assertEqual(writer.list_created_by_level["stars"], False)
 
     async def test_sync_rows_by_level_smoke_creates_only_lists_with_rows(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
