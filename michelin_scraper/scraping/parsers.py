@@ -8,7 +8,11 @@ from ..catalog.levels import LEVEL_LABELS
 
 _AWARD_ICON_CLASS = "michelin-award"
 _STAR_ICON_TOKENS = ("1star", "michelin-star")
-_BIB_GOURMAND_ICON_TOKEN = "bib-gourmand"
+_BIB_GOURMAND_ICON_TOKENS = ("bib-gourmand", "bib_gourmand", "bibendum")
+_BIB_GOURMAND_ATTRIBUTE_TOKENS = ("bib", "bib_gourmand", "bib-gourmand")
+_ONE_STAR_ATTRIBUTE_TOKENS = ("one_star", "one-star", "1 star")
+_TWO_STAR_ATTRIBUTE_TOKENS = ("two_stars", "two-stars", "2 star")
+_THREE_STAR_ATTRIBUTE_TOKENS = ("three_stars", "three-stars", "3 star")
 _MENU_SEGMENT_SEPARATOR = "·"
 _COORDINATE_QUERY_PARAM = "q"
 _COORDINATE_SEPARATOR = ","
@@ -28,8 +32,15 @@ def parse_rating(distinction_icon_container: Any) -> str:
     if not distinction_icon_container:
         return _DEFAULT_RATING_LABEL
 
+    rating_from_attributes = _parse_rating_from_card_attributes(distinction_icon_container)
+    if rating_from_attributes:
+        return rating_from_attributes
+
     award_icon_sources = _extract_award_icon_sources(distinction_icon_container)
-    if any(_BIB_GOURMAND_ICON_TOKEN in icon_source for icon_source in award_icon_sources):
+    if any(
+        any(token in icon_source.casefold() for token in _BIB_GOURMAND_ICON_TOKENS)
+        for icon_source in award_icon_sources
+    ):
         return _BIB_GOURMAND_RATING_LABEL
 
     star_icon_count = sum(
@@ -37,6 +48,67 @@ def parse_rating(distinction_icon_container: Any) -> str:
         for icon_source in award_icon_sources
     )
     return _RATING_LABEL_BY_STAR_ICON_COUNT.get(star_icon_count, _DEFAULT_RATING_LABEL)
+
+
+def _parse_rating_from_card_attributes(distinction_icon_container: Any) -> str:
+    """Parse rating from Michelin card metadata when available."""
+
+    attribute_values = _extract_distinction_attribute_values(distinction_icon_container)
+    if not attribute_values:
+        return ""
+
+    if _attribute_values_contain_any(attribute_values, _BIB_GOURMAND_ATTRIBUTE_TOKENS):
+        return _BIB_GOURMAND_RATING_LABEL
+    if _attribute_values_contain_any(attribute_values, _THREE_STAR_ATTRIBUTE_TOKENS):
+        return _RATING_LABEL_BY_STAR_ICON_COUNT[3]
+    if _attribute_values_contain_any(attribute_values, _TWO_STAR_ATTRIBUTE_TOKENS):
+        return _RATING_LABEL_BY_STAR_ICON_COUNT[2]
+    if _attribute_values_contain_any(attribute_values, _ONE_STAR_ATTRIBUTE_TOKENS):
+        return _RATING_LABEL_BY_STAR_ICON_COUNT[1]
+    return ""
+
+
+def _extract_distinction_attribute_values(distinction_icon_container: Any) -> tuple[str, ...]:
+    """Return distinction-like attributes from a card and its action controls."""
+
+    values: list[str] = []
+    for tag in _iter_distinction_context_tags(distinction_icon_container):
+        attrs = getattr(tag, "attrs", {})
+        if not isinstance(attrs, dict):
+            continue
+        for attribute_name in (
+            "data-map-pin-name",
+            "data-distinction",
+            "data-dtm-distinction",
+        ):
+            attribute_value = attrs.get(attribute_name, "")
+            if isinstance(attribute_value, str) and attribute_value.strip():
+                values.append(attribute_value)
+    return tuple(values)
+
+
+def _iter_distinction_context_tags(distinction_icon_container: Any) -> tuple[Any, ...]:
+    """Return the badge tag and nearest listing card descendants."""
+
+    tags: list[Any] = [distinction_icon_container]
+    card = distinction_icon_container.find_parent(class_="card__menu")
+    if card is not None:
+        tags.append(card)
+        tags.extend(
+            tag
+            for tag in card.find_all(attrs={"data-dtm-distinction": True})
+            if tag is not None
+        )
+        tags.extend(
+            tag
+            for tag in card.find_all(attrs={"data-distinction": True})
+            if tag is not None
+        )
+    return tuple(tags)
+
+
+def _attribute_values_contain_any(values: tuple[str, ...], tokens: tuple[str, ...]) -> bool:
+    return any(token in value.casefold() for value in values for token in tokens)
 
 
 def _extract_award_icon_sources(distinction_icon_container: Any) -> tuple[str, ...]:
