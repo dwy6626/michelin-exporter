@@ -178,6 +178,40 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(assessment.name_match)
         self.assertTrue(assessment.food_service_category)
 
+    def test_localized_subtitle_branch_fixture_matches_known_michelin_row(self) -> None:
+        soup = BeautifulSoup(
+            _read_fixture_text("localized-subtitle-branch-match-n168.html"),
+            "html.parser",
+        )
+        _assert_any_selector_matches(soup, selectors.SEARCH_BOX_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_TITLE_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_SUBTITLE_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_ADDRESS_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_LOCATED_IN_SELECTORS)
+
+        candidate = PlaceCandidate(
+            name=_extract_first_selector_text(soup, selectors.PLACE_TITLE_SELECTORS),
+            subtitle=_extract_first_selector_text(soup, selectors.PLACE_SUBTITLE_SELECTORS),
+            address=_extract_first_selector_text(soup, selectors.PLACE_ADDRESS_SELECTORS),
+            category=_extract_first_selector_text(soup, selectors.PLACE_CATEGORY_SELECTORS),
+            located_in=_extract_first_selector_text(soup, selectors.PLACE_LOCATED_IN_SELECTORS),
+        )
+        assessment = assess_place_match(
+            {
+                "Name": "N°168 Prime牛排館 (中山）",
+                "City": "Taipei, 臺灣",
+                "Address": "中山區敬業四路168號4樓 (維多麗亞酒店), Taipei, 104, 臺灣",
+                "Cuisine": "牛排屋",
+            },
+            candidate,
+        )
+
+        self.assertEqual(candidate.name, "N°168 Prime Steakhouse")
+        self.assertEqual(candidate.subtitle, "N°168 牛排館（大直本館）")
+        self.assertEqual(assessment.strength, "strong")
+        self.assertTrue(assessment.name_match)
+
     def test_save_surface_fixture_matches_driver_selector_groups(self) -> None:
         soup = BeautifulSoup(_read_fixture_text("save-surface.html"), "html.parser")
         _assert_any_selector_matches(soup, list_flow.SAVED_TAB_SELECTORS)

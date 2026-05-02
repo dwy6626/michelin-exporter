@@ -847,6 +847,56 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         )
         first_visible_locator.assert_not_called()
 
+    async def test_verify_note_after_write_reopens_place_when_current_surface_does_not_verify(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+
+        with patch.object(driver, "_confirm_note_persisted_on_place_panel") as current_confirm:
+            with patch.object(
+                driver,
+                "_confirm_note_persisted_after_reopen",
+                return_value=True,
+            ) as reopen_confirm:
+                verified = await driver._verify_note_after_write(
+                    page=page,
+                    list_name="Target List",
+                    note_text="Chef's counter",
+                    current_surface_verified=False,
+                )
+
+        self.assertTrue(verified)
+        current_confirm.assert_not_called()
+        reopen_confirm.assert_called_once_with(
+            page=page,
+            list_name="Target List",
+            note_text="Chef's counter",
+        )
+
+    async def test_confirm_note_persisted_after_reopen_reloads_place_and_reads_note(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+        page.url = "https://www.google.com/maps/place/example"
+        page.goto = AsyncMock()
+
+        with patch.object(driver, "_supports_dom_waits", return_value=True):
+            with patch.object(driver, "_is_save_dialog_visible", return_value=False):
+                with patch.object(driver, "_wait_for_timeout"):
+                    with patch.object(driver, "_wait_for_condition", return_value=True):
+                        with patch.object(driver, "_is_target_note_editor_visible", return_value=False):
+                            with patch.object(driver, "_attempt_expand_place_panel_note_editor", return_value=True):
+                                with patch.object(driver, "_wait_for_place_panel_note_text", return_value=True):
+                                    verified = await driver._confirm_note_persisted_after_reopen(
+                                        page=page,
+                                        list_name="Target List",
+                                        note_text="Chef's counter",
+                                    )
+
+        self.assertTrue(verified)
+        page.goto.assert_called_once_with(
+            "https://www.google.com/maps/place/example",
+            wait_until="domcontentloaded",
+        )
+
     async def test_is_target_note_editor_visible_delegates_to_scoped_dom_probe(self) -> None:
         driver = self._build_driver()
         page = MagicMock()

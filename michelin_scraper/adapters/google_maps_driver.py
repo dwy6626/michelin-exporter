@@ -662,10 +662,11 @@ class GoogleMapsDriver:
                     _log.warning(
                         f"[timing] save.panel_wait_for_note_applied: {(_tn2-_tn1)*1000:.0f}ms  verified={_note_verified!r}"
                     )
-                    if _note_verified and await self._confirm_note_persisted_on_place_panel(
+                    if await self._verify_note_after_write(
                         page=page,
                         list_name=list_name,
                         note_text=note_value_check,
+                        current_surface_verified=_note_verified,
                     ):
                         note_applied = True
                         break
@@ -804,10 +805,11 @@ class GoogleMapsDriver:
                 )
                 _tn3 = monotonic()
                 _log.debug(f"[timing] save.wait_for_note_applied: {(_tn3-_tn2)*1000:.0f}ms  verified={_note_verified!r}")
-                if _note_verified and await self._confirm_note_persisted_on_place_panel(
+                if await self._verify_note_after_write(
                     page=page,
                     list_name=list_name,
                     note_text=note_value,
+                    current_surface_verified=_note_verified,
                 ):
                     note_applied = True
                     break
@@ -1197,6 +1199,26 @@ class GoogleMapsDriver:
             candidate_text=panel_saved_list_name,
         ) >= 2
 
+    async def _verify_note_after_write(
+        self,
+        *,
+        page: Any,
+        list_name: str,
+        note_text: str,
+        current_surface_verified: bool,
+    ) -> bool:
+        if current_surface_verified and await self._confirm_note_persisted_on_place_panel(
+            page=page,
+            list_name=list_name,
+            note_text=note_text,
+        ):
+            return True
+        return await self._confirm_note_persisted_after_reopen(
+            page=page,
+            list_name=list_name,
+            note_text=note_text,
+        )
+
     async def _confirm_note_persisted_on_place_panel(
         self,
         *,
@@ -1231,6 +1253,69 @@ class GoogleMapsDriver:
         if not await self._is_target_note_editor_visible(page=page, list_name=list_name):
             if not await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name):
                 return False
+        return await self._wait_for_place_panel_note_text(
+            page=page,
+            list_name=list_name,
+            note_text=normalized_note_text,
+        )
+
+    async def _confirm_note_persisted_after_reopen(
+        self,
+        *,
+        page: Any,
+        list_name: str,
+        note_text: str,
+    ) -> bool:
+        normalized_note_text = _normalize_note_value(note_text)
+        if not normalized_note_text or not self._supports_dom_waits(page):
+            return False
+
+        if await self._is_save_dialog_visible(page):
+            try:
+                await self._press_keyboard(
+                    page=page,
+                    key="Escape",
+                    step=f"save.dismiss_surface_before_reopen_note_check({list_name})",
+                    error_type=GoogleMapsTransientError,
+                )
+                await self._wait_for_save_dialog_closed(page)
+            except GoogleMapsError:
+                return False
+
+        current_url = self._read_page_url(page)
+        if not current_url:
+            return False
+
+        try:
+            await self._run_browser_step(
+                page=page,
+                step=f"save.reopen_place_for_note_check({list_name})",
+                action=lambda: page.goto(
+                    current_url,
+                    wait_until="domcontentloaded",
+                ),
+                error_type=GoogleMapsTransientError,
+            )
+            await self._wait_for_timeout(
+                page,
+                max(int(self._config.sync_delay_seconds * 1000 * 2), self._UI_ACTION_POLL_INTERVAL_MS),
+                step=f"save.wait_after_reopen_place_for_note_check({list_name})",
+            )
+        except GoogleMapsError:
+            return False
+
+        saved_state_visible = await self._wait_for_condition(
+            page=page,
+            timeout_ms=self._NOTE_CONFIRM_TIMEOUT_MS,
+            predicate=lambda: self._is_saved_state_visible_on_place_panel(page),
+        )
+        if not saved_state_visible:
+            return False
+
+        if not await self._is_target_note_editor_visible(page=page, list_name=list_name):
+            if not await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name):
+                return False
+
         return await self._wait_for_place_panel_note_text(
             page=page,
             list_name=list_name,
