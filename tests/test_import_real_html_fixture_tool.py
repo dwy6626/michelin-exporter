@@ -80,7 +80,7 @@ class ImportRealHtmlFixtureToolTests(unittest.TestCase):
                     "AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0"
                     '&amp;signature=def">'
                     "</head><body>"
-                    '<div class="gb_g"><redacted-account-name></div>'
+                    '<div class="gb_g">Example Account</div>'
                     "</body></html>"
                 ),
                 encoding="utf-8",
@@ -105,7 +105,7 @@ class ImportRealHtmlFixtureToolTests(unittest.TestCase):
             self.assertTrue(html_path.exists())
             html_text = html_path.read_text(encoding="utf-8")
             self.assertNotIn("AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0", html_text)
-            self.assertNotIn('<div class="gb_g"><redacted-account-name></div>', html_text)
+            self.assertNotIn('<div class="gb_g">Example Account</div>', html_text)
             self.assertIn("key=AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000", html_text)
             self.assertIn("&amp;key=AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000", html_text)
             self.assertIn('<div class="gb_g"><redacted-account-name></div>', html_text)

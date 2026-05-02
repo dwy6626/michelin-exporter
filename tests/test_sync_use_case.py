@@ -1346,7 +1346,9 @@ class SyncUseCaseTests(unittest.TestCase):
             "cookie SID=abc123; "
             "url=https://maps.google.com/?access_token=secrettoken "
             "escaped=https://maps.google.com/?center=1,2&amp;key=AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0 "
-            "path=/Users/testuser/.michelin-gmaps-profile"
+            "path=/Users/testuser/.michelin-gmaps-profile "
+            '<div class="gb_g">Example Account</div> '
+            '<a aria-label="Google Account: Example Account  person@example.com">'
             "</body></html>"
         )
 
@@ -1357,11 +1359,14 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertNotIn("access_token=secrettoken", redacted_html)
         self.assertNotIn("AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0", redacted_html)
         self.assertNotIn("/Users/testuser", redacted_html)
+        self.assertNotIn("Example Account", redacted_html)
         self.assertIn("<redacted-email>", redacted_html)
         self.assertIn("SID=<redacted>", redacted_html)
         self.assertIn("access_token=<redacted>", redacted_html)
         self.assertIn("&amp;key=<redacted>", redacted_html)
         self.assertIn("/Users/<redacted-user>", redacted_html)
+        self.assertIn('<div class="gb_g"><redacted-account-name></div>', redacted_html)
+        self.assertIn('aria-label="Google Account: <redacted-account-name>"', redacted_html)
 
     @patch("michelin_scraper.application.sync_use_case.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
