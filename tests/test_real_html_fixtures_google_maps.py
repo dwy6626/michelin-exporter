@@ -4,6 +4,7 @@ import json
 import re
 import unittest
 from pathlib import Path
+from typing import Any
 
 from bs4 import BeautifulSoup
 
@@ -21,6 +22,7 @@ from michelin_scraper.adapters import (
 )
 from michelin_scraper.adapters.google_maps_driver import GoogleMapsDriver, GoogleMapsDriverConfig
 from michelin_scraper.application.html_redaction import find_unredacted_sensitive_markers
+from michelin_scraper.application.place_matcher import PlaceCandidate, assess_place_match
 
 _FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "google_maps"
 _HASTEXT_PATTERN = re.compile(r"^(?P<base>.+):has-text\((?P<quote>['\"])(?P<text>.+)(?P=quote)\)$")
@@ -30,7 +32,7 @@ def _read_fixture_text(filename: str) -> str:
     return (_FIXTURE_DIR / filename).read_text(encoding="utf-8")
 
 
-def _find_matches_with_playwright_like_has_text(soup: BeautifulSoup, selector: str) -> list[object]:
+def _find_matches_with_playwright_like_has_text(soup: BeautifulSoup, selector: str) -> list[Any]:
     if ":has(" in selector and ":has-text(" not in selector:
         return []
     maybe_match = _HASTEXT_PATTERN.match(selector)
@@ -60,6 +62,14 @@ def _assert_any_selector_matches(soup: BeautifulSoup, selector_group: tuple[str,
 
 def _any_selector_matches(soup: BeautifulSoup, selector_group: tuple[str, ...]) -> bool:
     return any(_find_matches_with_playwright_like_has_text(soup, selector) for selector in selector_group)
+
+
+def _extract_first_selector_text(soup: BeautifulSoup, selector_group: tuple[str, ...]) -> str:
+    for selector in selector_group:
+        matches = _find_matches_with_playwright_like_has_text(soup, selector)
+        if matches:
+            return str(matches[0].get_text(" ", strip=True)).strip()
+    return ""
 
 
 class _StaticHtmlPage:
@@ -137,6 +147,36 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         page_text = soup.get_text(" ", strip=True)
         self.assertIn("模咒CURSE", page_text)
         self.assertIn("Xizhi District", page_text)
+
+    def test_single_cjk_gen_fixture_matches_known_michelin_row(self) -> None:
+        soup = BeautifulSoup(
+            _read_fixture_text("single-cjk-gen-weak-match.html"),
+            "html.parser",
+        )
+        _assert_any_selector_matches(soup, selectors.SEARCH_BOX_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_TITLE_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_ADDRESS_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
+
+        candidate = PlaceCandidate(
+            name=_extract_first_selector_text(soup, selectors.PLACE_TITLE_SELECTORS),
+            address=_extract_first_selector_text(soup, selectors.PLACE_ADDRESS_SELECTORS),
+            category=_extract_first_selector_text(soup, selectors.PLACE_CATEGORY_SELECTORS),
+        )
+        assessment = assess_place_match(
+            {
+                "Name": "雋",
+                "City": "Kaohsiung, 臺灣",
+                "Address": "前鎮區復興四路8號, Kaohsiung, 臺灣",
+                "Cuisine": "粵菜",
+            },
+            candidate,
+        )
+
+        self.assertEqual(candidate.name, "雋 中餐廳 GEN")
+        self.assertEqual(assessment.strength, "strong")
+        self.assertTrue(assessment.name_match)
+        self.assertTrue(assessment.food_service_category)
 
     def test_save_surface_fixture_matches_driver_selector_groups(self) -> None:
         soup = BeautifulSoup(_read_fixture_text("save-surface.html"), "html.parser")
