@@ -8,28 +8,32 @@ class SelectorRuleEnforcementTests(unittest.TestCase):
     def test_agents_requires_fixture_based_real_dom_evidence_for_selector_work(self) -> None:
         agents_text = Path("AGENTS.md").read_text(encoding="utf-8")
         self.assertIn(
-            "selectors must be derived from real DOM evidence",
+            "recorded, de-identified real DOM snapshots committed as fixtures",
             agents_text,
         )
         self.assertIn(
-            "Unit tests for Maps selector/note-save behavior must be based on recorded, de-identified HTML snapshots",
+            "synthetic-only DOM guesses are not acceptable coverage",
             agents_text,
         )
         self.assertNotIn("MICHELIN_LIVE_MAPS_TESTS=1", agents_text)
         self.assertIn(
-            "Do not classify selector failures as generic \"selector changed\"",
+            'Do not label selector failures as generic "selector changed"',
             agents_text,
         )
         self.assertIn(
-            "every page-level Maps sync failure must persist an HTML snapshot",
+            "persist every page-level Maps sync failure HTML snapshot",
             agents_text,
         )
         self.assertIn(
-            "debug HTML snapshots must be de-identified",
+            "Persisted debug HTML snapshots must be de-identified",
             agents_text,
         )
         self.assertIn(
-            "Unit tests for Maps selector/note-save behavior must be based on recorded, de-identified HTML snapshots",
+            "Tests and fixtures must never contain real personal account names or account labels",
+            agents_text,
+        )
+        self.assertIn(
+            "Redact Google account display names as `<redacted-account-name>`",
             agents_text,
         )
 

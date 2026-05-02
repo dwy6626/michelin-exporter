@@ -37,6 +37,24 @@ _REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
         re.compile(r"(?i)/Users/[^/\"'<>\\\s]+"),
         "/Users/<redacted-user>",
     ),
+    (
+        re.compile(r'(?s)(<div class="gb_g">)[^<]*(</div>)'),
+        r"\1<redacted-account-name>\2",
+    ),
+    (
+        re.compile(
+            r'(?is)(aria-label="Google Account:)\s*'
+            r'(?!<redacted-account-name>|<redacted-email>)([^"<]*?)(\s*<redacted-email>)(")'
+        ),
+        r"\1 <redacted-account-name>\3\4",
+    ),
+    (
+        re.compile(
+            r'(?is)(aria-label="Google Account:)\s*'
+            r'(?!<redacted-account-name>|<redacted-email>)[^"]*(")'
+        ),
+        r"\1 <redacted-account-name>\2",
+    ),
 )
 
 _UNREDACTED_MARKER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
@@ -67,6 +85,16 @@ _UNREDACTED_MARKER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "user-path",
         re.compile(r"(?i)/Users/(?!<redacted-user>)[^/\"'<>\\\s]+"),
+    ),
+    (
+        "google-account-name",
+        re.compile(r'(?s)<div class="gb_g">(?!<redacted-account-name>)[^<]+</div>'),
+    ),
+    (
+        "google-account-label",
+        re.compile(
+            r'(?is)aria-label="Google Account:(?!\s*(?:<redacted-account-name>|<redacted-email>))[^"]+?"'
+        ),
     ),
 )
 
