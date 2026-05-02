@@ -89,6 +89,26 @@ class PlaceMatcherTests(unittest.TestCase):
         self.assertTrue(assessment.name_match)
         self.assertIn("361", assessment.location_overlap_tokens)
 
+    def test_assess_place_match_accepts_single_cjk_name_token_with_location_anchor(self) -> None:
+        row = {
+            "Name": "雋",
+            "City": "Kaohsiung, 臺灣",
+            "Address": "前鎮區復興四路8號, Kaohsiung, 臺灣",
+            "Cuisine": "粵菜",
+        }
+        candidate = PlaceCandidate(
+            name="雋 中餐廳 GEN",
+            address="No. 8號, Fusing 4th Rd, Cianjhen District, Kaohsiung City, 806",
+            category="中菜館",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertEqual(assessment.strength, "strong")
+        self.assertTrue(assessment.name_match)
+        self.assertTrue(assessment.food_service_category)
+        self.assertIn("8", assessment.location_overlap_tokens)
+
     def test_assess_place_match_rejects_cjk_substring_match_with_wrong_city(self) -> None:
         row = {
             "Name": "繡球",

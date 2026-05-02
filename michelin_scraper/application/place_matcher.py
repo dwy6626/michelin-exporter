@@ -69,6 +69,8 @@ _FOOD_SERVICE_CATEGORY_KEYWORDS = (
     "italian",
     "asian",
     "餐廳",
+    "菜館",
+    "中菜",
     "料理",
     "食堂",
     "居酒屋",
@@ -185,16 +187,18 @@ def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
         return True
     if len(candidate_name_tokens) >= 2 and candidate_name_tokens.issubset(row_name_tokens):
         return True
-    # Single-token name: accept when the token appears in a short candidate name
-    # (e.g. "Lin" → "Lin Restaurant") to avoid over-matching generic words.
-    # Limit to 2 candidate tokens to prevent false positives like
-    # "Lin" → "Dr. Lin Dermatology".
+    # Single-token name: accept Latin tokens only in short candidate names
+    # (e.g. "Lin" -> "Lin Restaurant") to avoid generic-word over-matches.
+    # Exact single-CJK-token names are common in Taiwan restaurant data and
+    # remain precise when the token is space-separated in the Maps title.
     if (
         len(row_name_tokens) == 1
         and row_name_tokens.issubset(candidate_name_tokens)
-        and len(candidate_name_tokens) <= 2
     ):
-        return True
+        if _contains_cjk_characters(next(iter(row_name_tokens))):
+            return True
+        if len(candidate_name_tokens) <= 2:
+            return True
     if _is_confident_cjk_substring_match(row_name, candidate_name):
         return True
     if _is_confident_latin_substring_match(row_name, candidate_name):
