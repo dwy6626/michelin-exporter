@@ -7,7 +7,10 @@ from typing import Any, Literal
 MatchStrength = Literal["strong", "medium", "weak"]
 _POSTAL_CODE_PATTERN = re.compile(r"\b\d{3}-\d{4}\b|\b\d{7}\b")
 _WORD_OR_NUMBER_PATTERN = re.compile(r"[^\W\d_]+|\d+")
+_ASCII_WORD_OR_NUMBER_PATTERN = re.compile(r"[a-z0-9]+")
 _CJK_CHARACTER_PATTERN = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+_CJK_SEQUENCE_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
+_PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
 _COORDINATE_DMS_PATTERN = re.compile(
     r"""^\s*
     \d{1,3}\s*°\s*\d{1,2}\s*['′]\s*\d{1,2}(?:\.\d+)?\s*["″]\s*[NS]
@@ -91,6 +94,14 @@ _FOOD_SERVICE_CATEGORY_KEYWORDS = (
     "茶館",
     "燒肉",
 )
+_GENERIC_CJK_NAME_TOKENS = {
+    "小料理",
+    "料理",
+    "餐廳",
+    "牛排館",
+    "牛排",
+    "小吃",
+}
 
 
 @dataclass(frozen=True)
@@ -201,6 +212,10 @@ def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
             return True
     if _is_confident_cjk_substring_match(row_name, candidate_name):
         return True
+    if _has_branch_stripped_cjk_name_match(row_name, candidate_name):
+        return True
+    if _has_branch_stripped_latin_name_match(row_name, candidate_name):
+        return True
     if _is_confident_latin_substring_match(row_name, candidate_name):
         return True
     return False
@@ -208,6 +223,53 @@ def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
 
 def _contains_cjk_characters(value: str) -> bool:
     return bool(_CJK_CHARACTER_PATTERN.search(value))
+
+
+def _strip_parenthetical_segments(value: str) -> str:
+    return _PARENTHETICAL_SEGMENT_PATTERN.sub(" ", value).strip()
+
+
+def _primary_cjk_name_tokens(value: str) -> tuple[str, ...]:
+    stripped_value = _strip_parenthetical_segments(value)
+    return tuple(
+        token
+        for token in _CJK_SEQUENCE_PATTERN.findall(stripped_value)
+        if len(token) >= 3 and token not in _GENERIC_CJK_NAME_TOKENS
+    )
+
+
+def _has_branch_stripped_cjk_name_match(row_name: str, candidate_name: str) -> bool:
+    row_tokens = _primary_cjk_name_tokens(row_name)
+    if not row_tokens:
+        return False
+    candidate_text = _normalize_text(candidate_name)
+    candidate_tokens = _primary_cjk_name_tokens(candidate_name)
+    for row_token in row_tokens:
+        if row_token in candidate_tokens or row_token in candidate_text:
+            return True
+    return False
+
+
+def _branch_stripped_latin_name_tokens(value: str) -> set[str]:
+    stripped_value = _strip_parenthetical_segments(value)
+    return set(_ASCII_WORD_OR_NUMBER_PATTERN.findall(_normalize_text(stripped_value)))
+
+
+def _has_branch_stripped_latin_name_match(row_name: str, candidate_name: str) -> bool:
+    row_tokens = _branch_stripped_latin_name_tokens(row_name)
+    candidate_tokens = _branch_stripped_latin_name_tokens(candidate_name)
+    meaningful_row_tokens = {
+        token
+        for token in row_tokens
+        if token.isdigit() or len(token) >= _LATIN_SUBSTRING_MIN_LENGTH
+    }
+    has_alpha_anchor = any(
+        token.isalpha() and len(token) >= _LATIN_SUBSTRING_MIN_LENGTH
+        for token in meaningful_row_tokens
+    )
+    if len(meaningful_row_tokens) < 2 or not has_alpha_anchor:
+        return False
+    return meaningful_row_tokens.issubset(candidate_tokens)
 
 
 def _is_confident_cjk_substring_match(row_name: str, candidate_name: str) -> bool:

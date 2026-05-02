@@ -772,6 +772,16 @@ class GoogleMapsSyncWriter:
                     row_name=str(row.get("Name", "")),
                 )
 
+                if exc.place_saved:
+                    self._debug_log(
+                        f"Place was saved before note verification failed; "
+                        f"recording row as synced without retrying save. "
+                        f"level={level_slug} name='{row.get('Name', '')}'"
+                    )
+                    if not probe_only:
+                        self._record_row_synced(row_key, level_slug=level_slug, list_name=list_name)
+                    return _RowSyncOutcome(status=_ROW_STATUS_ADDED, failure=None)
+
                 if attempt_index < self._max_save_retries:
                     self._debug_log(
                         f"Reloading Maps page before retry after note write failure. "

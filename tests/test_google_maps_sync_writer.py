@@ -480,7 +480,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(captured.exception.added_count_by_level["one-star"], 0)
             self.assertEqual(captured.exception.skipped_count_by_level["one-star"], 0)
 
-    async def test_sync_rows_by_level_fails_when_note_write_fails_even_if_place_saved(self) -> None:
+    async def test_sync_rows_by_level_records_added_when_note_write_fails_after_place_saved(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()
             writer = self._build_writer(temp_dir, on_missing_list="stop", driver=fake_driver)
@@ -498,18 +498,17 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 place_saved=True,
             )
 
-            with self.assertRaises(GoogleMapsRowSyncFailFastError) as captured:
-                await writer.sync_rows_by_level(
-                    {
-                        "one-star": [
-                            {"Name": "Alpha", "City": "Taipei", "Cuisine": "Jiangzhe"},
-                        ]
-                    }
-                )
+            result = await writer.sync_rows_by_level(
+                {
+                    "one-star": [
+                        {"Name": "Alpha", "City": "Taipei", "Cuisine": "Jiangzhe"},
+                    ]
+                }
+            )
 
-            self.assertEqual(captured.exception.failure.restaurant_name, "Alpha")
-            self.assertTrue(captured.exception.failure.reason.startswith("NoteWriteFailed:"))
-            self.assertIn("Place saved before note failure: yes", captured.exception.failure.reason)
+            self.assertEqual(result.added_count_by_level["one-star"], 1)
+            self.assertEqual(result.skipped_count_by_level["one-star"], 0)
+            self.assertEqual(len(result.failed_items), 0)
 
     async def test_sync_rows_by_level_treats_place_already_saved_as_success_after_note_write_retry(
         self,
@@ -585,12 +584,11 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 "2025 | Bib Gourmand | Taiwanese | updated 2026-05-01\nAuthentic Cuisine",
             )
 
-    async def test_sync_rows_by_level_treats_transient_retry_failure_as_success_when_place_already_saved(
+    async def test_sync_rows_by_level_does_not_retry_note_failure_when_place_already_saved(
         self,
     ) -> None:
-        """Regression test: if attempt 1 saves the place but the note write fails,
-        and attempt 2 fails with a transient error (e.g. search timeout), the row
-        should still be treated as success because the place was already saved."""
+        """Regression test: if note verification fails after the save was applied,
+        do not retry the save path and risk duplicating or reprocessing the row."""
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()
             writer = GoogleMapsSyncWriter(
@@ -657,11 +655,13 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 }
             )
 
-            # The place was saved in attempt 1 (note write failed), and attempt 2
-            # hit a transient search error. The row should be treated as success
-            # (skipped) because the place is already in the list.
+            # The place was saved in attempt 1 and note verification failed. The row
+            # should be treated as added without a second search/save attempt.
             self.assertEqual(len(result.failed_items), 0)
-            self.assertEqual(result.skipped_count_by_level["bib-gourmand"], 1)
+            self.assertEqual(result.added_count_by_level["bib-gourmand"], 1)
+            self.assertEqual(result.skipped_count_by_level["bib-gourmand"], 0)
+            self.assertEqual(search_call_count, 1)
+            self.assertEqual(save_call_count, 1)
 
     async def test_sync_rows_by_level_continue_policy_keeps_processing_after_row_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
