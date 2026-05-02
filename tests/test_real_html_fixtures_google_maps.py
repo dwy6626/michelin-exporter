@@ -103,6 +103,41 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
         _assert_any_selector_matches(soup, save_flow.SAVE_BUTTON_SELECTORS)
 
+    def test_nested_business_false_positive_fixture_exposes_located_in_signal(self) -> None:
+        soup = BeautifulSoup(
+            _read_fixture_text("nested-business-false-positive-yangming.html"),
+            "html.parser",
+        )
+        _assert_any_selector_matches(soup, selectors.PLACE_TITLE_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_ADDRESS_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_LOCATED_IN_SELECTORS)
+
+    def test_address_only_false_positive_fixture_exposes_food_place_signals(self) -> None:
+        soup = BeautifulSoup(
+            _read_fixture_text("address-only-false-positive-monsoon.html"),
+            "html.parser",
+        )
+        _assert_any_selector_matches(soup, selectors.SEARCH_BOX_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_TITLE_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_ADDRESS_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
+        _assert_any_selector_matches(soup, save_flow.SAVE_BUTTON_SELECTORS)
+        self.assertFalse(_any_selector_matches(soup, selectors.PLACE_LOCATED_IN_SELECTORS))
+
+    def test_wrong_candidate_curse_fixture_exposes_wrong_city_food_place_signals(self) -> None:
+        soup = BeautifulSoup(
+            _read_fixture_text("wrong-candidate-curse.html"),
+            "html.parser",
+        )
+        _assert_any_selector_matches(soup, selectors.SEARCH_BOX_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_TITLE_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_ADDRESS_SELECTORS)
+        _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
+        page_text = soup.get_text(" ", strip=True)
+        self.assertIn("模咒CURSE", page_text)
+        self.assertIn("Xizhi District", page_text)
+
     def test_save_surface_fixture_matches_driver_selector_groups(self) -> None:
         soup = BeautifulSoup(_read_fixture_text("save-surface.html"), "html.parser")
         _assert_any_selector_matches(soup, list_flow.SAVED_TAB_SELECTORS)

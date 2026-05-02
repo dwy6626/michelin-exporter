@@ -144,6 +144,12 @@ Checkpoint and journal serve different purposes:
 - Checkpoint controls where crawl resumes next.
 - Journal stores only rows that were confirmed as successfully synced.
 
+When debug logging is enabled, Maps sync logs every accepted and rejected
+row-to-candidate decision with the source row name, query string, candidate
+name/address/category, and match signals. Taiwan rows with district-level
+address text also try a narrowed `name + district` query before broader
+city-level queries, for example `首烏 板橋區` before `首烏 New Taipei, 臺灣`.
+
 If a run is interrupted or partially fails, retry with the same `--state-dir`
 and `--ignore-checkpoint`. This reprocesses from page 1 while safely skipping
 rows already recorded in the journal.

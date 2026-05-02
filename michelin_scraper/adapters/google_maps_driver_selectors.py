@@ -51,8 +51,13 @@ PLACE_ADDRESS_SELECTORS = (
     "button[aria-label^='Address']",
 )
 PLACE_CATEGORY_SELECTORS = (
+    "button[jsaction*='category']",
     "button[jsaction*='pane.rating.category']",
     "button[aria-label*='Category']",
+)
+PLACE_LOCATED_IN_SELECTORS = (
+    "button[data-item-id='locatedin']",
+    "button[aria-label^='Located in:']",
 )
 ADD_PLACE_INPUT_SELECTORS = (
     "input[aria-label*='Search for a place to add']",

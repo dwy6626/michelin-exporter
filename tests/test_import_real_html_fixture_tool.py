@@ -76,6 +76,9 @@ class ImportRealHtmlFixtureToolTests(unittest.TestCase):
                     '<meta content="https://maps.google.com/maps/api/staticmap?key='
                     "AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0"
                     '&signature=abc">'
+                    '<meta content="https://maps.google.com/maps/api/staticmap?center=1,2&amp;key='
+                    "AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0"
+                    '&amp;signature=def">'
                     "</head><body>"
                     '<div class="gb_g"><redacted-account-name></div>'
                     "</body></html>"
@@ -104,6 +107,7 @@ class ImportRealHtmlFixtureToolTests(unittest.TestCase):
             self.assertNotIn("AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0", html_text)
             self.assertNotIn('<div class="gb_g"><redacted-account-name></div>', html_text)
             self.assertIn("key=AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000", html_text)
+            self.assertIn("&amp;key=AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000", html_text)
             self.assertIn('<div class="gb_g"><redacted-account-name></div>', html_text)
 
 

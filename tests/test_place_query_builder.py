@@ -28,6 +28,57 @@ class PlaceQueryBuilderTests(unittest.TestCase):
             ),
         )
 
+    def test_build_place_query_attempts_prioritizes_taiwan_district_hint(self) -> None:
+        row = {
+            "Name": "首烏",
+            "City": "New Taipei, 臺灣",
+            "Address": "板橋區民族路27號",
+            "Cuisine": "客家菜",
+        }
+
+        attempts = build_place_query_attempts(row)
+
+        self.assertEqual(
+            attempts,
+            (
+                "首烏 板橋區",
+                "首烏 New Taipei, 臺灣",
+                "首烏",
+                "板橋區民族路27號",
+                "首烏 客家菜 板橋區",
+                "首烏 客家菜 New Taipei, 臺灣",
+            ),
+        )
+
+    def test_build_place_query_attempts_prioritizes_local_name_with_taiwan_district_hint(self) -> None:
+        row = {
+            "Name": "Shou Wu",
+            "NameLocal": "首烏",
+            "City": "New Taipei, 臺灣",
+            "Address": "板橋區民族路27號",
+            "Cuisine": "Hakkanese",
+        }
+
+        attempts = build_place_query_attempts(row)
+
+        self.assertEqual(attempts[0], "首烏 板橋區")
+        self.assertLess(
+            attempts.index("Shou Wu 板橋區"),
+            attempts.index("Shou Wu New Taipei, 臺灣"),
+        )
+
+    def test_build_place_query_attempts_extracts_city_level_hint_after_county(self) -> None:
+        row = {
+            "Name": "Example",
+            "City": "Hsinchu County, 臺灣",
+            "Address": "302新竹縣竹北市成功一街20號",
+            "Cuisine": "",
+        }
+
+        attempts = build_place_query_attempts(row)
+
+        self.assertEqual(attempts[0], "Example 竹北市")
+
     def test_build_place_query_attempts_removes_empty_and_duplicates(self) -> None:
         row = {
             "Name": "Alpha",
