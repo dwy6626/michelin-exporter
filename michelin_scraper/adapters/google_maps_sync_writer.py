@@ -10,7 +10,7 @@ from time import monotonic
 from typing import Any
 
 from ..application.html_redaction import find_unredacted_sensitive_markers, redact_html_text
-from ..application.place_matcher import PlaceCandidate, assess_place_match
+from ..application.place_matcher import PlaceCandidate, PlaceMatchAssessment, assess_place_match
 from ..application.place_query_builder import build_place_query_attempts
 from ..application.row_identity import build_row_identity_key
 from ..application.sync_enums import SyncRowStatus
@@ -936,36 +936,41 @@ class GoogleMapsSyncWriter:
                 and match_assessment.city_in_candidate_address
                 and candidate.address
                 and not match_assessment.coordinate_like_candidate_name
+                and not match_assessment.located_in_match
+                and _has_specific_location_match(match_assessment)
+                and (
+                    not match_assessment.informative_category
+                    or match_assessment.food_service_category
+                )
             ):
-                # Cross-script fallback: trust the search engine's name matching
-                # when the candidate is in the correct city and has a loaded place detail.
-                # This handles cases where Maps returns English-translated names for
-                # CJK restaurants (e.g. 南村 → "Nancun" or 無名推車燒餅 → "No Name Cart").
+                # Cross-script fallback: trust the search engine's name matching only
+                # when the candidate also has a concrete non-city location anchor.
+                # City-only restaurant matches are too broad and can save unrelated
+                # businesses in the same city.
                 match_strength = "medium"
                 self._debug_log(
                     f"Cross-script city fallback: upgraded '{_row_name}' from weak to medium "
                     f"(city_in_address=True, candidate='{candidate.name}')."
                 )
+            if _is_address_only_query(query=query, row=row) and not match_assessment.name_match:
+                # Address-only fallback queries are too risky to accept when
+                # the candidate title itself does not match the Michelin row.
+                # Otherwise any restaurant at the same address can be saved,
+                # including a neighboring venue surfaced for the address pin.
+                match_strength = "weak"
+                self._debug_log(
+                    f"Address-only fallback rejected name-mismatched candidate for row '{_row_name}' "
+                    f"(candidate='{candidate.name}')."
+                )
             if match_strength == "weak":
-                location_overlap = ", ".join(match_assessment.location_overlap_tokens) or "<none>"
-                cuisine_overlap = ", ".join(match_assessment.cuisine_overlap_tokens) or "<none>"
-                postal_overlap = ", ".join(match_assessment.postal_code_overlap_tokens) or "<none>"
                 self._debug_log(
                     f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=weak_match"
                 )
                 self._debug_log(
-
-                        f"Weak place match for row '{_row_name}' on query '{query}'. "
-                        "Trying next query. "
-                        f"Candidate(name='{candidate.name}', address='{candidate.address}', "
-                        f"category='{candidate.category}'). "
-                        f"Signals(name_match={match_assessment.name_match}, "
-                        f"city_in_address={match_assessment.city_in_candidate_address}, "
-                        f"coordinate_like_name={match_assessment.coordinate_like_candidate_name}, "
-                        f"location_overlap={location_overlap}, "
-                        f"postal_overlap={postal_overlap}, "
-                        f"cuisine_overlap={cuisine_overlap})."
-
+                    f"Weak place match for row '{_row_name}' on query '{query}'. "
+                    "Trying next query. "
+                    f"{_format_place_candidate_debug(candidate)}. "
+                    f"{_format_match_assessment_debug(match_assessment)}."
                 )
                 await self._capture_debug_snapshot(
                     context="search-weak-match",
@@ -975,6 +980,11 @@ class GoogleMapsSyncWriter:
             saw_matchable_candidate = True
             self._debug_log(
                 f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result={match_strength}_match"
+            )
+            self._debug_log(
+                f"Accepted Maps candidate for row '{_row_name}' on query '{query}'. "
+                f"{_format_place_candidate_debug(candidate)}. "
+                f"{_format_match_assessment_debug(match_assessment)}."
             )
 
             if probe_only:
@@ -1083,6 +1093,55 @@ _COORDINATE_QUERY_PATTERN = re.compile(
 
 def _is_coordinate_query(query: str) -> bool:
     return bool(_COORDINATE_QUERY_PATTERN.fullmatch(query))
+
+
+def _is_address_only_query(*, query: str, row: Mapping[str, Any]) -> bool:
+    return _normalize_note_line(query).casefold() == _normalize_note_line(row.get("Address", "")).casefold()
+
+
+def _has_specific_location_match(assessment: PlaceMatchAssessment) -> bool:
+    if assessment.postal_code_overlap_tokens:
+        return True
+    for token in assessment.street_overlap_tokens:
+        if token.isdigit() and len(token) >= 2:
+            return True
+        if not token.isdigit() and len(token) > 1:
+            return True
+    return False
+
+
+def _format_place_candidate_debug(candidate: PlaceCandidate) -> str:
+    return (
+        "Candidate("
+        f"name={candidate.name!r}, "
+        f"address={candidate.address!r}, "
+        f"category={candidate.category!r}, "
+        f"subtitle={candidate.subtitle!r}, "
+        f"located_in={candidate.located_in!r}"
+        ")"
+    )
+
+
+def _format_match_assessment_debug(assessment: PlaceMatchAssessment) -> str:
+    location_overlap = ", ".join(assessment.location_overlap_tokens) or "<none>"
+    street_overlap = ", ".join(assessment.street_overlap_tokens) or "<none>"
+    postal_overlap = ", ".join(assessment.postal_code_overlap_tokens) or "<none>"
+    cuisine_overlap = ", ".join(assessment.cuisine_overlap_tokens) or "<none>"
+    return (
+        "Signals("
+        f"strength={assessment.strength}, "
+        f"name_match={assessment.name_match}, "
+        f"located_in_match={assessment.located_in_match}, "
+        f"city_in_address={assessment.city_in_candidate_address}, "
+        f"coordinate_like_name={assessment.coordinate_like_candidate_name}, "
+        f"informative_category={assessment.informative_category}, "
+        f"food_service_category={assessment.food_service_category}, "
+        f"location_overlap={location_overlap}, "
+        f"street_overlap={street_overlap}, "
+        f"postal_overlap={postal_overlap}, "
+        f"cuisine_overlap={cuisine_overlap}"
+        ")"
+    )
 
 
 def _is_saved_list_landing_candidate(*, candidate: PlaceCandidate, list_name: str) -> bool:

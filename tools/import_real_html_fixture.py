@@ -15,7 +15,13 @@ from michelin_scraper.application.html_redaction import (
 
 _FIXTURE_REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (
-        re.compile(r"(?i)([?&]key=)(?:AIza[0-9A-Za-z_-]{20,}|[^&#\"'\s]+)"),
+        re.compile(
+            r"AIza(?:<redacted>|(?!SyFAKE_KEY_FOR_TESTING_ONLY_00000000)[0-9A-Za-z_-]{20,})"
+        ),
+        "AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000",
+    ),
+    (
+        re.compile(r"(?i)([?&](?:amp;)?key=)(?:AIza[0-9A-Za-z_-]{20,}|[^&#\"'\s]+)"),
         r"\1AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000",
     ),
     (
@@ -27,7 +33,7 @@ _FIXTURE_REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 _FIXTURE_UNREDACTED_MARKER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "google-api-key",
-        re.compile(r"(?i)[?&]key=AIza(?!SyFAKE_KEY_FOR_TESTING_ONLY_00000000)[0-9A-Za-z_-]{20,}"),
+        re.compile(r"AIza(?!SyFAKE_KEY_FOR_TESTING_ONLY_00000000)[0-9A-Za-z_-]{20,}"),
     ),
     (
         "google-account-name",

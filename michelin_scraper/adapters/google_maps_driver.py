@@ -140,6 +140,7 @@ class GoogleMapsDriver:
     _PLACE_SUBTITLE_SELECTORS = selectors.PLACE_SUBTITLE_SELECTORS
     _PLACE_ADDRESS_SELECTORS = selectors.PLACE_ADDRESS_SELECTORS
     _PLACE_CATEGORY_SELECTORS = selectors.PLACE_CATEGORY_SELECTORS
+    _PLACE_LOCATED_IN_SELECTORS = selectors.PLACE_LOCATED_IN_SELECTORS
     _ADD_PLACE_INPUT_SELECTORS = selectors.ADD_PLACE_INPUT_SELECTORS
     _SAVE_BUTTON_SELECTORS = save_flow.SAVE_BUTTON_SELECTORS
     _SAVE_CONTROL_TEXT_TOKENS = save_flow.SAVE_CONTROL_TEXT_TOKENS
@@ -568,11 +569,18 @@ class GoogleMapsDriver:
             address_text = await self._extract_address_fallback(page)
         category_text = await self._extract_text(page, self._PLACE_CATEGORY_SELECTORS)
         subtitle_text = await self._extract_text(page, self._PLACE_SUBTITLE_SELECTORS)
+        located_in_text = await self._extract_text(page, self._PLACE_LOCATED_IN_SELECTORS)
         _t7 = monotonic()
         _log.debug(f"[timing] extract_place_metadata: {(_t7-_t6)*1000:.0f}ms  title={title_text!r}  subtitle={subtitle_text!r}")
         _log.debug(f"[timing] TOTAL search_and_open_first_result: {(_t7-_t0)*1000:.0f}ms")
         await self._cache_page_html_snapshot(page)
-        return PlaceCandidate(name=title_text, address=address_text, category=category_text, subtitle=subtitle_text)
+        return PlaceCandidate(
+            name=title_text,
+            address=address_text,
+            category=category_text,
+            subtitle=subtitle_text,
+            located_in=located_in_text,
+        )
 
     async def save_current_place_to_list(self, list_name: str, note_text: str = "") -> bool:
         """Save currently opened place into a specific list."""
@@ -625,14 +633,14 @@ class GoogleMapsDriver:
                     raise GoogleMapsPlaceAlreadySavedError(
                         f"Current place is already saved in list '{list_name}'."
                     )
-                if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is None:
+                if not await self._is_target_note_editor_visible(page=page, list_name=list_name):
                     await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
 
                 note_applied = False
                 for _note_attempt in range(self._NOTE_WRITE_MAX_ATTEMPTS):
                     _tn0 = monotonic()
                     _log.debug(f"[timing] save.panel_note_attempt={_note_attempt + 1}")
-                    if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is None:
+                    if not await self._is_target_note_editor_visible(page=page, list_name=list_name):
                         await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
                     _note_written = await self._try_apply_note_to_saved_place(
                         page=page,
@@ -654,7 +662,11 @@ class GoogleMapsDriver:
                     _log.warning(
                         f"[timing] save.panel_wait_for_note_applied: {(_tn2-_tn1)*1000:.0f}ms  verified={_note_verified!r}"
                     )
-                    if _note_verified:
+                    if _note_verified and await self._confirm_note_persisted_on_place_panel(
+                        page=page,
+                        list_name=list_name,
+                        note_text=note_value_check,
+                    ):
                         note_applied = True
                         break
                 if not note_applied:
@@ -792,7 +804,11 @@ class GoogleMapsDriver:
                 )
                 _tn3 = monotonic()
                 _log.debug(f"[timing] save.wait_for_note_applied: {(_tn3-_tn2)*1000:.0f}ms  verified={_note_verified!r}")
-                if _note_verified:
+                if _note_verified and await self._confirm_note_persisted_on_place_panel(
+                    page=page,
+                    list_name=list_name,
+                    note_text=note_value,
+                ):
                     note_applied = True
                     break
             if not note_applied:
@@ -1171,8 +1187,118 @@ class GoogleMapsDriver:
             if await self._did_list_selection_apply(page, list_name, list_selector):
                 return True
         except Exception:  # noqa: BLE001
+            pass
+        try:
+            panel_saved_list_name = await self._resolve_panel_saved_list_name(page)
+        except Exception:  # noqa: BLE001
             return False
-        return False
+        return self._list_name_match_score(
+            list_name=list_name,
+            candidate_text=panel_saved_list_name,
+        ) >= 2
+
+    async def _confirm_note_persisted_on_place_panel(
+        self,
+        *,
+        page: Any,
+        list_name: str,
+        note_text: str,
+    ) -> bool:
+        normalized_note_text = _normalize_note_value(note_text)
+        if not normalized_note_text:
+            return False
+        if await self._is_save_dialog_visible(page):
+            await self._press_keyboard(
+                page=page,
+                key="Escape",
+                step=f"save.dismiss_surface_for_note_persistence_check({list_name})",
+                error_type=GoogleMapsTransientError,
+            )
+            await self._wait_for_timeout(
+                page,
+                int(self._config.sync_delay_seconds * 1000),
+                step=f"save.wait_after_dismiss_for_note_persistence_check({list_name})",
+            )
+            await self._wait_for_save_dialog_closed(page)
+
+        panel_saved_list_name = await self._resolve_panel_saved_list_name(page)
+        if self._list_name_match_score(
+            list_name=list_name,
+            candidate_text=panel_saved_list_name,
+        ) < 2:
+            return False
+
+        if not await self._is_target_note_editor_visible(page=page, list_name=list_name):
+            if not await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name):
+                return False
+        return await self._wait_for_place_panel_note_text(
+            page=page,
+            list_name=list_name,
+            note_text=normalized_note_text,
+        )
+
+    async def _wait_for_place_panel_note_text(self, *, page: Any, list_name: str, note_text: str) -> bool:
+        if await self._is_place_panel_note_text_applied(page=page, list_name=list_name, note_text=note_text):
+            return True
+        if not self._supports_dom_waits(page):
+            return False
+        return await self._wait_for_condition(
+            page=page,
+            timeout_ms=self._NOTE_CONFIRM_TIMEOUT_MS,
+            predicate=lambda: self._is_place_panel_note_text_applied(
+                page=page,
+                list_name=list_name,
+                note_text=note_text,
+            ),
+        )
+
+    async def _is_place_panel_note_text_applied(self, *, page: Any, list_name: str, note_text: str) -> bool:
+        normalized_note_text = _normalize_note_value(note_text)
+        if not normalized_note_text:
+            return False
+        if self._supports_dom_waits(page):
+            return await self._is_scoped_note_text_applied_via_js(
+                page=page,
+                list_name=list_name,
+                note_text=normalized_note_text,
+            )
+        note_input = await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS)
+        if note_input is None:
+            return False
+        return _note_text_matches(
+            actual_value=await self._read_locator_text_value(note_input),
+            expected_value=normalized_note_text,
+        )
+
+    async def _is_target_note_editor_visible(self, *, page: Any, list_name: str) -> bool:
+        if not self._supports_dom_waits(page):
+            return await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is not None
+        try:
+            return bool(await page.evaluate(_SCOPED_NOTE_FIELD_JS, {"mode": "visible", "listName": list_name}))
+        except Exception:  # noqa: BLE001
+            return False
+
+    async def _set_scoped_note_text_via_js(self, *, page: Any, list_name: str, note_text: str) -> bool:
+        try:
+            return bool(
+                await page.evaluate(
+                    _SCOPED_NOTE_FIELD_JS,
+                    {"mode": "set", "listName": list_name, "noteText": note_text},
+                )
+            )
+        except Exception:  # noqa: BLE001
+            return False
+
+    async def _is_scoped_note_text_applied_via_js(self, *, page: Any, list_name: str, note_text: str) -> bool:
+        try:
+            return bool(
+                await page.evaluate(
+                    _SCOPED_NOTE_FIELD_JS,
+                    {"mode": "matches", "listName": list_name, "noteText": note_text},
+                )
+            )
+        except Exception:  # noqa: BLE001
+            return False
 
     async def _click_save_control_with_retry(self, *, page: Any, list_name: str) -> str:
         last_click_error: GoogleMapsTransientError | None = None
@@ -1232,6 +1358,12 @@ class GoogleMapsDriver:
     async def _try_apply_note_to_saved_place(self, *, page: Any, list_name: str, note_text: str) -> bool:
         if not note_text:
             return False
+        if self._supports_dom_waits(page):
+            return await self._set_scoped_note_text_via_js(
+                page=page,
+                list_name=list_name,
+                note_text=note_text,
+            )
         note_input = await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS)
         if note_input is not None:
             try:
@@ -1275,130 +1407,12 @@ class GoogleMapsDriver:
                 return True
             except GoogleMapsError:
                 return False
-        if not self._supports_dom_waits(page):
-            return False
-
-        script_payload = {
-            "listName": list_name,
-            "noteText": note_text,
-            "noteKeywords": self._SAVE_DIALOG_NOTE_KEYWORDS,
-        }
-        try:
-            return bool(
-                await page.evaluate(
-                    """({ listName, noteText, noteKeywords }) => {
-                        const normalize = (value) => String(value || '')
-                          .toLowerCase()
-                          .replace(/\\s+/g, ' ')
-                          .trim();
-
-                        const isVisible = (element) => {
-                          if (!element) return false;
-                          const style = window.getComputedStyle(element);
-                          if (!style || style.visibility === 'hidden' || style.display === 'none') {
-                            return false;
-                          }
-                          const rect = element.getBoundingClientRect();
-                          return rect.width > 0 && rect.height > 0;
-                        };
-
-                        const readLabel = (element) => normalize(
-                          [
-                            (element.getAttribute && element.getAttribute('aria-label')) || '',
-                            (element.getAttribute && element.getAttribute('placeholder')) || '',
-                            element.innerText || '',
-                            element.textContent || '',
-                          ].join(' ')
-                        );
-
-                        const setFieldValue = (element) => {
-                          if (!element || !isVisible(element)) return false;
-                          const tagName = String(element.tagName || '').toLowerCase();
-                          const isInputLike = tagName === 'textarea' || tagName === 'input';
-                          if (isInputLike) {
-                            if (element.disabled || element.readOnly) return false;
-                            element.focus();
-                            element.value = noteText;
-                            element.dispatchEvent(new Event('input', { bubbles: true }));
-                            element.dispatchEvent(new Event('change', { bubbles: true }));
-                            element.blur();
-                            return true;
-                          }
-                          if (element.isContentEditable) {
-                            element.focus();
-                            element.innerText = noteText;
-                            element.dispatchEvent(new Event('input', { bubbles: true }));
-                            element.blur();
-                            return true;
-                          }
-                          return false;
-                        };
-
-                        const findEditableFields = (root) => {
-                          if (!root) return [];
-                          return Array.from(
-                            root.querySelectorAll(
-                              "textarea, input, [contenteditable='true'], [role='textbox']"
-                            )
-                          );
-                        };
-
-                        const normalizedTarget = normalize(listName);
-                        const surfaceRoots = Array.from(
-                          document.querySelectorAll("div[role='dialog'], [role='menu'], div[role='main']")
-                        ).filter(isVisible);
-
-                        const rowCandidatesSelector = (
-                          "[role='checkbox'], [role='menuitemcheckbox'], [role='menuitemradio'], " +
-                          "button, [role='button'], [role='menuitem']"
-                        );
-
-                        for (const surfaceRoot of surfaceRoots) {
-                          const rowCandidates = Array.from(
-                            surfaceRoot.querySelectorAll(rowCandidatesSelector)
-                          );
-                          for (const rowCandidate of rowCandidates) {
-                            const rowText = readLabel(rowCandidate);
-                            if (!normalizedTarget || !rowText.includes(normalizedTarget)) continue;
-                            const ancestry = [
-                              rowCandidate,
-                              rowCandidate.parentElement,
-                              rowCandidate.parentElement ? rowCandidate.parentElement.parentElement : null,
-                            ];
-                            for (const ancestor of ancestry) {
-                              if (!ancestor) continue;
-                              for (const field of findEditableFields(ancestor)) {
-                                if (setFieldValue(field)) return true;
-                              }
-                            }
-                          }
-                        }
-
-                        const keywordSet = new Set((noteKeywords || []).map(normalize).filter(Boolean));
-                        for (const surfaceRoot of surfaceRoots) {
-                          for (const field of findEditableFields(surfaceRoot)) {
-                            const label = readLabel(field);
-                            if (!label) continue;
-                            const hasKeyword = Array.from(keywordSet).some(
-                              (keyword) => label.includes(keyword)
-                            );
-                            if (!hasKeyword) continue;
-                            if (setFieldValue(field)) return true;
-                          }
-                        }
-
-                        return false;
-                    }""",
-                    script_payload,
-                )
-            )
-        except Exception:  # noqa: BLE001
-            return False
+        return False
 
     async def _ensure_save_dialog_ready_for_note(self, *, page: Any, list_name: str) -> bool:
         import logging as _logging
         _log = _logging.getLogger(__name__)
-        if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is not None:
+        if await self._is_target_note_editor_visible(page=page, list_name=list_name):
             _log.debug("[timing] save.ensure_dialog_ready: note_field_immediately_visible")
             return True
 
@@ -1438,7 +1452,7 @@ class GoogleMapsDriver:
         _log.debug(f"[timing] save.wait_loader_disappear: {(_ts2-_ts1)*1000:.0f}ms  ok={loader_ok!r}")
         if not loader_ok:
             return False
-        if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is not None:
+        if await self._is_target_note_editor_visible(page=page, list_name=list_name):
             _log.debug("[timing] save.ensure_dialog_ready: note_field_visible_after_settle")
             return True
         _ts3 = monotonic()
@@ -1481,11 +1495,7 @@ class GoogleMapsDriver:
                         self._SAVE_DIALOG_LOADING_INDICATOR_SELECTORS,
                         timeout_ms=80,
                     )
-                    or await self._first_visible_locator(
-                        page,
-                        self._SAVE_DIALOG_NOTE_FIELD_SELECTORS,
-                    )
-                    is not None
+                    or await self._is_target_note_editor_visible(page=page, list_name=list_name)
                 )
 
             observed_loader_or_note = await self._wait_for_condition(
@@ -1495,7 +1505,7 @@ class GoogleMapsDriver:
             )
             if not observed_loader_or_note:
                 return True
-            if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is not None:
+            if await self._is_target_note_editor_visible(page=page, list_name=list_name):
                 return True
             saw_loader = await self._is_any_selector_visible(
                 page,
@@ -1533,16 +1543,13 @@ class GoogleMapsDriver:
         list_name: str,
         list_selector: Any | None,
     ) -> bool:
-        if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is not None:
+        if await self._is_target_note_editor_visible(page=page, list_name=list_name):
             return True
         if not self._supports_dom_waits(page):
             return False
 
         async def _note_field_visible_pred() -> bool:
-            return await self._first_visible_locator(
-                page,
-                self._SAVE_DIALOG_NOTE_FIELD_SELECTORS,
-            ) is not None
+            return await self._is_target_note_editor_visible(page=page, list_name=list_name)
 
         appeared_without_expand = await self._wait_for_condition(
             page=page,
@@ -1815,7 +1822,7 @@ class GoogleMapsDriver:
         )
 
     async def _is_save_surface_ready_for_note(self, *, page: Any, list_name: str) -> bool:
-        if await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS) is not None:
+        if await self._is_target_note_editor_visible(page=page, list_name=list_name):
             return True
         if not await self._is_save_dialog_visible(page):
             return await self._is_saved_state_visible_on_place_panel(page)
@@ -1888,6 +1895,12 @@ class GoogleMapsDriver:
         normalized_note_text = _normalize_note_value(note_text)
         if not normalized_note_text:
             return False
+        if self._supports_dom_waits(page):
+            return await self._is_scoped_note_text_applied_via_js(
+                page=page,
+                list_name=list_name,
+                note_text=normalized_note_text,
+            )
         if not self._supports_dom_waits(page):
             note_input = await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS)
             if note_input is None:
@@ -1896,138 +1909,7 @@ class GoogleMapsDriver:
                 actual_value=await self._read_locator_text_value(note_input),
                 expected_value=normalized_note_text,
             )
-
-        script_payload = {
-            "listName": list_name,
-            "noteText": normalized_note_text,
-            "noteKeywords": self._SAVE_DIALOG_NOTE_KEYWORDS,
-        }
-        try:
-            return bool(
-                await page.evaluate(
-                    """({ listName, noteText, noteKeywords }) => {
-                        const normalize = (value) => String(value || '')
-                          .replace(/\\s+/g, ' ')
-                          .trim()
-                          .toLowerCase();
-                        const normalizeNote = (value) => String(value || '')
-                          .split(/\\r?\\n/)
-                          .map((line) => line.replace(/\\s+/g, ' ').trim())
-                          .filter(Boolean)
-                          .join('\\n')
-                          .toLowerCase();
-
-                        const targetNote = normalizeNote(noteText);
-                        const noteMatches = (value) => {
-                          const normalizedValue = normalizeNote(value);
-                          if (!normalizedValue) return false;
-                          if (normalizedValue === targetNote) return true;
-                          return targetNote && (normalizedValue.includes(targetNote) || targetNote.includes(normalizedValue));
-                        };
-
-                        const isVisible = (element) => {
-                          if (!element) return false;
-                          const style = window.getComputedStyle(element);
-                          if (!style || style.visibility === 'hidden' || style.display === 'none') {
-                            return false;
-                          }
-                          const rect = element.getBoundingClientRect();
-                          return rect.width > 0 && rect.height > 0;
-                        };
-
-                        const readLabel = (element) => normalize(
-                          [
-                            (element.getAttribute && element.getAttribute('aria-label')) || '',
-                            (element.getAttribute && element.getAttribute('placeholder')) || '',
-                            element.innerText || '',
-                            element.textContent || '',
-                          ].join(' ')
-                        );
-
-                        const readValue = (element) => {
-                          if (!element) return '';
-                          const tagName = String(element.tagName || '').toLowerCase();
-                          const isInputLike = tagName === 'textarea' || tagName === 'input';
-                          if (isInputLike) {
-                            return element.value || '';
-                          }
-                          if (element.isContentEditable) {
-                            return element.innerText || element.textContent || '';
-                          }
-                          return (
-                            (element.getAttribute && (
-                              element.getAttribute('value') ||
-                              element.getAttribute('aria-label') ||
-                              element.getAttribute('placeholder')
-                            )) ||
-                            element.innerText ||
-                            element.textContent ||
-                            ''
-                          );
-                        };
-
-                        const findEditableFields = (root) => {
-                          if (!root) return [];
-                          return Array.from(
-                            root.querySelectorAll(
-                              "textarea, input, [contenteditable='true'], [role='textbox']"
-                            )
-                          );
-                        };
-
-                        const normalizedTarget = normalize(listName);
-                        const keywordSet = new Set((noteKeywords || []).map(normalize).filter(Boolean));
-                        const surfaceRoots = Array.from(
-                          document.querySelectorAll("div[role='dialog'], [role='menu'], div[role='main']")
-                        ).filter(isVisible);
-                        const rowCandidatesSelector = (
-                          "[role='checkbox'], [role='menuitemcheckbox'], [role='menuitemradio'], " +
-                          "button, [role='button'], [role='menuitem']"
-                        );
-
-                        for (const surfaceRoot of surfaceRoots) {
-                          const rowCandidates = Array.from(
-                            surfaceRoot.querySelectorAll(rowCandidatesSelector)
-                          );
-                          for (const rowCandidate of rowCandidates) {
-                            const rowText = readLabel(rowCandidate);
-                            if (!normalizedTarget || !rowText.includes(normalizedTarget)) continue;
-                            const ancestry = [
-                              rowCandidate,
-                              rowCandidate.parentElement,
-                              rowCandidate.parentElement ? rowCandidate.parentElement.parentElement : null,
-                            ];
-                            for (const ancestor of ancestry) {
-                              if (!ancestor) continue;
-                              for (const field of findEditableFields(ancestor)) {
-                                if (!isVisible(field)) continue;
-                                if (noteMatches(readValue(field))) return true;
-                              }
-                            }
-                          }
-                        }
-
-                        for (const surfaceRoot of surfaceRoots) {
-                          for (const field of findEditableFields(surfaceRoot)) {
-                            if (!isVisible(field)) continue;
-                            const label = readLabel(field);
-                            if (label) {
-                              const hasKeyword = Array.from(keywordSet).some(
-                                (keyword) => label.includes(keyword)
-                              );
-                              if (!hasKeyword) continue;
-                            }
-                            if (noteMatches(readValue(field))) return true;
-                          }
-                        }
-
-                        return false;
-                    }""",
-                    script_payload,
-                )
-            )
-        except Exception:  # noqa: BLE001
-            return False
+        return False
 
     async def _read_locator_text_value(self, locator: Any) -> str:
         attribute_readers = (
@@ -3734,6 +3616,157 @@ def _is_page_closed(page: Any) -> bool:
 
 def _normalize_text_for_matching(text: str) -> str:
     return " ".join(text.lower().split())
+
+
+_SCOPED_NOTE_FIELD_JS = r"""({ mode, listName, noteText }) => {
+  const normalize = (value) => String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const normalizeNote = (value) => String(value || '')
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n')
+    .toLowerCase();
+  const target = normalize(listName);
+  if (!target) return false;
+
+  const extraBoundary = '|/.,:;()[]{}-_=+·•';
+  const isBoundary = (ch) => !ch || /\s/u.test(ch) || extraBoundary.includes(ch);
+  const containsWithBoundaries = (haystack, needle) => {
+    let idx = haystack.indexOf(needle);
+    while (idx >= 0) {
+      const before = idx > 0 ? haystack[idx - 1] : '';
+      const after = idx + needle.length < haystack.length ? haystack[idx + needle.length] : '';
+      if (isBoundary(before) && isBoundary(after)) return true;
+      idx = haystack.indexOf(needle, idx + 1);
+    }
+    return false;
+  };
+  const targetMatches = (value) => {
+    const normalized = normalize(value);
+    return normalized === target || containsWithBoundaries(normalized, target);
+  };
+
+  const isVisible = (element) => {
+    if (!element) return false;
+    const style = window.getComputedStyle(element);
+    if (!style || style.visibility === 'hidden' || style.display === 'none' || style.opacity === '0') {
+      return false;
+    }
+    const rect = element.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  };
+  const readLabel = (element) => normalize([
+    (element.getAttribute && element.getAttribute('aria-label')) || '',
+    (element.getAttribute && element.getAttribute('placeholder')) || '',
+    (element.getAttribute && element.getAttribute('title')) || '',
+    (element.getAttribute && element.getAttribute('data-value')) || '',
+    element.innerText || '',
+    element.textContent || '',
+  ].join(' '));
+  const readValue = (element) => {
+    const tagName = String(element.tagName || '').toLowerCase();
+    if (tagName === 'textarea' || tagName === 'input') return element.value || '';
+    if (element.isContentEditable) return element.innerText || element.textContent || '';
+    return (
+      (element.getAttribute && (
+        element.getAttribute('value') ||
+        element.getAttribute('aria-label') ||
+        element.getAttribute('placeholder')
+      )) ||
+      element.innerText ||
+      element.textContent ||
+      ''
+    );
+  };
+  const isEditable = (element) => {
+    if (!element || !isVisible(element)) return false;
+    const tagName = String(element.tagName || '').toLowerCase();
+    if ((tagName === 'textarea' || tagName === 'input') && (element.disabled || element.readOnly)) {
+      return false;
+    }
+    return true;
+  };
+  const findEditableFields = (root) => Array.from(
+    root.querySelectorAll("textarea, input, [contenteditable='true'], [role='textbox']")
+  ).filter(isEditable);
+  const isSelected = (element) => {
+    for (const attr of ['aria-checked', 'aria-selected', 'data-selected', 'data-state']) {
+      const value = normalize(element.getAttribute && element.getAttribute(attr));
+      if (['true', '1', 'yes', 'on', 'checked', 'selected'].includes(value)) return true;
+    }
+    return false;
+  };
+
+  const surfaceRoots = Array.from(
+    document.querySelectorAll("div[role='dialog'], [role='menu'], div[role='main']")
+  ).filter(isVisible);
+  const rowCandidatesSelector = (
+    "[role='checkbox'], [role='menuitemcheckbox'], [role='menuitemradio'], " +
+    "button, [role='button'], [role='menuitem'], [aria-label*='Saved in' i]"
+  );
+  const scopedFields = [];
+
+  for (const surfaceRoot of surfaceRoots) {
+    const rowCandidates = Array.from(surfaceRoot.querySelectorAll(rowCandidatesSelector)).filter(isVisible);
+    for (const rowCandidate of rowCandidates) {
+      if (!targetMatches(readLabel(rowCandidate))) continue;
+
+      let ancestor = rowCandidate;
+      let depth = 0;
+      while (ancestor && ancestor !== surfaceRoot && depth < 8) {
+        for (const field of findEditableFields(ancestor)) scopedFields.push(field);
+        ancestor = ancestor.parentElement;
+        depth += 1;
+      }
+
+      const role = normalize(surfaceRoot.getAttribute && surfaceRoot.getAttribute('role'));
+      if (role === 'dialog' || role === 'menu') {
+        const surfaceFields = findEditableFields(surfaceRoot);
+        if (isSelected(rowCandidate) || surfaceFields.length === 1) {
+          for (const field of surfaceFields) scopedFields.push(field);
+        }
+      }
+    }
+  }
+
+  const fields = Array.from(new Set(scopedFields));
+  if (mode === 'visible') return fields.length > 0;
+
+  const targetNote = normalizeNote(noteText);
+  if (!targetNote) return false;
+  const noteMatches = (value) => {
+    const normalizedValue = normalizeNote(value);
+    return Boolean(
+      normalizedValue &&
+      (normalizedValue === targetNote ||
+        normalizedValue.includes(targetNote) ||
+        targetNote.includes(normalizedValue))
+    );
+  };
+
+  if (mode === 'matches') {
+    return fields.some((field) => noteMatches(readValue(field)));
+  }
+  if (mode === 'set') {
+    const field = fields[0];
+    if (!field) return false;
+    const tagName = String(field.tagName || '').toLowerCase();
+    field.focus();
+    if (tagName === 'textarea' || tagName === 'input') {
+      field.value = noteText;
+    } else if (field.isContentEditable) {
+      field.innerText = noteText;
+    } else {
+      return false;
+    }
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    field.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+    field.blur();
+    return true;
+  }
+  return false;
+}"""
 
 
 def _normalize_note_value(value: str) -> str:

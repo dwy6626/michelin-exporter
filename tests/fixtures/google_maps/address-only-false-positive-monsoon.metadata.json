@@ -1,0 +1,7 @@
+{
+  "scenario": "address-only-false-positive-monsoon",
+  "captured_at": "2026-05-01",
+  "language": "en-TW",
+  "source": "real-page-snapshot",
+  "sanitized": true
+}

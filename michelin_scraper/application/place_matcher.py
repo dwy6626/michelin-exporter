@@ -31,6 +31,64 @@ _GENERIC_LOCATION_TOKENS = {
     "prefecture",
     "tokyo",
 }
+_NON_CATEGORY_PLACEHOLDERS = {
+    "add a label",
+}
+_FOOD_SERVICE_CATEGORY_KEYWORDS = (
+    "restaurant",
+    "cafe",
+    "coffee",
+    "tea",
+    "bar",
+    "bistro",
+    "bakery",
+    "izakaya",
+    "sushi",
+    "ramen",
+    "noodle",
+    "vegan",
+    "vegetarian",
+    "hot pot",
+    "bbq",
+    "grill",
+    "dining",
+    "kitchen",
+    "eatery",
+    "congee",
+    "food",
+    "dim sum",
+    "steak",
+    "seafood",
+    "breakfast",
+    "thai",
+    "japanese",
+    "chinese",
+    "taiwanese",
+    "cantonese",
+    "french",
+    "italian",
+    "asian",
+    "餐廳",
+    "料理",
+    "食堂",
+    "居酒屋",
+    "壽司",
+    "拉麵",
+    "麵",
+    "面",
+    "火鍋",
+    "素食",
+    "蔬食",
+    "咖啡",
+    "酒吧",
+    "小吃",
+    "點心",
+    "牛排",
+    "海鮮",
+    "早餐",
+    "茶館",
+    "燒肉",
+)
 
 
 @dataclass(frozen=True)
@@ -41,6 +99,7 @@ class PlaceCandidate:
     address: str
     category: str
     subtitle: str = ""
+    located_in: str = ""
 
 
 @dataclass(frozen=True)
@@ -55,6 +114,9 @@ class PlaceMatchAssessment:
     street_overlap_tokens: tuple[str, ...]
     city_in_candidate_address: bool
     coordinate_like_candidate_name: bool
+    located_in_match: bool
+    informative_category: bool
+    food_service_category: bool
 
 
 def _normalize_text(value: str) -> str:
@@ -64,6 +126,20 @@ def _normalize_text(value: str) -> str:
 def _tokenize(value: str) -> set[str]:
     normalized_value = _normalize_text(value)
     return {token for token in _WORD_OR_NUMBER_PATTERN.findall(normalized_value) if token}
+
+
+def _normalize_category_text(value: str) -> str:
+    normalized = _normalize_text(value)
+    if normalized in _NON_CATEGORY_PLACEHOLDERS:
+        return ""
+    return normalized
+
+
+def _is_food_service_category(value: str) -> bool:
+    normalized = _normalize_category_text(value)
+    if not normalized:
+        return False
+    return any(keyword in normalized for keyword in _FOOD_SERVICE_CATEGORY_KEYWORDS)
 
 
 def _extract_postal_code_tokens(value: str) -> set[str]:
@@ -213,7 +289,10 @@ def assess_place_match(
     candidate_name = _normalize_text(candidate.name)
     candidate_subtitle = _normalize_text(candidate.subtitle)
     candidate_address = _normalize_text(candidate.address)
-    candidate_category = _normalize_text(candidate.category)
+    candidate_category = _normalize_category_text(candidate.category)
+    candidate_located_in = _normalize_text(candidate.located_in)
+    informative_category = bool(candidate_category)
+    food_service_category = _is_food_service_category(candidate_category)
     coordinate_like_candidate_name = is_coordinate_like_place_name(candidate.name)
 
     if not row_name or not candidate_name:
@@ -226,6 +305,9 @@ def assess_place_match(
             street_overlap_tokens=(),
             city_in_candidate_address=False,
             coordinate_like_candidate_name=coordinate_like_candidate_name,
+            located_in_match=False,
+            informative_category=informative_category,
+            food_service_category=food_service_category,
         )
 
     candidate_names = [candidate_name]
@@ -236,6 +318,12 @@ def assess_place_match(
             bool(row_name_local) and _has_confident_name_match(row_name_local, cn)
         )
         for cn in candidate_names
+    )
+    located_in_match = bool(candidate_located_in) and (
+        _has_confident_name_match(row_name, candidate_located_in) or (
+            bool(row_name_local)
+            and _has_confident_name_match(row_name_local, candidate_located_in)
+        )
     )
     location_tokens = _tokenize(" ".join((row_city, row_address)))
     candidate_tokens = _tokenize(candidate_address)
@@ -275,7 +363,15 @@ def assess_place_match(
         else:
             strength = "weak"
     else:
-        if postal_code_overlap_tokens and (
+        if located_in_match:
+            # Reject child businesses that are explicitly "located in" the
+            # Michelin venue when the actual place title did not match.
+            strength = "weak"
+        elif informative_category and not food_service_category:
+            # Shared address is not enough to accept a non-food business such
+            # as a store or retail counter that lives inside the same venue.
+            strength = "weak"
+        elif postal_code_overlap_tokens and (
             cuisine_overlap_tokens or city_in_candidate_address or significant_location_overlap
         ):
             strength = "medium"
@@ -301,6 +397,9 @@ def assess_place_match(
         street_overlap_tokens=tuple(sorted(street_overlap_tokens_set)),
         city_in_candidate_address=city_in_candidate_address,
         coordinate_like_candidate_name=coordinate_like_candidate_name,
+        located_in_match=located_in_match,
+        informative_category=informative_category,
+        food_service_category=food_service_category,
     )
 
 

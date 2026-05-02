@@ -169,6 +169,48 @@ class PlaceMatcherTests(unittest.TestCase):
         self.assertTrue(assessment.coordinate_like_candidate_name)
         self.assertEqual(classify_place_match(row, candidate), "weak")
 
+    def test_assess_place_match_rejects_nested_business_inside_same_venue(self) -> None:
+        row = {
+            "Name": "葉家藥燉排骨",
+            "City": "New Taipei, 臺灣",
+            "Address": "板橋區中山路二段441號",
+            "Cuisine": "Taiwanese",
+        }
+        candidate = PlaceCandidate(
+            name="IKKI深夜食堂-板橋店",
+            address="No. 439號, Section 2, Zhongshan Rd, Banqiao District, New Taipei City, 220",
+            category="Izakaya restaurant",
+            located_in="Located in: 葉家藥燉排骨",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertEqual(assessment.strength, "weak")
+        self.assertFalse(assessment.name_match)
+        self.assertTrue(assessment.located_in_match)
+        self.assertTrue(assessment.city_in_candidate_address)
+
+    def test_assess_place_match_rejects_non_food_business_with_shared_address(self) -> None:
+        row = {
+            "Name": "陽明春天 (士林)",
+            "City": "Taipei, 臺灣",
+            "Address": "士林區菁山路119之1號",
+            "Cuisine": "Vegetarian",
+        }
+        candidate = PlaceCandidate(
+            name="Pure Honey Oil Workshop - Yuanpin Food Co., Ltd.",
+            address="No. 119-1號, Jingshan Rd, Shilin District, Taipei City, 111",
+            category="Store",
+            located_in="Located in: Yangming Spring",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertEqual(assessment.strength, "weak")
+        self.assertFalse(assessment.name_match)
+        self.assertFalse(assessment.located_in_match)
+        self.assertTrue(assessment.city_in_candidate_address)
+
 
 if __name__ == "__main__":
     unittest.main()

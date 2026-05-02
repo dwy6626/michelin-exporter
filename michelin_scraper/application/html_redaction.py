@@ -10,6 +10,14 @@ _REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
         "<redacted-email>",
     ),
     (
+        re.compile(r"AIza[0-9A-Za-z_-]{20,}"),
+        "AIza<redacted>",
+    ),
+    (
+        re.compile(r"(?i)([?&](?:amp;)?key=)(?:AIza[0-9A-Za-z_-]{20,}|[^&#\"'\s]+)"),
+        r"\1<redacted>",
+    ),
+    (
         re.compile(r"(?i)([?&](?:access_token|id_token|token|session|sid|oauth|code)=)[^&#\"'\s]+"),
         r"\1<redacted>",
     ),
@@ -39,6 +47,10 @@ _UNREDACTED_MARKER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "query-token",
         re.compile(r"(?i)[?&](?:access_token|id_token|token|session|sid|oauth|code)=(?!<redacted>)[^&#\"'\s]+"),
+    ),
+    (
+        "google-api-key",
+        re.compile(r"AIza(?!<redacted>|SyFAKE_KEY_FOR_TESTING_ONLY_00000000)[0-9A-Za-z_-]{20,}"),
     ),
     (
         "cookie-token",

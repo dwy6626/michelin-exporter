@@ -1345,6 +1345,7 @@ class SyncUseCaseTests(unittest.TestCase):
             "email=person@example.com "
             "cookie SID=abc123; "
             "url=https://maps.google.com/?access_token=secrettoken "
+            "escaped=https://maps.google.com/?center=1,2&amp;key=AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0 "
             "path=/Users/testuser/.michelin-gmaps-profile"
             "</body></html>"
         )
@@ -1354,10 +1355,12 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertNotIn("person@example.com", redacted_html)
         self.assertNotIn("SID=abc123", redacted_html)
         self.assertNotIn("access_token=secrettoken", redacted_html)
+        self.assertNotIn("AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0", redacted_html)
         self.assertNotIn("/Users/testuser", redacted_html)
         self.assertIn("<redacted-email>", redacted_html)
         self.assertIn("SID=<redacted>", redacted_html)
         self.assertIn("access_token=<redacted>", redacted_html)
+        self.assertIn("&amp;key=<redacted>", redacted_html)
         self.assertIn("/Users/<redacted-user>", redacted_html)
 
     @patch("michelin_scraper.application.sync_use_case.crawl")

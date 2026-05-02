@@ -2,7 +2,9 @@
 
 import tempfile
 import unittest
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from michelin_scraper.adapters.google_maps_driver import (
@@ -85,7 +87,7 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                 sync_delay_seconds=0.0,
             )
         )
-        driver._SEARCH_OUTCOME_MIN_SETTLE_MS = 0
+        cast(Any, driver)._SEARCH_OUTCOME_MIN_SETTLE_MS = 0
         previous_state = _SearchPanelState(
             page_url="https://www.google.com/maps/search/foo",
             title_text="",
@@ -131,7 +133,7 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                 sync_delay_seconds=0.0,
             )
         )
-        driver._SEARCH_OUTCOME_MIN_SETTLE_MS = 0
+        cast(Any, driver)._SEARCH_OUTCOME_MIN_SETTLE_MS = 0
         previous_state = _SearchPanelState(
             page_url="https://www.google.com/maps/place/ya-ge",
             title_text="Ya Ge",
@@ -279,11 +281,12 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(installed_handler)
         self.assertTrue(callable(installed_handler))
 
-        installed_handler(signal.SIGINT, None)
+        signal_handler = cast(Callable[[int, Any], None], installed_handler)
+        signal_handler(signal.SIGINT, None)
         self.assertTrue(driver._interrupt_requested)
 
         with self.assertRaises(KeyboardInterrupt):
-            installed_handler(signal.SIGINT, None)
+            signal_handler(signal.SIGINT, None)
         mock_force_kill_browser.assert_called_once_with(driver._context)
         self.assertTrue(
             any(
@@ -389,11 +392,16 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                     with patch.object(driver, "_first_visible_locator", return_value=object()):
                         with patch.object(driver, "_try_apply_note_to_saved_place", return_value=True):
                             with patch.object(driver, "_wait_for_note_text_applied", return_value=True):
-                                with patch.object(driver, "_click_save_control_with_retry") as click_save:
-                                    saved = await driver.save_current_place_to_list(
-                                        "Test List",
-                                        note_text="hello note",
-                                    )
+                                with patch.object(
+                                    driver,
+                                    "_confirm_note_persisted_on_place_panel",
+                                    return_value=True,
+                                ):
+                                    with patch.object(driver, "_click_save_control_with_retry") as click_save:
+                                        saved = await driver.save_current_place_to_list(
+                                            "Test List",
+                                            note_text="hello note",
+                                        )
 
         self.assertTrue(saved)
         click_save.assert_not_called()
@@ -420,6 +428,57 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
 
         # One initial expand + one per write attempt while the note field is still missing.
         self.assertGreaterEqual(expand_panel.call_count, 3)
+
+    async def test_save_current_place_to_list_requires_place_panel_confirmation_after_note_write(self) -> None:
+        driver = self._build_driver()
+        page = object()
+        list_selector = object()
+
+        with patch.object(driver, "_require_page", return_value=page):
+            with patch.object(driver, "_is_add_place_input_visible", return_value=False):
+                with patch.object(driver, "_resolve_panel_saved_list_name", return_value=""):
+                    with patch.object(driver, "_click_save_control_with_retry", return_value="save-btn"):
+                        with patch.object(driver, "_wait_for_save_dialog_list_selector", return_value=list_selector):
+                            with patch.object(driver, "_read_locator_selection_state", return_value=False):
+                                with patch.object(driver, "_click_locator"):
+                                    with patch.object(driver, "_wait_for_list_selection_applied", return_value=True):
+                                        with patch.object(
+                                            driver,
+                                            "_ensure_save_dialog_ready_for_note",
+                                            return_value=True,
+                                        ):
+                                            with patch.object(driver, "_try_apply_note_to_saved_place", return_value=True):
+                                                with patch.object(driver, "_wait_for_note_text_applied", return_value=True):
+                                                    with patch.object(
+                                                        driver,
+                                                        "_confirm_note_persisted_on_place_panel",
+                                                        return_value=True,
+                                                    ) as confirm_note:
+                                                        with patch.object(driver, "_is_save_dialog_visible", return_value=False):
+                                                            saved = await driver.save_current_place_to_list(
+                                                                "Test List",
+                                                                note_text="hello note",
+                                                            )
+
+        self.assertTrue(saved)
+        confirm_note.assert_called_once_with(
+            page=page,
+            list_name="Test List",
+            note_text="hello note",
+        )
+
+    async def test_detect_place_saved_state_after_note_failure_uses_panel_saved_state_fallback(self) -> None:
+        driver = self._build_driver()
+
+        with patch.object(driver, "_did_list_selection_apply", return_value=False):
+            with patch.object(driver, "_resolve_panel_saved_list_name", return_value="Test List"):
+                saved = await driver._detect_place_saved_state_after_note_failure(
+                    page=object(),
+                    list_name="Test List",
+                    list_selector=object(),
+                )
+
+        self.assertTrue(saved)
 
     async def test_ensure_save_dialog_ready_for_note_returns_true_when_note_field_is_visible(self) -> None:
         driver = self._build_driver()
@@ -703,24 +762,177 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         click_locator.assert_called_once()
         wait_timeout.assert_called_once()
 
-    async def test_try_apply_note_to_saved_place_prefers_locator_fill_before_dom_script(self) -> None:
+    async def test_try_apply_note_to_saved_place_prefers_locator_fill_without_dom_waits(self) -> None:
         driver = self._build_driver()
         note_input = object()
         keyboard_mock = AsyncMock()
         page = MagicMock()
         page.keyboard = keyboard_mock
 
-        with patch.object(driver, "_first_visible_locator", return_value=note_input):
+        with patch.object(driver, "_supports_dom_waits", return_value=False):
+            with patch.object(driver, "_first_visible_locator", return_value=note_input):
+                with patch.object(driver, "_click_locator") as click_locator:
+                    with patch.object(driver, "_press_keyboard") as press_keyboard:
+                        with patch.object(driver, "_run_browser_step") as run_step:
+                            with patch.object(driver, "_press_locator") as press_locator:
+                                with patch.object(driver, "_wait_for_timeout"):
+                                    wrote = await driver._try_apply_note_to_saved_place(
+                                        page=page,
+                                        list_name="Test List",
+                                        note_text="Chef's counter",
+                                    )
+
+        self.assertTrue(wrote)
+        click_locator.assert_called_once()
+        press_keyboard.assert_called_once()
+        # run_browser_step is called for keyboard.type()
+        run_step.assert_called_once()
+        press_locator.assert_called_once()
+
+    async def test_try_apply_note_to_saved_place_uses_scoped_dom_writer_when_supported(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+
+        with patch.object(driver, "_supports_dom_waits", return_value=True):
+            with patch.object(driver, "_set_scoped_note_text_via_js", return_value=True) as scoped_writer:
+                with patch.object(driver, "_first_visible_locator") as first_visible_locator:
+                    wrote = await driver._try_apply_note_to_saved_place(
+                        page=page,
+                        list_name="Target List",
+                        note_text="Chef's counter",
+                    )
+
+        self.assertTrue(wrote)
+        scoped_writer.assert_called_once_with(
+            page=page,
+            list_name="Target List",
+            note_text="Chef's counter",
+        )
+        first_visible_locator.assert_not_called()
+
+    async def test_try_apply_note_to_saved_place_does_not_fallback_to_unscoped_visible_note_field(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+
+        with patch.object(driver, "_supports_dom_waits", return_value=True):
+            with patch.object(driver, "_set_scoped_note_text_via_js", return_value=False):
+                with patch.object(driver, "_first_visible_locator") as first_visible_locator:
+                    wrote = await driver._try_apply_note_to_saved_place(
+                        page=page,
+                        list_name="Target List",
+                        note_text="Chef's counter",
+                    )
+
+        self.assertFalse(wrote)
+        first_visible_locator.assert_not_called()
+
+    async def test_is_note_text_applied_uses_scoped_dom_confirmation_when_supported(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+
+        with patch.object(driver, "_supports_dom_waits", return_value=True):
+            with patch.object(driver, "_is_scoped_note_text_applied_via_js", return_value=True) as scoped_confirm:
+                with patch.object(driver, "_first_visible_locator") as first_visible_locator:
+                    applied = await driver._is_note_text_applied(
+                        page=page,
+                        list_name="Target List",
+                        note_text="Chef's counter",
+                    )
+
+        self.assertTrue(applied)
+        scoped_confirm.assert_called_once_with(
+            page=page,
+            list_name="Target List",
+            note_text="Chef's counter",
+        )
+        first_visible_locator.assert_not_called()
+
+    async def test_is_target_note_editor_visible_delegates_to_scoped_dom_probe(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+        page.evaluate = AsyncMock(return_value=True)
+
+        visible = await driver._is_target_note_editor_visible(
+            page=page,
+            list_name="Target List",
+        )
+
+        self.assertTrue(visible)
+        page.evaluate.assert_called_once()
+
+    async def test_non_dom_note_writer_still_uses_keyboard_events(self) -> None:
+        driver = self._build_driver()
+        note_input = object()
+        keyboard_mock = AsyncMock()
+        page = MagicMock()
+        page.keyboard = keyboard_mock
+
+        with patch.object(driver, "_supports_dom_waits", return_value=False):
+            with patch.object(driver, "_first_visible_locator", return_value=note_input):
+                with patch.object(driver, "_click_locator") as click_locator:
+                    with patch.object(driver, "_press_keyboard") as press_keyboard:
+                        with patch.object(driver, "_run_browser_step") as run_step:
+                            with patch.object(driver, "_press_locator") as press_locator:
+                                with patch.object(driver, "_wait_for_timeout"):
+                                    wrote = await driver._try_apply_note_to_saved_place(
+                                        page=page,
+                                        list_name="Test List",
+                                        note_text="Chef's counter",
+                                    )
+
+        self.assertTrue(wrote)
+        click_locator.assert_called_once()
+        press_keyboard.assert_called_once()
+        run_step.assert_called_once()
+        press_locator.assert_called_once()
+
+    async def test_scoped_note_writer_does_not_use_other_list_note_field(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+        page.evaluate = AsyncMock(return_value=False)
+
+        wrote = await driver._set_scoped_note_text_via_js(
+            page=page,
+            list_name="Target List",
+            note_text="Chef's counter",
+        )
+
+        self.assertFalse(wrote)
+        page.evaluate.assert_called_once()
+
+    async def test_unscoped_note_confirmation_does_not_confirm_other_list_note_text(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+        page.evaluate = AsyncMock(return_value=False)
+
+        applied = await driver._is_scoped_note_text_applied_via_js(
+            page=page,
+            list_name="Target List",
+            note_text="Chef's counter",
+        )
+
+        self.assertFalse(applied)
+        page.evaluate.assert_called_once()
+
+    async def test_try_apply_note_to_saved_place_non_dom_path_kept_for_non_playwright_fakes(self) -> None:
+        driver = self._build_driver()
+        note_input = object()
+        keyboard_mock = AsyncMock()
+        page = MagicMock()
+        page.keyboard = keyboard_mock
+
+        with patch.object(driver, "_supports_dom_waits", return_value=False):
             with patch.object(driver, "_click_locator") as click_locator:
-                with patch.object(driver, "_press_keyboard") as press_keyboard:
-                    with patch.object(driver, "_run_browser_step") as run_step:
-                        with patch.object(driver, "_press_locator") as press_locator:
-                            with patch.object(driver, "_wait_for_timeout"):
-                                wrote = await driver._try_apply_note_to_saved_place(
-                                    page=page,
-                                    list_name="Test List",
-                                    note_text="Chef's counter",
-                                )
+                with patch.object(driver, "_first_visible_locator", return_value=note_input):
+                    with patch.object(driver, "_press_keyboard") as press_keyboard:
+                        with patch.object(driver, "_run_browser_step") as run_step:
+                            with patch.object(driver, "_press_locator") as press_locator:
+                                with patch.object(driver, "_wait_for_timeout"):
+                                    wrote = await driver._try_apply_note_to_saved_place(
+                                        page=page,
+                                        list_name="Test List",
+                                        note_text="Chef's counter",
+                                    )
 
         self.assertTrue(wrote)
         click_locator.assert_called_once()

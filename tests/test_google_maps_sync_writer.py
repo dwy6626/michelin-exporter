@@ -216,6 +216,180 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result.added_count_by_level["one-star"], 1)
             self.assertEqual(fake_driver.queries, ["Alpha Taipei", "Alpha"])
 
+    async def test_sync_rows_by_level_skips_nested_false_positive_and_uses_next_query(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("Taiwan|selected")
+            writer = self._build_writer(
+                temp_dir,
+                on_missing_list="continue",
+                ignore_existing_lists_check=True,
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="Taiwan", level_slugs=("selected",))
+            fake_driver.candidates_by_query = {
+                "陽明春天 (士林) Taipei, 臺灣": PlaceCandidate(
+                    name="Pure Honey Oil Workshop - Yuanpin Food Co., Ltd.",
+                    address="No. 119-1號, Jingshan Rd, Shilin District, Taipei City, 111",
+                    category="Store",
+                    located_in="Located in: Yangming Spring",
+                ),
+                "陽明春天 (士林)": PlaceCandidate(
+                    name="陽明春天 (士林)",
+                    address="No. 119-1號, Jingshan Rd, Shilin District, Taipei City, 111",
+                    category="Vegetarian restaurant",
+                ),
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "selected": [
+                        {
+                            "Name": "陽明春天 (士林)",
+                            "City": "Taipei, 臺灣",
+                            "Address": "士林區菁山路119之1號",
+                            "Cuisine": "Vegetarian",
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["selected"], 1)
+            self.assertEqual(
+                fake_driver.queries,
+                [
+                    "陽明春天 (士林) 士林區",
+                    "陽明春天 (士林) Taipei, 臺灣",
+                    "陽明春天 (士林)",
+                ],
+            )
+
+    async def test_sync_rows_by_level_uses_district_query_before_city_query_for_shou_wu(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("Taiwan|selected")
+            writer = self._build_writer(
+                temp_dir,
+                ignore_existing_lists_check=True,
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="Taiwan", level_slugs=("selected",))
+            fake_driver.candidates_by_query = {
+                "首烏 板橋區": PlaceCandidate(
+                    name="首烏客家小館",
+                    address="板橋區民族路27號, New Taipei, 臺灣",
+                    category="客家菜館",
+                ),
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "selected": [
+                        {
+                            "Name": "首烏",
+                            "City": "New Taipei, 臺灣",
+                            "Address": "板橋區民族路27號",
+                            "Cuisine": "客家菜",
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["selected"], 1)
+            self.assertEqual(fake_driver.queries, ["首烏 板橋區"])
+
+    async def test_sync_rows_by_level_rejects_shou_wu_city_only_wrong_candidate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("Taiwan|selected")
+            writer = self._build_writer(
+                temp_dir,
+                on_missing_list="continue",
+                ignore_existing_lists_check=True,
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="Taiwan", level_slugs=("selected",))
+            fake_driver.candidates_by_query = {
+                "首烏 板橋區": None,
+                "首烏 New Taipei, 臺灣": PlaceCandidate(
+                    name="模咒CURSE",
+                    address=(
+                        "No. 77-1號, Fude 2nd Rd, Xizhi District, "
+                        "New Taipei City, 221011"
+                    ),
+                    category="美式餐廳",
+                ),
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "selected": [
+                        {
+                            "Name": "首烏",
+                            "City": "New Taipei, 臺灣",
+                            "Address": "板橋區民族路27號",
+                            "Cuisine": "客家菜",
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["selected"], 0)
+            self.assertEqual(len(result.failed_items), 1)
+            self.assertEqual(result.failed_items[0].reason, "AmbiguousPlaceMatch")
+            self.assertIn("首烏 New Taipei, 臺灣", fake_driver.queries)
+
+    async def test_sync_rows_by_level_rejects_address_only_name_mismatch_and_uses_next_query(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("Taiwan|selected")
+            writer = self._build_writer(
+                temp_dir,
+                ignore_existing_lists_check=True,
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="Taiwan", level_slugs=("selected",))
+            fake_driver.candidates_by_query = {
+                "首烏 板橋區": None,
+                "首烏 New Taipei, 臺灣": None,
+                "首烏": None,
+                "板橋區民族路27號": PlaceCandidate(
+                    name="No. 27, Minzu Road",
+                    address="No. 27, Minzu Road, Banqiao District, New Taipei, Taiwan",
+                    category="",
+                ),
+                "首烏 客家菜 板橋區": PlaceCandidate(
+                    name="首烏客家小館",
+                    address="板橋區民族路27號, New Taipei, 臺灣",
+                    category="客家菜館",
+                ),
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "selected": [
+                        {
+                            "Name": "首烏",
+                            "City": "New Taipei, 臺灣",
+                            "Address": "板橋區民族路27號",
+                            "Cuisine": "客家菜",
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["selected"], 1)
+            self.assertEqual(
+                fake_driver.queries,
+                [
+                    "首烏 板橋區",
+                    "首烏 New Taipei, 臺灣",
+                    "首烏",
+                    "板橋區民族路27號",
+                    "首烏 客家菜 板橋區",
+                ],
+            )
+
     def test_saved_list_landing_candidate_guard_matches_list_name_without_place_metadata(self) -> None:
         self.assertTrue(
             _is_saved_list_landing_candidate(
