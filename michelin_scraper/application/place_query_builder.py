@@ -8,6 +8,11 @@ _TAIWAN_LOCAL_AREA_PATTERNS = (
     re.compile(r"(?:縣|市)([\u4e00-\u9fff]{1,4}市)"),
     re.compile(r"^([\u4e00-\u9fff]{1,4}市)"),
 )
+_TAIWAN_STREET_HOUSE_PATTERN = re.compile(
+    r"([\u4e00-\u9fff\d]{1,12}(?:大道|路|街)"
+    r"(?:[一二三四五六七八九十\d]+段)?"
+    r"\d+(?:之\d+)?號(?:\d+樓)?)"
+)
 
 
 def _build_text(*parts: str) -> str:
@@ -25,6 +30,20 @@ def _extract_local_area_hint(address: str) -> str:
     return ""
 
 
+def _extract_street_house_hint(address: str) -> str:
+    """Extract a street + house-number hint for branch-sensitive Maps searches."""
+
+    search_text = address
+    local_area_hint = _extract_local_area_hint(address)
+    if local_area_hint and local_area_hint in search_text:
+        search_text = search_text.split(local_area_hint, 1)[1]
+
+    match = _TAIWAN_STREET_HOUSE_PATTERN.search(search_text)
+    if match is None:
+        return ""
+    return match.group(1)
+
+
 def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     """Build ordered search query attempts for one Michelin row."""
 
@@ -34,6 +53,7 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     cuisine = str(row.get("Cuisine", "")).strip()
     name_local = str(row.get("NameLocal", "")).strip()
     local_area_hint = _extract_local_area_hint(address)
+    street_house_hint = _extract_street_house_hint(address)
 
     # Build attempts with priority: local name variants, then fallback to English name
     attempts = []
@@ -42,6 +62,8 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     if name_local and name_local != name:
         if local_area_hint:
             attempts.append(_build_text(name_local, local_area_hint))
+        if street_house_hint:
+            attempts.append(_build_text(name_local, street_house_hint))
         attempts.append(_build_text(name_local, city))
         attempts.append(_build_text(name_local))
         if cuisine:
@@ -52,6 +74,8 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     # Primary name combinations
     if local_area_hint:
         attempts.append(_build_text(name, local_area_hint))
+    if street_house_hint:
+        attempts.append(_build_text(name, street_house_hint))
     attempts.append(_build_text(name, city))
     attempts.append(_build_text(name))
     attempts.append(_build_text(address))

@@ -11,6 +11,8 @@ _ASCII_WORD_OR_NUMBER_PATTERN = re.compile(r"[a-z0-9]+")
 _CJK_CHARACTER_PATTERN = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 _CJK_SEQUENCE_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
 _PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
+_CJK_HOUSE_NUMBER_PATTERN = re.compile(r"(\d+(?:[-之]\d+)?)\s*號")
+_LATIN_HOUSE_NUMBER_PATTERN = re.compile(r"\bno\.?\s*(\d+(?:-\d+)?)\b", re.IGNORECASE)
 _COORDINATE_DMS_PATTERN = re.compile(
     r"""^\s*
     \d{1,3}\s*°\s*\d{1,2}\s*['′]\s*\d{1,2}(?:\.\d+)?\s*["″]\s*[NS]
@@ -127,6 +129,7 @@ class PlaceMatchAssessment:
     street_overlap_tokens: tuple[str, ...]
     city_in_candidate_address: bool
     coordinate_like_candidate_name: bool
+    house_number_conflict: bool
     located_in_match: bool
     informative_category: bool
     food_service_category: bool
@@ -340,6 +343,44 @@ def _has_house_number_anchor(
     return False
 
 
+def _extract_house_number_tokens(value: str) -> set[str]:
+    normalized_value = _normalize_text(value).replace("之", "-")
+    return {
+        match.group(1).replace("之", "-")
+        for pattern in (_CJK_HOUSE_NUMBER_PATTERN, _LATIN_HOUSE_NUMBER_PATTERN)
+        for match in pattern.finditer(normalized_value)
+    }
+
+
+def _house_number_root(value: str) -> int | None:
+    root = value.split("-", 1)[0]
+    if not root.isdigit():
+        return None
+    return int(root)
+
+
+def _has_house_number_conflict(row_address: str, candidate_address: str) -> bool:
+    row_house_numbers = _extract_house_number_tokens(row_address)
+    candidate_house_numbers = _extract_house_number_tokens(candidate_address)
+    if not row_house_numbers or not candidate_house_numbers:
+        return False
+    if row_house_numbers.intersection(candidate_house_numbers):
+        return False
+
+    row_roots = [
+        root for token in row_house_numbers if (root := _house_number_root(token)) is not None
+    ]
+    candidate_roots = [
+        root
+        for token in candidate_house_numbers
+        if (root := _house_number_root(token)) is not None
+    ]
+    if not row_roots or not candidate_roots:
+        return True
+
+    return all(abs(row_root - candidate_root) > 1 for row_root in row_roots for candidate_root in candidate_roots)
+
+
 def assess_place_match(
     row: dict[str, Any],
     candidate: PlaceCandidate,
@@ -371,6 +412,7 @@ def assess_place_match(
             street_overlap_tokens=(),
             city_in_candidate_address=False,
             coordinate_like_candidate_name=coordinate_like_candidate_name,
+            house_number_conflict=False,
             located_in_match=False,
             informative_category=informative_category,
             food_service_category=food_service_category,
@@ -411,6 +453,10 @@ def assess_place_match(
         candidate_address=candidate_address,
         location_overlap_tokens=location_overlap_tokens_set,
     )
+    house_number_conflict = _has_house_number_conflict(
+        row_address=row_address,
+        candidate_address=candidate_address,
+    )
 
     row_postal_codes = _extract_postal_code_tokens(row_address)
     candidate_postal_codes = _extract_postal_code_tokens(candidate_address)
@@ -418,6 +464,11 @@ def assess_place_match(
 
     if coordinate_like_candidate_name:
         strength: MatchStrength = "weak"
+    elif name_match and house_number_conflict:
+        # Chain restaurants and branch-labeled rows can share a name and city
+        # while pointing to the wrong storefront. A clear house-number conflict
+        # is stronger negative evidence than a city-only name match.
+        strength = "weak"
     elif name_match:
         has_street_signal = bool(significant_street_overlap) or has_house_number_anchor
         if city_in_candidate_address and (has_street_signal or postal_code_overlap_tokens):
@@ -463,6 +514,7 @@ def assess_place_match(
         street_overlap_tokens=tuple(sorted(street_overlap_tokens_set)),
         city_in_candidate_address=city_in_candidate_address,
         coordinate_like_candidate_name=coordinate_like_candidate_name,
+        house_number_conflict=house_number_conflict,
         located_in_match=located_in_match,
         informative_category=informative_category,
         food_service_category=food_service_category,

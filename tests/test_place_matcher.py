@@ -231,22 +231,50 @@ class PlaceMatcherTests(unittest.TestCase):
         self.assertFalse(assessment.located_in_match)
         self.assertTrue(assessment.city_in_candidate_address)
 
+    def test_assess_place_match_rejects_chain_branch_with_conflicting_house_number_from_real_log(
+        self,
+    ) -> None:
+        row = {
+            "Name": "鼎泰豐 (信義路)",
+            "City": "Taipei, 臺灣",
+            "Address": "大安區信義路二段277號, Taipei, 110, 臺灣",
+            "Cuisine": "滬菜",
+        }
+        candidate = PlaceCandidate(
+            name="Din Tai Fung Xinyi Branch",
+            address="No. 194號, Section 2, Xinyi Rd, Da'an District, Taipei City, 106",
+            category="外賣自取餐廳",
+            subtitle="鼎泰豐 信義店",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertTrue(assessment.house_number_conflict)
+        self.assertEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_accepts_chain_branch_with_matching_house_number(self) -> None:
+        row = {
+            "Name": "鼎泰豐 (信義路)",
+            "City": "Taipei, 臺灣",
+            "Address": "大安區信義路二段277號, Taipei, 110, 臺灣",
+            "Cuisine": "滬菜",
+        }
+        candidate = PlaceCandidate(
+            name="鼎泰豐 新生店",
+            address="100台灣台北市中正區信義路二段277號",
+            category="台式小吃",
+            subtitle="Din Tai Fung Xinsheng Branch",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertFalse(assessment.house_number_conflict)
+        self.assertNotEqual(assessment.strength, "weak")
+
     def test_assess_place_match_accepts_localized_maps_subtitle_branch_variants_from_real_log(self) -> None:
         cases = (
-            (
-                {
-                    "Name": "鼎泰豐 (信義路)",
-                    "City": "Taipei, 臺灣",
-                    "Address": "大安區信義路二段277號, Taipei, 110, 臺灣",
-                    "Cuisine": "滬菜",
-                },
-                PlaceCandidate(
-                    name="Din Tai Fung Xinyi Branch",
-                    address="No. 194號, Section 2, Xinyi Rd, Da'an District, Taipei City, 106",
-                    category="外賣自取餐廳",
-                    subtitle="鼎泰豐 信義店",
-                ),
-            ),
             (
                 {
                     "Name": "鄒記菜包 (中正路)",
@@ -295,6 +323,7 @@ class PlaceMatcherTests(unittest.TestCase):
             with self.subTest(row=row["Name"]):
                 assessment = assess_place_match(row, candidate)
                 self.assertTrue(assessment.name_match)
+                self.assertFalse(assessment.house_number_conflict)
                 self.assertNotEqual(assessment.strength, "weak")
 
     def test_assess_place_match_accepts_latin_number_name_with_local_category_suffix_from_real_log(self) -> None:
