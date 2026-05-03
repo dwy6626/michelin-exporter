@@ -738,6 +738,11 @@ class GoogleMapsSyncWriter:
                     row_name=str(row.get("Name", "")),
                 )
                 if attempt_index < self._max_save_retries:
+                    self._debug_log(
+                        f"Reloading Maps page before retry after transient Maps error. "
+                        f"level={level_slug} name='{row.get('Name', '')}'"
+                    )
+                    await self._driver.open_maps_home()
                     continue
             except GoogleMapsSelectorError as exc:
                 attempted_queries = build_place_query_attempts(row)
@@ -1020,11 +1025,19 @@ class GoogleMapsSyncWriter:
                     context="save-failed",
                     row_name=_row_name,
                 )
+                self._debug_log(
+                    f"Reloading Maps page to verify target list after save option miss. "
+                    f"level={level_slug} name='{_row_name}'"
+                )
+                await self._driver.open_maps_home()
                 if not await self._driver.open_list(list_name):
                     raise GoogleMapsListMissingDuringRunError(
                         f"List missing while saving row into {list_name}."
                     )
-                continue
+                raise GoogleMapsTransientError(
+                    f"Save dialog list option not found for '{list_name}' while syncing row '{_row_name}'. "
+                    "Target list was reusable after refresh; retrying row from a clean Maps state."
+                )
 
             self._record_row_synced(row_key, level_slug=level_slug, list_name=list_name)
             self._debug_log(

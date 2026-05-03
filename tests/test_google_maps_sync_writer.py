@@ -663,6 +663,100 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(search_call_count, 1)
             self.assertEqual(save_call_count, 1)
 
+    async def test_sync_rows_by_level_refreshes_maps_before_retrying_transient_save_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=1,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="stop",
+                ignore_existing_lists_check=False,
+                updated_on="2026-05-01",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="Taiwan", level_slugs=("one-star",))
+            fake_driver.candidates_by_query = {
+                "Alpha Taipei": PlaceCandidate(
+                    name="Alpha",
+                    address="Taipei City",
+                    category="Restaurant",
+                ),
+            }
+            call_count = 0
+
+            async def save_transient_then_success(list_name: str, note_text: str = "") -> bool:
+                nonlocal call_count
+                fake_driver.save_calls.append((list_name, note_text))
+                call_count += 1
+                if call_count == 1:
+                    raise GoogleMapsTransientError("Maps reported failed save to Taiwan|One Star")
+                return True
+
+            fake_driver.save_current_place_to_list = save_transient_then_success  # type: ignore[method-assign]
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "one-star": [
+                        {"Name": "Alpha", "City": "Taipei", "Cuisine": "Jiangzhe"},
+                    ]
+                }
+            )
+
+            self.assertEqual(len(result.failed_items), 0)
+            self.assertEqual(result.added_count_by_level["one-star"], 1)
+            self.assertEqual(call_count, 2)
+            self.assertGreaterEqual(fake_driver.open_maps_home_calls, 2)
+
+    async def test_sync_rows_by_level_refreshes_and_retries_when_save_dialog_list_option_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=1,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="stop",
+                ignore_existing_lists_check=False,
+                updated_on="2026-05-01",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="Taiwan", level_slugs=("one-star",))
+            fake_driver.candidates_by_query = {
+                "Alpha Taipei": PlaceCandidate(
+                    name="Alpha",
+                    address="Taipei City",
+                    category="Restaurant",
+                ),
+            }
+            call_count = 0
+
+            async def save_option_missing_then_success(list_name: str, note_text: str = "") -> bool:
+                nonlocal call_count
+                fake_driver.save_calls.append((list_name, note_text))
+                call_count += 1
+                return call_count > 1
+
+            fake_driver.save_current_place_to_list = save_option_missing_then_success  # type: ignore[method-assign]
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "one-star": [
+                        {"Name": "Alpha", "City": "Taipei", "Cuisine": "Jiangzhe"},
+                    ]
+                }
+            )
+
+            self.assertEqual(len(result.failed_items), 0)
+            self.assertEqual(result.added_count_by_level["one-star"], 1)
+            self.assertEqual(call_count, 2)
+            self.assertGreaterEqual(fake_driver.open_maps_home_calls, 3)
+
     async def test_sync_rows_by_level_continue_policy_keeps_processing_after_row_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()

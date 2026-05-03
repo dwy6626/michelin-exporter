@@ -18,11 +18,13 @@ class FakeDriver:
         self.save_calls: list[tuple[str, str]] = []
         self.save_error: Exception | None = None
         self.auth_checks = 0
+        self.open_maps_home_calls = 0
 
     async def start(self) -> None:
         return
 
     async def open_maps_home(self) -> None:
+        self.open_maps_home_calls += 1
         return
 
     async def is_authenticated(self, *, refresh: bool = True) -> bool:
