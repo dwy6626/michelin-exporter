@@ -79,6 +79,46 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(timeout_ms, driver._SEARCH_OUTCOME_MAX_TIMEOUT_MS)
 
+    async def test_create_list_refreshes_and_reopens_created_list_before_returning(self) -> None:
+        driver = self._build_driver()
+        page = object()
+        new_list_button = object()
+        created_entry = object()
+
+        with patch.object(driver, "_require_page", return_value=page):
+            with patch.object(driver, "_open_saved_tab") as open_saved_tab:
+                with patch.object(driver, "_ensure_lists_view") as ensure_lists_view:
+                    with patch.object(driver, "_resolve_new_list_button", return_value=new_list_button):
+                        with patch.object(driver, "_click_locator") as click_locator:
+                            with patch.object(driver, "_wait_for_timeout") as wait_for_timeout:
+                                with patch.object(driver, "_wait_for_list_creation_surface") as wait_creation:
+                                    with patch.object(
+                                        driver,
+                                        "_try_rename_inline_untitled_list",
+                                        return_value=True,
+                                    ) as rename_inline:
+                                        with patch.object(
+                                            driver,
+                                            "_wait_until_list_entry_available",
+                                            return_value=created_entry,
+                                        ) as wait_entry:
+                                            with patch.object(driver, "open_maps_home") as open_home:
+                                                with patch.object(driver, "open_list", return_value=True) as open_list:
+                                                    await driver.create_list("Test List")
+
+        open_saved_tab.assert_called_once()
+        ensure_lists_view.assert_called_once_with(page)
+        click_locator.assert_called_once()
+        wait_creation.assert_called_once()
+        rename_inline.assert_called_once_with(page, "Test List")
+        wait_entry.assert_called_once_with(page, list_name="Test List", max_attempts=8)
+        open_home.assert_called_once()
+        open_list.assert_called_once_with("Test List")
+        self.assertIn(
+            "create_list.wait_for_backend_settle(Test List)",
+            [call.kwargs["step"] for call in wait_for_timeout.call_args_list],
+        )
+
     async def test_wait_for_search_outcome_accepts_stable_visible_result_after_loading(self) -> None:
         driver = GoogleMapsDriver(
             GoogleMapsDriverConfig(
@@ -467,6 +507,51 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
             note_text="hello note",
             current_surface_verified=True,
         )
+
+    async def test_save_current_place_to_list_reports_note_failure_when_saved_state_exists_after_selection_timeout(
+        self,
+    ) -> None:
+        driver = self._build_driver()
+        page = object()
+        list_selector = object()
+
+        with patch.object(driver, "_require_page", return_value=page):
+            with patch.object(driver, "_is_add_place_input_visible", return_value=False):
+                with patch.object(driver, "_resolve_panel_saved_list_name", return_value=""):
+                    with patch.object(driver, "_click_save_control_with_retry", return_value="save-btn"):
+                        with patch.object(driver, "_wait_for_save_dialog_list_selector", return_value=list_selector):
+                            with patch.object(driver, "_read_locator_selection_state", return_value=False):
+                                with patch.object(driver, "_click_locator"):
+                                    with patch.object(driver, "_wait_for_list_selection_applied", return_value=False):
+                                        with patch.object(
+                                            driver,
+                                            "_detect_place_saved_state_after_note_failure",
+                                            return_value=True,
+                                        ):
+                                            with patch.object(
+                                                driver,
+                                                "_ensure_save_dialog_ready_for_note",
+                                                return_value=False,
+                                            ):
+                                                with patch.object(driver, "_is_limited_view_mode", return_value=False):
+                                                    with patch.object(
+                                                        driver,
+                                                        "_is_any_selector_visible",
+                                                        return_value=False,
+                                                    ):
+                                                        with patch.object(
+                                                            driver,
+                                                            "_summarize_visible_controls_for_debug",
+                                                            return_value="<controls>",
+                                                        ):
+                                                            with self.assertRaises(GoogleMapsNoteWriteError) as captured:
+                                                                await driver.save_current_place_to_list(
+                                                                    "Test List",
+                                                                    note_text="hello note",
+                                                                )
+
+        self.assertTrue(captured.exception.place_saved)
+        self.assertIn("Place saved before note failure: yes", str(captured.exception))
 
     async def test_detect_place_saved_state_after_note_failure_uses_panel_saved_state_fallback(self) -> None:
         driver = self._build_driver()

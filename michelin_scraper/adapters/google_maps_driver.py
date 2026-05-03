@@ -441,6 +441,20 @@ class GoogleMapsDriver:
                     f"Visible saved controls snapshot: {saved_snapshot}"
 
             )
+        await self._wait_for_timeout(
+            page,
+            int(self._config.sync_delay_seconds * 1000),
+            step=f"create_list.wait_for_backend_settle({list_name})",
+        )
+        await self.open_maps_home()
+        if not await self.open_list(list_name):
+            saved_snapshot = await self._summarize_saved_panel_controls_for_debug(await self._require_page())
+            raise GoogleMapsSelectorError(
+
+                    f"List creation produced '{list_name}', but it was not reusable after refresh. "
+                    f"Visible saved controls snapshot: {saved_snapshot}"
+
+            )
 
     async def open_list(self, list_name: str) -> bool:
         """Open a named list in the side panel."""
@@ -772,13 +786,33 @@ class GoogleMapsDriver:
             _tc2 = monotonic()
             _log.debug(f"[timing] save.wait_for_selection_applied: {(_tc2-_tc1)*1000:.0f}ms  applied={selection_applied!r}")
             if not selection_applied:
-                raise GoogleMapsTransientError(
+                if note_value_check:
+                    place_saved = await self._detect_place_saved_state_after_note_failure(
+                        page=page,
+                        list_name=list_name,
+                        list_selector=list_selector,
+                    )
+                    if place_saved:
+                        _log.warning(
+                            "List selection verification did not settle, but target saved state is visible; "
+                            f"continuing with note write. list={list_name!r}"
+                        )
+                    else:
+                        raise GoogleMapsTransientError(
 
-                        f"List selection did not apply after click for '{list_name}'. "
-                        f"Clicked control summary: {await self._normalized_locator_text(list_selector) or '<unknown>'}. "
-                        f"Visible controls snapshot: {await self._summarize_visible_controls_for_debug(page)}"
+                                f"List selection did not apply after click for '{list_name}'. "
+                                f"Clicked control summary: {await self._normalized_locator_text(list_selector) or '<unknown>'}. "
+                                f"Visible controls snapshot: {await self._summarize_visible_controls_for_debug(page)}"
 
-                )
+                        )
+                else:
+                    raise GoogleMapsTransientError(
+
+                            f"List selection did not apply after click for '{list_name}'. "
+                            f"Clicked control summary: {await self._normalized_locator_text(list_selector) or '<unknown>'}. "
+                            f"Visible controls snapshot: {await self._summarize_visible_controls_for_debug(page)}"
+
+                    )
         note_value = note_value_check
         if note_value:
             note_applied = False
