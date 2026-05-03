@@ -1,6 +1,7 @@
 """Playwright-backed Google Maps UI driver."""
 
 import asyncio
+import re
 import shutil
 import sys
 from collections.abc import Awaitable, Callable
@@ -1207,11 +1208,9 @@ class GoogleMapsDriver:
         note_text: str,
         current_surface_verified: bool,
     ) -> bool:
-        if current_surface_verified and await self._confirm_note_persisted_on_place_panel(
-            page=page,
-            list_name=list_name,
-            note_text=note_text,
-        ):
+        if current_surface_verified:
+            return True
+        if await self._is_target_saved_state_visible_on_place_panel(page=page, list_name=list_name):
             return True
         return await self._confirm_note_persisted_after_reopen(
             page=page,
@@ -1452,12 +1451,8 @@ class GoogleMapsDriver:
         note_input = await self._first_visible_locator(page, self._SAVE_DIALOG_NOTE_FIELD_SELECTORS)
         if note_input is not None:
             try:
-                # Use keyboard-based input instead of locator.fill() so that
-                # trusted keydown/keypress/input/keyup events are dispatched.
-                # Google Maps wires textarea handlers via jsaction on both
-                # ``input`` and ``keyup`` events; Playwright's fill() only
-                # dispatches synthetic ``input``/``change`` events which may
-                # not trigger the jsaction handler reliably.
+                # Use the page keyboard instead of locator.fill() so the text
+                # goes through the focused Google Maps editor surface.
                 await self._click_locator(
                     page=page,
                     locator=note_input,
@@ -1506,22 +1501,35 @@ class GoogleMapsDriver:
         # fruitlessly.  Go directly to the place-panel note expansion path.
         if not await self._is_save_dialog_visible(page):
             _log.debug("[timing] save.ensure_dialog_ready: dialog_closed_fast_path")
-            # Wait for the "Saving…" animation to resolve and the "Saved in"
-            # panel to appear before trying to expand the note editor.
-            if not await self._is_saved_state_visible_on_place_panel(page):
+            # The collapsed "Saved in A & B" summary is not enough to prove the
+            # target list is saved. Expand place-list details, then inspect the
+            # per-list rows/note editors.
+            await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
+            if not await self._is_target_saved_state_visible_on_place_panel(page=page, list_name=list_name):
                 _log.debug("[timing] save.ensure_dialog_ready: waiting_for_saved_state")
-                await self._wait_for_condition(
+                async def _expanded_target_saved_pred() -> bool:
+                    if await self._is_target_saved_state_visible_on_place_panel(page=page, list_name=list_name):
+                        return True
+                    await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
+                    return await self._is_target_saved_state_visible_on_place_panel(page=page, list_name=list_name)
+
+                saved_state_visible = await self._wait_for_condition(
                     page=page,
                     timeout_ms=self._NOTE_CONFIRM_TIMEOUT_MS,
-                    predicate=lambda: self._is_saved_state_visible_on_place_panel(page),
+                    predicate=_expanded_target_saved_pred,
                 )
-            await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
+                if not saved_state_visible:
+                    return False
+            if await self._is_target_note_editor_visible(page=page, list_name=list_name):
+                return True
+            if not await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name):
+                return False
             await self._wait_for_timeout(
                 page,
                 self._UI_ACTION_POLL_INTERVAL_MS,
                 step=f"save.wait_after_panel_note_expand({list_name})",
             )
-            return True
+            return await self._is_target_note_editor_visible(page=page, list_name=list_name)
 
         _ts0 = monotonic()
         settled = await self._wait_for_save_surface_settled_for_note(
@@ -1818,7 +1826,10 @@ class GoogleMapsDriver:
         return True
 
     async def _attempt_expand_place_panel_note_editor(self, *, page: Any, list_name: str) -> bool:
-        expand_control = await self._first_visible_locator(page, self._SAVE_PANEL_NOTE_EXPAND_SELECTORS)
+        if await self._is_place_panel_list_details_expanded(page=page):
+            return True
+
+        expand_control = await self._resolve_place_panel_details_expand_control(page=page)
         if expand_control is None:
             # Fallback: some UIs expose the "Saved in …" chip itself (matched by
             # SAVE_PANEL_SAVED_STATE_SELECTORS) as the control that expands the
@@ -1844,6 +1855,7 @@ class GoogleMapsDriver:
                 locator=expand_control,
                 step=f"save.expand_place_panel_note_editor({list_name})",
                 error_type=GoogleMapsTransientError,
+                allow_force_click=True,
             )
             await self._wait_for_timeout(
                 page,
@@ -1852,6 +1864,113 @@ class GoogleMapsDriver:
             )
             return True
         except GoogleMapsError:
+            if not self._supports_dom_waits(page):
+                return False
+            if not await self._click_place_panel_details_control_via_js(page=page):
+                return False
+            try:
+                await self._wait_for_timeout(
+                    page,
+                    self._UI_ACTION_POLL_INTERVAL_MS,
+                    step=f"save.wait_after_expand_place_panel_note_editor_js({list_name})",
+                )
+            except GoogleMapsError:
+                return False
+            return True
+
+    async def _is_place_panel_list_details_expanded(self, *, page: Any) -> bool:
+        if not hasattr(page, "locator"):
+            return False
+        return await self._is_any_selector_visible(
+            page,
+            (
+                "div[role='main'] button[aria-label*='Hide place lists details' i]",
+                "div[role='main'] [role='button'][aria-label*='Hide place lists details' i]",
+            ),
+            timeout_ms=80,
+        )
+
+    async def _resolve_place_panel_details_expand_control(self, *, page: Any) -> Any | None:
+        if not hasattr(page, "locator"):
+            return await self._first_visible_locator(page, self._SAVE_PANEL_NOTE_EXPAND_SELECTORS)
+        locator_group = page.locator(", ".join(self._SAVE_PANEL_NOTE_EXPAND_SELECTORS))
+        try:
+            candidate_count = min(await locator_group.count(), 40)
+        except Exception:  # noqa: BLE001
+            return None
+        for index in range(candidate_count):
+            candidate = locator_group.nth(index)
+            try:
+                if not await candidate.is_visible():
+                    continue
+            except Exception:  # noqa: BLE001
+                continue
+            normalized_text = await self._normalized_locator_text(candidate)
+            if "hide place lists details" in normalized_text:
+                return None
+            if (
+                "show place lists details" in normalized_text
+                or "add note" in normalized_text
+                or "saved in" in normalized_text
+            ):
+                return candidate
+        return None
+
+    async def _click_place_panel_details_control_via_js(self, *, page: Any) -> bool:
+        try:
+            return bool(
+                await page.evaluate(
+                    """() => {
+                        const isVisible = (element) => {
+                          if (!element) return false;
+                          const style = window.getComputedStyle(element);
+                          if (!style || style.visibility === 'hidden' || style.display === 'none') return false;
+                          const rect = element.getBoundingClientRect();
+                          return rect.width > 0 && rect.height > 0;
+                        };
+                        const normalize = (value) => String(value || '')
+                          .toLowerCase()
+                          .replace(/\\s+/g, ' ')
+                          .trim();
+                        const controls = Array.from(
+                          document.querySelectorAll(
+                            "div[role='main'] button, div[role='main'] [role='button']"
+                          )
+                        );
+                        for (const control of controls) {
+                          if (!isVisible(control)) continue;
+                          const label = normalize(
+                            [
+                              control.getAttribute('aria-label') || '',
+                              control.getAttribute('data-value') || '',
+                              control.innerText || '',
+                            ].join(' ')
+                          );
+                          if (!label.includes('show place lists details')) continue;
+                          control.scrollIntoView({ block: 'center', inline: 'center' });
+                          const rect = control.getBoundingClientRect();
+                          const eventInit = {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window,
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2,
+                          };
+                          const eventTypes = [
+                            'pointerover', 'pointerenter', 'mouseover', 'mouseenter',
+                            'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click',
+                          ];
+                          for (const type of eventTypes) {
+                            const EventCtor = type.startsWith('pointer') ? PointerEvent : MouseEvent;
+                            control.dispatchEvent(new EventCtor(type, eventInit));
+                          }
+                          return true;
+                        }
+                        return false;
+                    }"""
+                )
+            )
+        except Exception:  # noqa: BLE001
             return False
 
     async def _wait_for_save_surface_settled_for_note(self, *, page: Any, list_name: str) -> bool:
@@ -1910,7 +2029,8 @@ class GoogleMapsDriver:
         if await self._is_target_note_editor_visible(page=page, list_name=list_name):
             return True
         if not await self._is_save_dialog_visible(page):
-            return await self._is_saved_state_visible_on_place_panel(page)
+            await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
+            return await self._is_target_saved_state_visible_on_place_panel(page=page, list_name=list_name)
         list_selector = await self._resolve_save_dialog_list_selector(page, list_name)
         if list_selector is None:
             return False
@@ -1922,6 +2042,29 @@ class GoogleMapsDriver:
             self._SAVE_PANEL_SAVED_STATE_SELECTORS,
             timeout_ms=80,
         )
+
+    async def _is_target_saved_state_visible_on_place_panel(self, *, page: Any, list_name: str) -> bool:
+        if not hasattr(page, "locator"):
+            panel_saved_list_name = await self._resolve_panel_saved_list_name(page)
+            return self._list_name_match_score(
+                list_name=list_name,
+                candidate_text=panel_saved_list_name,
+            ) >= 2
+        locator_group = page.locator(", ".join(self._SAVE_PANEL_SAVED_STATE_SELECTORS))
+        try:
+            candidate_count = min(await locator_group.count(), 40)
+        except Exception:  # noqa: BLE001
+            candidate_count = 0
+        for index in range(candidate_count):
+            locator = locator_group.nth(index)
+            try:
+                if not await locator.is_visible():
+                    continue
+            except Exception:  # noqa: BLE001
+                continue
+            if await self._locator_list_name_match_score(locator=locator, list_name=list_name) >= 2:
+                return True
+        return False
 
     async def _resolve_panel_saved_list_name(self, page: Any) -> str:
         """Extract the list name from the panel 'Saved in ...' aria-label, or ''."""
@@ -2276,7 +2419,8 @@ class GoogleMapsDriver:
         # for the element to reappear, causing the outer poll loop to hang
         # far past the intended deadline.
         if not await self._is_save_dialog_visible(page):
-            return True
+            await self._attempt_expand_place_panel_note_editor(page=page, list_name=list_name)
+            return await self._is_target_saved_state_visible_on_place_panel(page=page, list_name=list_name)
 
         direct_state = await self._read_locator_selection_state(list_selector)
         if direct_state is True:
@@ -3051,10 +3195,7 @@ class GoogleMapsDriver:
             return 0
         if normalized_target == normalized_candidate:
             return 3
-        if _contains_text_with_boundaries(
-            haystack=normalized_candidate,
-            needle=normalized_target,
-        ):
+        if _candidate_starts_with_list_name(normalized_candidate, normalized_target):
             return 2
         return 0
 
@@ -3116,17 +3257,29 @@ class GoogleMapsDriver:
                     return rect.width > 0 && rect.height > 0;
                 };
 
-                const EXTRA_BOUNDARY = '|+=';
-                const isBoundary = (ch) => !ch || /[\\s\\p{P}]/u.test(ch) || EXTRA_BOUNDARY.includes(ch);
-
-                const containsWithBoundaries = (haystack, needle) => {
-                    let idx = haystack.indexOf(needle);
-                    while (idx >= 0) {
-                        const before = idx > 0 ? haystack[idx - 1] : '';
-                        const after = idx + needle.length < haystack.length
-                            ? haystack[idx + needle.length] : '';
-                        if (isBoundary(before) && isBoundary(after)) return true;
-                        idx = haystack.indexOf(needle, idx + 1);
+                const allowedSuffixStarts = [
+                    '', 'private', 'public', 'shared', 'places', 'place',
+                    '0 places', '1 place', 'add a note', 'hide place lists details',
+                ];
+                const stripLeadingUiIcons = (value) => value.replace(/^[\\uE000-\\uF8FF\\s]+/u, '');
+                const startsWithListName = (candidate, needle) => {
+                    const variants = [candidate, stripLeadingUiIcons(candidate)];
+                    const savedInMarker = 'saved in';
+                    let savedInIndex = candidate.indexOf(savedInMarker);
+                    while (savedInIndex >= 0) {
+                        variants.push(candidate.slice(savedInIndex + savedInMarker.length).trim());
+                        savedInIndex = candidate.indexOf(savedInMarker, savedInIndex + savedInMarker.length);
+                    }
+                    for (const value of variants) {
+                        if (!value.startsWith(needle)) continue;
+                        const suffix = value.slice(needle.length).trim();
+                        if (!suffix) return true;
+                        if (allowedSuffixStarts.some((allowed) => allowed && suffix.startsWith(allowed))) {
+                            return true;
+                        }
+                        if (/^\\d+\\s+(saved|places?|items?)/u.test(suffix)) {
+                            return true;
+                        }
                     }
                     return false;
                 };
@@ -3152,7 +3305,7 @@ class GoogleMapsDriver:
                     let score = 0;
                     if (candidate === target) {
                         score = 3;
-                    } else if (containsWithBoundaries(candidate, target)) {
+                    } else if (startsWithListName(candidate, target)) {
                         score = 2;
                     }
                     if (score > bestScore || (score > 0 && score === bestScore && candidate.length < bestLen)) {
@@ -3714,21 +3867,31 @@ _SCOPED_NOTE_FIELD_JS = r"""({ mode, listName, noteText }) => {
   const target = normalize(listName);
   if (!target) return false;
 
-  const extraBoundary = '|/.,:;()[]{}-_=+·•';
-  const isBoundary = (ch) => !ch || /\s/u.test(ch) || extraBoundary.includes(ch);
-  const containsWithBoundaries = (haystack, needle) => {
-    let idx = haystack.indexOf(needle);
-    while (idx >= 0) {
-      const before = idx > 0 ? haystack[idx - 1] : '';
-      const after = idx + needle.length < haystack.length ? haystack[idx + needle.length] : '';
-      if (isBoundary(before) && isBoundary(after)) return true;
-      idx = haystack.indexOf(needle, idx + 1);
+  const allowedSuffixStarts = [
+    '', 'private', 'public', 'shared', 'places', 'place',
+    '0 places', '1 place', 'add a note', 'hide place lists details',
+  ];
+  const stripLeadingUiIcons = (value) => value.replace(/^[\uE000-\uF8FF\s]+/u, '');
+  const startsWithListName = (candidate, needle) => {
+    const variants = [candidate, stripLeadingUiIcons(candidate)];
+    const savedInMarker = 'saved in';
+    let savedInIndex = candidate.indexOf(savedInMarker);
+    while (savedInIndex >= 0) {
+      variants.push(candidate.slice(savedInIndex + savedInMarker.length).trim());
+      savedInIndex = candidate.indexOf(savedInMarker, savedInIndex + savedInMarker.length);
+    }
+    for (const value of variants) {
+      if (!value.startsWith(needle)) continue;
+      const suffix = value.slice(needle.length).trim();
+      if (!suffix) return true;
+      if (allowedSuffixStarts.some((allowed) => allowed && suffix.startsWith(allowed))) return true;
+      if (/^\d+\s+(saved|places?|items?)/u.test(suffix)) return true;
     }
     return false;
   };
   const targetMatches = (value) => {
     const normalized = normalize(value);
-    return normalized === target || containsWithBoundaries(normalized, target);
+    return normalized === target || startsWithListName(normalized, target);
   };
 
   const isVisible = (element) => {
@@ -3747,6 +3910,12 @@ _SCOPED_NOTE_FIELD_JS = r"""({ mode, listName, noteText }) => {
     (element.getAttribute && element.getAttribute('data-value')) || '',
     element.innerText || '',
     element.textContent || '',
+  ].join(' '));
+  const readOwnLabel = (element) => normalize([
+    (element.getAttribute && element.getAttribute('aria-label')) || '',
+    (element.getAttribute && element.getAttribute('placeholder')) || '',
+    (element.getAttribute && element.getAttribute('title')) || '',
+    (element.getAttribute && element.getAttribute('data-value')) || '',
   ].join(' '));
   const readValue = (element) => {
     const tagName = String(element.tagName || '').toLowerCase();
@@ -3771,9 +3940,29 @@ _SCOPED_NOTE_FIELD_JS = r"""({ mode, listName, noteText }) => {
     }
     return true;
   };
+  const noteFieldScore = (element) => {
+    if (!isEditable(element)) return 0;
+    const tagName = String(element.tagName || '').toLowerCase();
+    const role = normalize(element.getAttribute && element.getAttribute('role'));
+    if (role === 'combobox' || role === 'checkbox') return 0;
+
+    const label = readLabel(element);
+    let score = 0;
+    if (label.includes('note') || label.includes('memo')) score += 100;
+    if (tagName === 'textarea') score += 30;
+    if (element.isContentEditable || role === 'textbox') score += 20;
+    if (tagName === 'input') score += 5;
+    const jsaction = normalize(element.getAttribute && element.getAttribute('jsaction'));
+    if (jsaction.includes('textentry')) score += 5;
+    return score;
+  };
   const findEditableFields = (root) => Array.from(
     root.querySelectorAll("textarea, input, [contenteditable='true'], [role='textbox']")
-  ).filter(isEditable);
+  )
+    .map((field, index) => ({ field, score: noteFieldScore(field), index }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map((entry) => entry.field);
   const isSelected = (element) => {
     for (const attr of ['aria-checked', 'aria-selected', 'data-selected', 'data-state']) {
       const value = normalize(element.getAttribute && element.getAttribute(attr));
@@ -3785,23 +3974,43 @@ _SCOPED_NOTE_FIELD_JS = r"""({ mode, listName, noteText }) => {
   const surfaceRoots = Array.from(
     document.querySelectorAll("div[role='dialog'], [role='menu'], div[role='main']")
   ).filter(isVisible);
+  const savedListContainerSelector = (
+    "[role='group'][aria-label*='Saved in' i], " +
+    "[role='region'][aria-label*='Saved in' i], " +
+    "[aria-label*='Saved in' i]"
+  );
   const rowCandidatesSelector = (
     "[role='checkbox'], [role='menuitemcheckbox'], [role='menuitemradio'], " +
     "button, [role='button'], [role='menuitem'], [aria-label*='Saved in' i]"
   );
   const scopedFields = [];
+  const appendFields = (root) => {
+    for (const field of findEditableFields(root)) scopedFields.push(field);
+  };
 
   for (const surfaceRoot of surfaceRoots) {
+    const targetContainers = Array.from(surfaceRoot.querySelectorAll(savedListContainerSelector))
+      .filter(isVisible)
+      .filter((container) => targetMatches(readOwnLabel(container)))
+      .filter((container) => findEditableFields(container).length > 0);
+    if (targetContainers.length > 0) {
+      for (const container of targetContainers) appendFields(container);
+      continue;
+    }
+
     const rowCandidates = Array.from(surfaceRoot.querySelectorAll(rowCandidatesSelector)).filter(isVisible);
     for (const rowCandidate of rowCandidates) {
       if (!targetMatches(readLabel(rowCandidate))) continue;
-
-      let ancestor = rowCandidate;
-      let depth = 0;
-      while (ancestor && ancestor !== surfaceRoot && depth < 8) {
-        for (const field of findEditableFields(ancestor)) scopedFields.push(field);
-        ancestor = ancestor.parentElement;
-        depth += 1;
+      const ownTargetContainer = rowCandidate.matches(savedListContainerSelector)
+        ? rowCandidate
+        : rowCandidate.closest(savedListContainerSelector);
+      if (
+        ownTargetContainer &&
+        surfaceRoot.contains(ownTargetContainer) &&
+        targetMatches(readOwnLabel(ownTargetContainer))
+      ) {
+        appendFields(ownTargetContainer);
+        continue;
       }
 
       const role = normalize(surfaceRoot.getAttribute && surfaceRoot.getAttribute('role'));
@@ -3922,6 +4131,50 @@ def _contains_text_with_boundaries(*, haystack: str, needle: str) -> bool:
             return True
         start_index = haystack.find(needle, start_index + 1)
     return False
+
+
+def _candidate_starts_with_list_name(candidate_text: str, list_name: str) -> bool:
+    allowed_suffix_starts = (
+        "private",
+        "public",
+        "shared",
+        "places",
+        "place",
+        "0 places",
+        "1 place",
+        "add a note",
+        "hide place lists details",
+    )
+    variants = [candidate_text, _strip_leading_ui_icon_text(candidate_text)]
+    saved_in_marker = "saved in"
+    saved_in_index = candidate_text.find(saved_in_marker)
+    while saved_in_index >= 0:
+        variants.append(candidate_text[saved_in_index + len(saved_in_marker) :].strip())
+        saved_in_index = candidate_text.find(saved_in_marker, saved_in_index + len(saved_in_marker))
+
+    for value in variants:
+        if not value.startswith(list_name):
+            continue
+        suffix = value[len(list_name) :].strip()
+        if not suffix:
+            return True
+        if any(suffix.startswith(allowed) for allowed in allowed_suffix_starts):
+            return True
+        if re.match(r"^\d+\s+(saved|places?|items?)", suffix):
+            return True
+    return False
+
+
+def _strip_leading_ui_icon_text(value: str) -> str:
+    index = 0
+    while index < len(value):
+        character = value[index]
+        codepoint = ord(character)
+        if character.isspace() or 0xE000 <= codepoint <= 0xF8FF:
+            index += 1
+            continue
+        break
+    return value[index:]
 
 
 def _is_saved_only_control_label(normalized_text: str) -> bool:

@@ -69,8 +69,8 @@ SAVE_PANEL_SAVED_STATE_SELECTORS = (
     "div[role='main'] [aria-label*='Saved in' i]",
 )
 SAVE_PANEL_NOTE_EXPAND_SELECTORS = (
-    "div[role='main'] button[aria-label*='place lists details' i]",
-    "div[role='main'] [role='button'][aria-label*='place lists details' i]",
+    "div[role='main'] button[aria-label*='Show place lists details' i]",
+    "div[role='main'] [role='button'][aria-label*='Show place lists details' i]",
     "div[role='main'] button[aria-label*='saved in' i]",
     "div[role='main'] [role='button'][aria-label*='saved in' i]",
     "div[role='main'] button[aria-label*='add note' i]",
