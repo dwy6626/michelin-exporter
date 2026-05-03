@@ -1157,6 +1157,7 @@ def _format_match_assessment_debug(assessment: PlaceMatchAssessment) -> str:
         f"located_in_match={assessment.located_in_match}, "
         f"city_in_address={assessment.city_in_candidate_address}, "
         f"coordinate_like_name={assessment.coordinate_like_candidate_name}, "
+        f"house_number_conflict={assessment.house_number_conflict}, "
         f"informative_category={assessment.informative_category}, "
         f"food_service_category={assessment.food_service_category}, "
         f"location_overlap={location_overlap}, "

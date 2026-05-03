@@ -259,6 +259,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 fake_driver.queries,
                 [
                     "陽明春天 (士林) 士林區",
+                    "陽明春天 (士林) 菁山路119之1號",
                     "陽明春天 (士林) Taipei, 臺灣",
                     "陽明春天 (士林)",
                 ],
@@ -383,6 +384,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                 fake_driver.queries,
                 [
                     "首烏 板橋區",
+                    "首烏 民族路27號",
                     "首烏 New Taipei, 臺灣",
                     "首烏",
                     "板橋區民族路27號",
