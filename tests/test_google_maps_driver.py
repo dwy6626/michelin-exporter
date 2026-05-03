@@ -429,7 +429,7 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         # One initial expand + one per write attempt while the note field is still missing.
         self.assertGreaterEqual(expand_panel.call_count, 3)
 
-    async def test_save_current_place_to_list_requires_place_panel_confirmation_after_note_write(self) -> None:
+    async def test_save_current_place_to_list_verifies_after_note_write(self) -> None:
         driver = self._build_driver()
         page = object()
         list_selector = object()
@@ -451,9 +451,9 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                                                 with patch.object(driver, "_wait_for_note_text_applied", return_value=True):
                                                     with patch.object(
                                                         driver,
-                                                        "_confirm_note_persisted_on_place_panel",
+                                                        "_verify_note_after_write",
                                                         return_value=True,
-                                                    ) as confirm_note:
+                                                    ) as verify_note:
                                                         with patch.object(driver, "_is_save_dialog_visible", return_value=False):
                                                             saved = await driver.save_current_place_to_list(
                                                                 "Test List",
@@ -461,10 +461,11 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                                                             )
 
         self.assertTrue(saved)
-        confirm_note.assert_called_once_with(
+        verify_note.assert_called_once_with(
             page=page,
             list_name="Test List",
             note_text="hello note",
+            current_surface_verified=True,
         )
 
     async def test_detect_place_saved_state_after_note_failure_uses_panel_saved_state_fallback(self) -> None:
@@ -479,6 +480,39 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                 )
 
         self.assertTrue(saved)
+
+    async def test_did_list_selection_apply_requires_target_saved_state_when_dialog_closed(self) -> None:
+        driver = self._build_driver()
+        page = object()
+
+        with patch.object(driver, "_is_save_dialog_visible", return_value=False):
+            with patch.object(driver, "_attempt_expand_place_panel_note_editor") as expand_details:
+                with patch.object(driver, "_resolve_panel_saved_list_name", return_value=""):
+                    applied = await driver._did_list_selection_apply(
+                        page=page,
+                        list_name="Test List",
+                        list_selector=object(),
+                    )
+
+        self.assertFalse(applied)
+        expand_details.assert_called_once_with(page=page, list_name="Test List")
+
+    async def test_ensure_save_dialog_ready_for_note_returns_false_when_closed_without_saved_state(self) -> None:
+        driver = self._build_driver()
+        page = object()
+
+        with patch.object(driver, "_is_target_note_editor_visible", return_value=False):
+            with patch.object(driver, "_is_save_dialog_visible", return_value=False):
+                with patch.object(driver, "_is_target_saved_state_visible_on_place_panel", return_value=False):
+                    with patch.object(driver, "_wait_for_condition", return_value=False):
+                        with patch.object(driver, "_attempt_expand_place_panel_note_editor") as expand_note:
+                            ready = await driver._ensure_save_dialog_ready_for_note(
+                                page=page,
+                                list_name="Test List",
+                            )
+
+        self.assertFalse(ready)
+        expand_note.assert_called_once_with(page=page, list_name="Test List")
 
     async def test_ensure_save_dialog_ready_for_note_returns_true_when_note_field_is_visible(self) -> None:
         driver = self._build_driver()
@@ -794,7 +828,7 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         page = MagicMock()
 
         with patch.object(driver, "_supports_dom_waits", return_value=True):
-            with patch.object(driver, "_set_scoped_note_text_via_js", return_value=True) as scoped_writer:
+            with patch.object(driver, "_set_scoped_note_text_via_js", return_value=True) as scoped_write:
                 with patch.object(driver, "_first_visible_locator") as first_visible_locator:
                     wrote = await driver._try_apply_note_to_saved_place(
                         page=page,
@@ -803,7 +837,7 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                     )
 
         self.assertTrue(wrote)
-        scoped_writer.assert_called_once_with(
+        scoped_write.assert_called_once_with(
             page=page,
             list_name="Target List",
             note_text="Chef's counter",
@@ -847,11 +881,45 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         )
         first_visible_locator.assert_not_called()
 
-    async def test_verify_note_after_write_reopens_place_when_current_surface_does_not_verify(self) -> None:
+    async def test_verify_note_after_write_accepts_current_surface_confirmation(self) -> None:
         driver = self._build_driver()
         page = MagicMock()
 
-        with patch.object(driver, "_confirm_note_persisted_on_place_panel") as current_confirm:
+        with patch.object(driver, "_is_target_saved_state_visible_on_place_panel") as saved_state:
+            with patch.object(driver, "_confirm_note_persisted_after_reopen") as reopen_confirm:
+                verified = await driver._verify_note_after_write(
+                    page=page,
+                    list_name="Target List",
+                    note_text="Chef's counter",
+                    current_surface_verified=True,
+                )
+
+        self.assertTrue(verified)
+        saved_state.assert_not_called()
+        reopen_confirm.assert_not_called()
+
+    async def test_verify_note_after_write_accepts_target_saved_state_when_note_text_is_not_readable(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+
+        with patch.object(driver, "_is_target_saved_state_visible_on_place_panel", return_value=True) as saved_state:
+            with patch.object(driver, "_confirm_note_persisted_after_reopen") as reopen_confirm:
+                verified = await driver._verify_note_after_write(
+                    page=page,
+                    list_name="Target List",
+                    note_text="Chef's counter",
+                    current_surface_verified=False,
+                )
+
+        self.assertTrue(verified)
+        saved_state.assert_called_once_with(page=page, list_name="Target List")
+        reopen_confirm.assert_not_called()
+
+    async def test_verify_note_after_write_reopens_place_when_saved_state_is_not_confirmed(self) -> None:
+        driver = self._build_driver()
+        page = MagicMock()
+
+        with patch.object(driver, "_is_target_saved_state_visible_on_place_panel", return_value=False):
             with patch.object(
                 driver,
                 "_confirm_note_persisted_after_reopen",
@@ -865,12 +933,7 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                 )
 
         self.assertTrue(verified)
-        current_confirm.assert_not_called()
-        reopen_confirm.assert_called_once_with(
-            page=page,
-            list_name="Target List",
-            note_text="Chef's counter",
-        )
+        reopen_confirm.assert_called_once_with(page=page, list_name="Target List", note_text="Chef's counter")
 
     async def test_confirm_note_persisted_after_reopen_reloads_place_and_reads_note(self) -> None:
         driver = self._build_driver()

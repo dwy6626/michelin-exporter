@@ -241,6 +241,26 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         _assert_any_selector_matches(soup, save_flow.SAVE_PANEL_NOTE_EXPAND_SELECTORS)
         self.assertFalse(_any_selector_matches(soup, save_flow.SAVE_DIALOG_INTERACTIVE_SELECTORS))
 
+    def test_multiple_saved_lists_fixture_requires_target_group_scoped_note_editor(self) -> None:
+        soup = BeautifulSoup(
+            _read_fixture_text("note-write-multiple-saved-lists-surface.html"),
+            "html.parser",
+        )
+        outer_region = soup.select_one('[role="region"][aria-label="Saved in Your Places"]')
+        self.assertIsNotNone(outer_region)
+        assert outer_region is not None
+        all_note_fields = outer_region.select("textarea")
+        self.assertEqual(len(all_note_fields), 3)
+
+        target_group = soup.select_one(
+            '[role="group"][aria-label="Saved in 臺灣 餐廳 米其林 星級"]'
+        )
+        self.assertIsNotNone(target_group)
+        assert target_group is not None
+        target_note_fields = target_group.select("textarea")
+        self.assertEqual(len(target_note_fields), 1)
+        self.assertIsNot(all_note_fields[0], target_note_fields[0])
+
     async def test_security_block_fixture_detects_login_block(self) -> None:
         driver = GoogleMapsDriver(
             GoogleMapsDriverConfig(

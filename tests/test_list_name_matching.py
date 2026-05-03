@@ -178,6 +178,51 @@ class ListNameMatchScoreTests(unittest.TestCase):
         )
         self.assertEqual(score, 3)
 
+    def test_prefixed_test_list_does_not_match_unprefixed_target(self) -> None:
+        score = self.driver._list_name_match_score(
+            list_name="臺灣 餐廳 米其林 星級",
+            candidate_text="[TEST] 臺灣 餐廳 米其林 星級",
+        )
+        self.assertEqual(score, 0)
+
+    def test_saved_in_target_with_ui_suffix_scores_2(self) -> None:
+        score = self.driver._list_name_match_score(
+            list_name="臺灣 餐廳 米其林 星級",
+            candidate_text="Saved in 臺灣 餐廳 米其林 星級 Private · 1 place Add a note",
+        )
+        self.assertEqual(score, 2)
+
+    def test_saved_in_target_without_space_scores_2(self) -> None:
+        score = self.driver._list_name_match_score(
+            list_name="臺灣 餐廳 米其林 星級",
+            candidate_text="Saved in臺灣 餐廳 米其林 星級 Private · 1 place Add a note",
+        )
+        self.assertEqual(score, 2)
+
+    def test_nested_saved_in_target_scores_2(self) -> None:
+        score = self.driver._list_name_match_score(
+            list_name="臺灣 餐廳 米其林 星級",
+            candidate_text=(
+                "Saved in Your Places "
+                "\ue896 Saved in 臺灣 餐廳 米其林 星級 Private · 1 place Add a note"
+            ),
+        )
+        self.assertEqual(score, 2)
+
+    def test_leading_material_icon_does_not_block_target_match(self) -> None:
+        score = self.driver._list_name_match_score(
+            list_name="臺灣 餐廳 米其林 星級",
+            candidate_text="\ue896 臺灣 餐廳 米其林 星級 0 places · Private list",
+        )
+        self.assertEqual(score, 2)
+
+    def test_combined_saved_lists_summary_does_not_prove_target_list(self) -> None:
+        score = self.driver._list_name_match_score(
+            list_name="臺灣 餐廳 米其林 星級",
+            candidate_text="Saved in 臺灣 餐廳 米其林 星級 & [TEST] 臺灣 餐廳 米其林 星級",
+        )
+        self.assertEqual(score, 0)
+
     def test_empty_target_scores_0(self) -> None:
         score = self.driver._list_name_match_score(
             list_name="",
