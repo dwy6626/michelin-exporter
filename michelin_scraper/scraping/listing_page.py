@@ -31,6 +31,34 @@ _RESTAURANT_TITLE_SELECTOR = "h3.card__menu-content--title"
 _CARD_FOOTER_SCORE_SELECTOR = "div.card__menu-footer--score"
 _DISTINCTION_ICON_SELECTOR = "span.distinction-icon"
 _CARD_LINK_SELECTOR = "a"
+_EXPLICIT_COUNTRY_MARKERS_BY_CODE = {
+    "at": ("austria", "奧地利"),
+    "br": ("brazil", "巴西"),
+    "ca": ("canada", "加拿大"),
+    "ch": ("switzerland", "瑞士"),
+    "cn": ("china", "中國", "中国"),
+    "cz": ("czechia", "czech republic", "捷克"),
+    "de": ("germany", "德國", "德国"),
+    "es": ("spain", "西班牙"),
+    "fr": ("france", "法國", "法国"),
+    "gb": ("united kingdom", "英國", "英国"),
+    "gr": ("greece", "希臘", "希腊"),
+    "hk": ("hong kong", "香港"),
+    "ie": ("ireland", "愛爾蘭", "爱尔兰"),
+    "it": ("italy", "義大利", "意大利"),
+    "jp": ("japan", "日本"),
+    "kr": ("south korea", "韓國", "韩国"),
+    "mo": ("macau", "macao", "澳門", "澳门"),
+    "my": ("malaysia", "馬來西亞", "马来西亚"),
+    "nl": ("netherlands", "荷蘭", "荷兰"),
+    "pt": ("portugal", "葡萄牙"),
+    "sg": ("singapore", "新加坡"),
+    "th": ("thailand", "泰國", "泰国"),
+    "tr": ("turkey", "土耳其"),
+    "tw": ("taiwan", "臺灣", "台灣", "台湾"),
+    "us": ("united states", "usa", "美國", "美国"),
+    "vn": ("vietnam", "越南"),
+}
 
 
 def _extract_region_segment(url: str) -> str:
@@ -101,6 +129,15 @@ def scrape_results_single_page(
     eligible_cards: list[tuple[int, Any, str]] = []  # (card_index, card, name)
     for card_index, listing_card in enumerate(restaurant_cards, start=1):
         restaurant_name = _extract_restaurant_name(listing_card)
+        if _card_country_mismatches_target(
+            listing_card=listing_card,
+            local_country_code=local_country_code,
+        ):
+            progress_reporter.log(
+                f"Skipping out-of-country card '{restaurant_name}' "
+                f"(target country code: {local_country_code or 'unknown'})."
+            )
+            continue
         if listing_region:
             restaurant_url_for_check = _extract_restaurant_url(listing_card)
             if restaurant_url_for_check and listing_region not in urlparse(restaurant_url_for_check).path.split("/"):
@@ -145,6 +182,15 @@ def scrape_results_single_page(
                 progress_reporter=progress_reporter,
             )
             row = fut.result()
+            if _row_country_mismatches_target(
+                row=row,
+                local_country_code=local_country_code,
+            ):
+                progress_reporter.log(
+                    f"Skipping out-of-country row '{restaurant_name}' "
+                    f"(target country code: {local_country_code or 'unknown'})."
+                )
+                continue
             scraped_rows.append(row)
             if on_item is not None:
                 on_item(page_number, estimated_total_pages, total_restaurants_expected, row)
@@ -224,6 +270,66 @@ def _extract_restaurant_name(listing_card: Any) -> str:
 
     title_tag = listing_card.select_one(_RESTAURANT_TITLE_SELECTOR)
     return title_tag.get_text(strip=True) if title_tag else ""
+
+
+def _card_country_mismatches_target(
+    *,
+    listing_card: Any,
+    local_country_code: str | None,
+) -> bool:
+    """Return True when card text names a different supported country."""
+
+    card_text = listing_card.get_text(" ", strip=True)
+    return _text_country_mismatches_target(
+        text=card_text,
+        local_country_code=local_country_code,
+    )
+
+
+def _row_country_mismatches_target(
+    *,
+    row: dict[str, Any],
+    local_country_code: str | None,
+) -> bool:
+    """Return True when parsed row fields name a different supported country."""
+
+    row_text = " ".join(
+        str(row.get(field_name, ""))
+        for field_name in ("City", "Address")
+    )
+    return _text_country_mismatches_target(
+        text=row_text,
+        local_country_code=local_country_code,
+    )
+
+
+def _text_country_mismatches_target(
+    *,
+    text: str,
+    local_country_code: str | None,
+) -> bool:
+    if not local_country_code:
+        return False
+    target_country_code = local_country_code.casefold()
+    if target_country_code not in _EXPLICIT_COUNTRY_MARKERS_BY_CODE:
+        return False
+
+    normalized_text = _normalize_country_marker_text(text)
+    detected_country_codes = {
+        country_code
+        for country_code, markers in _EXPLICIT_COUNTRY_MARKERS_BY_CODE.items()
+        if any(
+            _normalize_country_marker_text(marker) in normalized_text
+            for marker in markers
+        )
+    }
+    if not detected_country_codes:
+        return False
+    return target_country_code not in detected_country_codes
+
+
+def _normalize_country_marker_text(value: str) -> str:
+    return " ".join(value.casefold().split())
 
 
 def _build_restaurant_row_from_card(

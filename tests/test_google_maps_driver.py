@@ -553,6 +553,37 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(captured.exception.place_saved)
         self.assertIn("Place saved before note failure: yes", str(captured.exception))
 
+    async def test_save_current_place_to_list_accepts_saved_state_after_selection_timeout_without_note(
+        self,
+    ) -> None:
+        driver = self._build_driver()
+        page = object()
+        list_selector = object()
+
+        with patch.object(driver, "_require_page", return_value=page):
+            with patch.object(driver, "_is_add_place_input_visible", return_value=False):
+                with patch.object(driver, "_resolve_panel_saved_list_name", return_value=""):
+                    with patch.object(driver, "_click_save_control_with_retry", return_value="save-btn"):
+                        with patch.object(driver, "_wait_for_save_dialog_list_selector", return_value=list_selector):
+                            with patch.object(driver, "_read_locator_selection_state", return_value=False):
+                                with patch.object(driver, "_normalized_locator_text", return_value="Test List"):
+                                    with patch.object(driver, "_click_locator"):
+                                        with patch.object(driver, "_wait_for_list_selection_applied", return_value=False):
+                                            with patch.object(
+                                                driver,
+                                                "_detect_place_saved_state_after_note_failure",
+                                                return_value=True,
+                                            ) as detect_saved:
+                                                with patch.object(driver, "_is_save_dialog_visible", return_value=False):
+                                                    saved = await driver.save_current_place_to_list("Test List")
+
+        self.assertTrue(saved)
+        detect_saved.assert_called_once_with(
+            page=page,
+            list_name="Test List",
+            list_selector=list_selector,
+        )
+
     async def test_detect_place_saved_state_after_note_failure_uses_panel_saved_state_fallback(self) -> None:
         driver = self._build_driver()
 
@@ -565,6 +596,46 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                 )
 
         self.assertTrue(saved)
+
+    async def test_detect_place_saved_state_after_note_failure_reopens_current_place_url(self) -> None:
+        driver = self._build_driver()
+        page = object()
+
+        with patch.object(driver, "_did_list_selection_apply", return_value=False):
+            with patch.object(driver, "_resolve_panel_saved_list_name", return_value=""):
+                with patch.object(
+                    driver,
+                    "_reopen_current_place_panel_for_saved_state",
+                    return_value=True,
+                ) as reopen:
+                    saved = await driver._detect_place_saved_state_after_note_failure(
+                        page=page,
+                        list_name="Test List",
+                        list_selector=object(),
+                    )
+
+        self.assertTrue(saved)
+        reopen.assert_called_once_with(page=page, list_name="Test List")
+
+    async def test_detect_place_saved_state_after_note_failure_reopens_when_panel_state_read_fails(self) -> None:
+        driver = self._build_driver()
+        page = object()
+
+        with patch.object(driver, "_did_list_selection_apply", return_value=False):
+            with patch.object(driver, "_resolve_panel_saved_list_name", side_effect=RuntimeError("stale panel")):
+                with patch.object(
+                    driver,
+                    "_reopen_current_place_panel_for_saved_state",
+                    return_value=True,
+                ) as reopen:
+                    saved = await driver._detect_place_saved_state_after_note_failure(
+                        page=page,
+                        list_name="Test List",
+                        list_selector=object(),
+                    )
+
+        self.assertTrue(saved)
+        reopen.assert_called_once_with(page=page, list_name="Test List")
 
     async def test_did_list_selection_apply_requires_target_saved_state_when_dialog_closed(self) -> None:
         driver = self._build_driver()

@@ -172,6 +172,75 @@ class RealHtmlMichelinFixtureTests(unittest.TestCase):
         self.assertEqual(page_result.restaurant_rows[1]["Rating"], "Bib Gourmand")
         self.assertEqual(page_result.restaurant_rows[1]["GuideYear"], "2025")
 
+    def test_listing_parser_skips_explicit_out_of_country_cards(self) -> None:
+        listing_url = f"{_BASE_URL}/tw/zh_TW/selection/greece/restaurants"
+        detail_alpha_url = f"{_BASE_URL}/tw/zh_TW/attica/athens/restaurant/alpha"
+        detail_beta_url = f"{_BASE_URL}/tw/zh_TW/attica/athens/restaurant/beta"
+        detail_recommendation_url = f"{_BASE_URL}/tw/zh_TW/tainan-region/restaurant/recommendation"
+        listing_html = """
+        <!doctype html>
+        <html lang="zh-Hant">
+          <body>
+            <div class="card__menu">
+              <a href="/tw/zh_TW/attica/athens/restaurant/alpha">
+                <h3 class="card__menu-content--title">Alpha</h3>
+              </a>
+              <div class="card__menu-footer--score">Athens, 希臘</div>
+              <div class="card__menu-footer--score">$$ · 現代菜</div>
+            </div>
+            <div class="card__menu">
+              <a href="/tw/zh_TW/tainan-region/restaurant/recommendation">
+                <h3 class="card__menu-content--title">Recommendation</h3>
+              </a>
+              <div class="card__menu-footer--score">中西區</div>
+              <div class="card__menu-footer--score">$$ · 台菜</div>
+            </div>
+            <div class="card__menu">
+              <a href="/tw/zh_TW/attica/athens/restaurant/beta">
+                <h3 class="card__menu-content--title">Beta</h3>
+              </a>
+              <div class="card__menu-footer--score">Athens, 希臘</div>
+              <div class="card__menu-footer--score">$ · 希臘菜</div>
+            </div>
+          </body>
+        </html>
+        """.strip()
+        recommendation_detail_html = """
+        <html>
+          <head>
+            <meta
+              name="description"
+              content="Recommendation - a Selected restaurant in the 2025 MICHELIN Guide Taiwan."
+            />
+          </head>
+          <body>
+            <div class="data-sheet__block--text">中西區西門路二段372巷23號, Tainan, 臺灣</div>
+            <div class="data-sheet__description">Taiwan recommendation</div>
+          </body>
+        </html>
+        """.strip()
+        html_by_url = {
+            listing_url: listing_html,
+            detail_alpha_url: _read_fixture_text("detail-alpha.html"),
+            detail_beta_url: _read_fixture_text("detail-alpha.html"),
+            detail_recommendation_url: recommendation_detail_html,
+        }
+
+        page_result = scrape_results_single_page(
+            session=_FixtureSession(html_by_url),  # type: ignore[arg-type]
+            url=listing_url,
+            headers={},
+            tls_verify=True,
+            page_number=1,
+            estimated_total_pages=None,
+            total_restaurants_so_far=0,
+            progress_reporter=_NoOpReporter(),
+            item_sleep_seconds=0.0,
+            local_country_code="gr",
+        )
+
+        self.assertEqual([row["Name"] for row in page_result.restaurant_rows], ["Alpha", "Beta"])
+
     def test_zh_tw_listing_fixture_routes_modern_bibendum_icon_to_bib_bucket(self) -> None:
         html_by_url = {
             _LISTING_ZH_TW_URL: _read_fixture_text("listing-zh-tw.html"),

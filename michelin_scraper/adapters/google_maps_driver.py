@@ -773,6 +773,7 @@ class GoogleMapsDriver:
                 _log.debug("[timing] save.already_saved_for_note: dialog_dismissed")
         elif pre_click_selection_state is False:
             # Normal path: place not yet saved, click to save.
+            clicked_list_entry_summary = await self._normalized_locator_text(list_selector) or "<unknown>"
             _tc0 = monotonic()
             await self._click_locator(
                 page=page,
@@ -786,30 +787,21 @@ class GoogleMapsDriver:
             _tc2 = monotonic()
             _log.debug(f"[timing] save.wait_for_selection_applied: {(_tc2-_tc1)*1000:.0f}ms  applied={selection_applied!r}")
             if not selection_applied:
-                if note_value_check:
-                    place_saved = await self._detect_place_saved_state_after_note_failure(
-                        page=page,
-                        list_name=list_name,
-                        list_selector=list_selector,
+                place_saved = await self._detect_place_saved_state_after_note_failure(
+                    page=page,
+                    list_name=list_name,
+                    list_selector=list_selector,
+                )
+                if place_saved:
+                    _log.warning(
+                        "List selection verification did not settle, but target saved state is visible; "
+                        f"continuing. list={list_name!r}"
                     )
-                    if place_saved:
-                        _log.warning(
-                            "List selection verification did not settle, but target saved state is visible; "
-                            f"continuing with note write. list={list_name!r}"
-                        )
-                    else:
-                        raise GoogleMapsTransientError(
-
-                                f"List selection did not apply after click for '{list_name}'. "
-                                f"Clicked control summary: {await self._normalized_locator_text(list_selector) or '<unknown>'}. "
-                                f"Visible controls snapshot: {await self._summarize_visible_controls_for_debug(page)}"
-
-                        )
                 else:
                     raise GoogleMapsTransientError(
 
                             f"List selection did not apply after click for '{list_name}'. "
-                            f"Clicked control summary: {await self._normalized_locator_text(list_selector) or '<unknown>'}. "
+                            f"Clicked control summary: {clicked_list_entry_summary}. "
                             f"Visible controls snapshot: {await self._summarize_visible_controls_for_debug(page)}"
 
                     )
@@ -1228,11 +1220,50 @@ class GoogleMapsDriver:
         try:
             panel_saved_list_name = await self._resolve_panel_saved_list_name(page)
         except Exception:  # noqa: BLE001
-            return False
-        return self._list_name_match_score(
+            panel_saved_list_name = ""
+        if self._list_name_match_score(
             list_name=list_name,
             candidate_text=panel_saved_list_name,
-        ) >= 2
+        ) >= 2:
+            return True
+        return await self._reopen_current_place_panel_for_saved_state(
+            page=page,
+            list_name=list_name,
+        )
+
+    async def _reopen_current_place_panel_for_saved_state(self, *, page: Any, list_name: str) -> bool:
+        if not self._supports_dom_waits(page):
+            return False
+        current_url = self._read_page_url(page)
+        if not current_url or "/maps/place/" not in current_url:
+            return False
+
+        try:
+            await self._run_browser_step(
+                page=page,
+                step=f"save.reopen_place_for_selection_check({list_name})",
+                action=lambda: page.goto(
+                    current_url,
+                    wait_until="domcontentloaded",
+                ),
+                error_type=GoogleMapsTransientError,
+            )
+            await self._wait_for_timeout(
+                page,
+                max(int(self._config.sync_delay_seconds * 1000 * 2), self._UI_ACTION_POLL_INTERVAL_MS),
+                step=f"save.wait_after_reopen_place_for_selection_check({list_name})",
+            )
+        except GoogleMapsError:
+            return False
+
+        return await self._wait_for_condition(
+            page=page,
+            timeout_ms=self._NOTE_CONFIRM_TIMEOUT_MS,
+            predicate=lambda: self._is_target_saved_state_visible_on_place_panel(
+                page=page,
+                list_name=list_name,
+            ),
+        )
 
     async def _verify_note_after_write(
         self,
@@ -3252,12 +3283,14 @@ class GoogleMapsDriver:
         "div[role='dialog'] [role='checkbox'], "
         "div[role='dialog'] [role='menuitemcheckbox'], "
         "div[role='dialog'] [role='menuitemradio'], "
-        "div[role='dialog'] button, "
-        "div[role='dialog'] [role='button'], "
-        "[role='menu'] [role='menuitemradio'], "
-        "[role='menu'] [role='menuitemcheckbox'], "
-        "[role='menu'] [role='menuitem'], "
-        "[role='menu'] button"
+        "div[role='dialog'] [aria-checked='true'], "
+        "div[role='dialog'] [aria-checked='false'], "
+        "[role='menu'][aria-label*='Save' i] [role='menuitemradio'], "
+        "[role='menu'][aria-label*='Save' i] [role='menuitemcheckbox'], "
+        "[role='menu'][aria-label*='Save' i] [role='menuitem'][aria-checked], "
+        "[role='menu'] [role='menuitemradio'][aria-checked], "
+        "[role='menu'] [role='menuitemcheckbox'][aria-checked], "
+        "[role='menu'] [role='menuitem'][aria-checked]"
     )
 
     async def _resolve_save_dialog_list_selector(self, page: Any, list_name: str) -> Any | None:

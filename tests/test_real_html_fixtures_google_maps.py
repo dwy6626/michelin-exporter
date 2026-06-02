@@ -223,6 +223,28 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         _assert_any_selector_matches(soup, save_flow.SAVE_DIALOG_NOTE_FIELD_SELECTORS)
         _assert_any_selector_matches(soup, save_flow.SAVE_DIALOG_INTERACTIVE_SELECTORS)
 
+    def test_save_dialog_list_candidates_do_not_match_maps_overlay_controls(self) -> None:
+        driver = GoogleMapsDriver(
+            GoogleMapsDriverConfig(
+                user_data_dir=Path("/tmp/michelin-fixture-profile"),
+                headless=True,
+                sync_delay_seconds=0.1,
+            )
+        )
+
+        save_soup = BeautifulSoup(_read_fixture_text("save-surface.html"), "html.parser")
+        failed_soup = BeautifulSoup(
+            _read_fixture_text("save-list-edit-surface-patio.html"),
+            "html.parser",
+        )
+
+        save_candidates = save_soup.select(driver._SAVE_DIALOG_LIST_CANDIDATE_SELECTOR)
+        self.assertGreater(len(save_candidates), 0)
+        self.assertTrue(
+            any("Tokyo Michelin" in candidate.get_text(" ", strip=True) for candidate in save_candidates)
+        )
+        self.assertEqual(failed_soup.select(driver._SAVE_DIALOG_LIST_CANDIDATE_SELECTOR), [])
+
     def test_note_write_failure_surface_fixture_does_not_look_like_save_surface(self) -> None:
         soup = BeautifulSoup(_read_fixture_text("note-write-failure-surface.html"), "html.parser")
         _assert_any_selector_matches(soup, selectors.SEARCH_BOX_SELECTORS)

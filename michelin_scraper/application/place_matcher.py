@@ -1,6 +1,7 @@
 """Heuristics for matching Google Maps candidate places to Michelin rows."""
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -104,6 +105,47 @@ _GENERIC_CJK_NAME_TOKENS = {
     "牛排",
     "小吃",
 }
+_LATIN_NAME_DESCRIPTOR_TOKENS = {
+    "bar",
+    "bistro",
+    "cafe",
+    "co",
+    "company",
+    "dining",
+    "gastronomy",
+    "grill",
+    "kai",
+    "kitchen",
+    "restaurant",
+    "sia",
+}
+_GREEK_TRANSLITERATION = {
+    "α": "a",
+    "β": "v",
+    "γ": "g",
+    "δ": "d",
+    "ε": "e",
+    "ζ": "z",
+    "η": "i",
+    "θ": "th",
+    "ι": "i",
+    "κ": "k",
+    "λ": "l",
+    "μ": "m",
+    "ν": "n",
+    "ξ": "x",
+    "ο": "o",
+    "π": "p",
+    "ρ": "r",
+    "σ": "s",
+    "ς": "s",
+    "τ": "t",
+    "υ": "u",
+    "φ": "f",
+    "χ": "ch",
+    "ψ": "ps",
+    "ω": "o",
+}
 
 
 @dataclass(frozen=True)
@@ -136,7 +178,16 @@ class PlaceMatchAssessment:
 
 
 def _normalize_text(value: str) -> str:
-    return " ".join(value.strip().casefold().split())
+    folded = value.strip().casefold()
+    decomposed = unicodedata.normalize("NFKD", folded)
+    without_marks = "".join(
+        character for character in decomposed if not unicodedata.combining(character)
+    )
+    transliterated = "".join(
+        _GREEK_TRANSLITERATION.get(character, character)
+        for character in without_marks
+    )
+    return " ".join(transliterated.split())
 
 
 def _tokenize(value: str) -> set[str]:
@@ -211,7 +262,8 @@ def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
     ):
         if _contains_cjk_characters(next(iter(row_name_tokens))):
             return True
-        if len(candidate_name_tokens) <= 2:
+        candidate_meaningful_tokens = candidate_name_tokens - _LATIN_NAME_DESCRIPTOR_TOKENS
+        if len(candidate_meaningful_tokens) <= 2:
             return True
     if _is_confident_cjk_substring_match(row_name, candidate_name):
         return True
@@ -266,13 +318,18 @@ def _has_branch_stripped_latin_name_match(row_name: str, candidate_name: str) ->
         for token in row_tokens
         if token.isdigit() or len(token) >= _LATIN_SUBSTRING_MIN_LENGTH
     }
+    meaningful_candidate_tokens = {
+        token
+        for token in candidate_tokens
+        if token not in _LATIN_NAME_DESCRIPTOR_TOKENS
+    }
     has_alpha_anchor = any(
         token.isalpha() and len(token) >= _LATIN_SUBSTRING_MIN_LENGTH
         for token in meaningful_row_tokens
     )
     if len(meaningful_row_tokens) < 2 or not has_alpha_anchor:
         return False
-    return meaningful_row_tokens.issubset(candidate_tokens)
+    return meaningful_row_tokens.issubset(meaningful_candidate_tokens)
 
 
 def _is_confident_cjk_substring_match(row_name: str, candidate_name: str) -> bool:

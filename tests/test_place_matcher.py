@@ -364,6 +364,78 @@ class PlaceMatcherTests(unittest.TestCase):
         self.assertFalse(assessment.name_match)
         self.assertEqual(assessment.strength, "weak")
 
+    def test_assess_place_match_accepts_latin_name_with_restaurant_descriptor_from_real_log(self) -> None:
+        row = {
+            "Name": "Hytra",
+            "City": "Athens, 希臘",
+            "Address": "1 Petrou Kokkali Street, Athens, 11521, 希臘",
+            "Cuisine": "現代菜",
+        }
+        candidate = PlaceCandidate(
+            name="Hytra Restaurant & Bar",
+            address="1, Petrou Kokkali STR, Athina 115 21, Greece",
+            category="餐廳",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_accepts_diacritic_variant_from_real_log(self) -> None:
+        row = {
+            "Name": "Esthiō",
+            "City": "Athens, 希臘",
+            "Address": "7 Dimitrakopoulou, Athens, 11742, 希臘",
+            "Cuisine": "巴爾幹菜",
+        }
+        candidate = PlaceCandidate(
+            name="Esthio Athens",
+            address="Dimitrakopoulou 7, Athina 117 42, Greece",
+            category="餐廳",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_accepts_greek_script_transliteration_from_real_log(self) -> None:
+        row = {
+            "Name": "Linou Soumpasis & Co.",
+            "City": "Athens, 希臘",
+            "Address": "2 Melanthiou Street, Athens, 10554, 希臘",
+            "Cuisine": "希臘菜",
+        }
+        candidate = PlaceCandidate(
+            name="ΛΙΝΟΥ ΣΟΥΜΠΑΣΗΣ ΚΑΙ ΣΙΑ",
+            address="Μελανθίου 2, Αθήνα 105 54 &, Kalamida 9, Athina 105 54, Greece",
+            category="餐廳",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_accepts_single_token_greek_script_from_real_log(self) -> None:
+        row = {
+            "Name": "Aneton",
+            "City": "Athens, 希臘",
+            "Address": "3 Navarchou Nikodimou Street, Athens, 10 557, 希臘",
+            "Cuisine": "地中海菜",
+        }
+        candidate = PlaceCandidate(
+            name="ΑΝΕΤΟΝ",
+            address="Navarchou Nikodimou 3, Athina 105 57, Greece",
+            category="Greek restaurant",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
 
 if __name__ == "__main__":
     unittest.main()
