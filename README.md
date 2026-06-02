@@ -158,6 +158,10 @@ rows already recorded in the journal.
 
 - `--target` is required and accepts country or predefined city values.
 - If the same value exists in both lists, city target takes precedence.
+- Localized country listing URLs are resolved from the verified target matrix in
+  `michelin_scraper/catalog/target_url_matrix.json`. If a localized country has
+  no verified listing URL, the command fails early instead of scraping a guessed
+  Michelin URL.
 - The command automatically checks login state; if no session is found, it
   prompts whether to run interactive login immediately.
 - Default level buckets are `stars`, `selected`, and `bib-gourmand`. Use
@@ -166,6 +170,25 @@ rows already recorded in the journal.
 - Each selected output bucket maps to one Google Maps list name generated from
   `{prefix}{scope} Michelin {level_badge}`.
 - Please respect Michelin Guide and Google Maps terms of use and rate limits.
+
+## Target Matrix Maintenance
+
+Use the live matrix updater when Michelin changes localized country listing
+URLs or when adding country targets:
+
+```bash
+uv run python tools/update_target_url_matrix.py --language zh-tw
+```
+
+To validate or update one country:
+
+```bash
+uv run python tools/update_target_url_matrix.py --language zh-tw --country greece
+```
+
+The updater writes supported entries only after a live Michelin listing page
+passes HTTP/content checks. Countries without a verified single country listing
+remain marked `unsupported-or-undiscovered`.
 
 ## Troubleshooting
 

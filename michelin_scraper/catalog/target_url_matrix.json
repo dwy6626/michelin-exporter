@@ -1,0 +1,162 @@
+{
+  "zh_TW": {
+    "countries": {
+      "argentina": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/argentina/restaurants"
+      },
+      "austria": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/austria/restaurants"
+      },
+      "brazil": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/brazil/restaurants"
+      },
+      "canada": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/canada/restaurants"
+      },
+      "china-mainland": {
+        "status": "supported",
+        "source": "validated-alternate-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/chinese-mainland/restaurants"
+      },
+      "czechia": {
+        "status": "supported",
+        "source": "validated-alternate-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/czech-republic/restaurants"
+      },
+      "france": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/france/restaurants"
+      },
+      "germany": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/germany/restaurants"
+      },
+      "greece": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/greece/restaurants"
+      },
+      "hong-kong": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/hong-kong/restaurants"
+      },
+      "ireland": {
+        "status": "supported",
+        "source": "validated-alternate-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/republic-of-ireland/restaurants"
+      },
+      "italy": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/italy/restaurants"
+      },
+      "japan": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/japan/restaurants"
+      },
+      "macau": {
+        "status": "supported",
+        "source": "validated-alternate-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/macao/restaurants"
+      },
+      "malaysia": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/malaysia/restaurants"
+      },
+      "netherlands": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/netherlands/restaurants"
+      },
+      "poland": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/poland/restaurants"
+      },
+      "portugal": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/portugal/restaurants"
+      },
+      "qatar": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/qatar/restaurants"
+      },
+      "saudi-arabia": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/saudi-arabia/restaurants"
+      },
+      "singapore": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/singapore/restaurants"
+      },
+      "south-korea": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/south-korea/restaurants"
+      },
+      "spain": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/spain/restaurants"
+      },
+      "switzerland": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/switzerland/restaurants"
+      },
+      "taiwan": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/taiwan/restaurants"
+      },
+      "thailand": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/thailand/restaurants"
+      },
+      "turkey": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/turkey/restaurants"
+      },
+      "united-arab-emirates": {
+        "reason": "Michelin exposes separate Dubai and Abu Dhabi selection pages, but no verified single UAE country listing page was found.",
+        "status": "unsupported-or-undiscovered",
+        "source": "live-validation",
+        "url": ""
+      },
+      "united-kingdom": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/united-kingdom/restaurants"
+      },
+      "united-states": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/united-states/restaurants"
+      },
+      "vietnam": {
+        "status": "supported",
+        "source": "validated-selection-candidate",
+        "url": "https://guide.michelin.com/tw/zh_TW/selection/vietnam/restaurants"
+      }
+    }
+  }
+}

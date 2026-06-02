@@ -1,6 +1,9 @@
 """Target catalog and target-resolution logic."""
 
+import json
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
 import typer
 
@@ -117,56 +120,31 @@ CITY_PATHS = {
     "sao-paulo": "en/sao-paulo-region/sao-paulo/restaurants",
 }
 
-# Language-specific city URL path overrides.
-CITY_LANGUAGE_PATH_OVERRIDES = {
-    "zh_TW": {
-        "hong-kong": "tw/zh_TW/hong-kong-region/hong-kong/restaurants",
-        "macau": "tw/zh_TW/macau-region/macau/restaurants",
-        "taipei": "tw/zh_TW/taipei-region/restaurants",
-        "taichung": "tw/zh_TW/taichung-region/restaurants",
-        "tainan": "tw/zh_TW/tainan-region/restaurants",
-        "kaohsiung": "tw/zh_TW/kaohsiung-region/restaurants",
-        "hsinchu": "tw/zh_TW/northern-taiwan/hsinchu-city_2853126/restaurants",
-        "tokyo": "tw/zh_TW/tokyo-region/tokyo/restaurants",
-        "osaka": "tw/zh_TW/osaka-region/osaka/restaurants",
-        "kyoto": "tw/zh_TW/kyoto-region/kyoto/restaurants",
-    },
-    "zh_HK": {
-        "hong-kong": "hk/zh_HK/hong-kong-region/hong-kong/restaurants",
-        "macau": "hk/zh_HK/macau-region/macau/restaurants",
-        "tokyo": "hk/zh_HK/tokyo-region/tokyo/restaurants",
-        "osaka": "hk/zh_HK/osaka-region/osaka/restaurants",
-        "kyoto": "hk/zh_HK/kyoto-region/kyoto/restaurants",
-    },
+# Michelin localized URLs use a site segment before the language segment.
+# Country targets then use a shared selection path, while city targets reuse the
+# canonical region/city suffix from the English URL.
+LANGUAGE_SITE_CODES = {
+    "zh_TW": "tw",
+    "zh_HK": "hk",
+    "ja": "jp",
+    "ko": "kr",
+    "fr": "fr",
+    "de": "de",
+    "es": "es",
+    "it": "it",
 }
 
-
-COUNTRY_LANGUAGE_PATH_OVERRIDES = {
-    "zh_TW": {
-        "tw": "tw/zh_TW/selection/taiwan/restaurants",
-        "jp": "tw/zh_TW/selection/japan/restaurants",
-        "fr": "tw/zh_TW/selection/france/restaurants",
-        "th": "tw/zh_TW/selection/thailand/restaurants",
-        "us": "tw/zh_TW/selection/united-states/restaurants",
-        "gb": "tw/zh_TW/selection/united-kingdom/restaurants",
-        "sg": "tw/zh_TW/selection/singapore/restaurants",
-    },
-    "zh_HK": {
-        "hk": "hk/zh_HK/selection/hong-kong/restaurants",
-        "mo": "hk/zh_HK/selection/macao/restaurants",
-        "jp": "hk/zh_HK/selection/japan/restaurants",
-        "tw": "hk/zh_HK/selection/taiwan/restaurants",
-    },
-}
-
-
-# When a requested language has no specific URL override for a target, try these
-# fallback languages in order before falling back to the generic path template.
+# When a requested language has no localized site, try these fallback languages
+# before falling back to the generic English-style path template.
 _LANGUAGE_URL_FALLBACKS: dict[str, tuple[str, ...]] = {
     "zh_TW": ("zh_HK",),
     "zh_HK": ("zh_TW",),
     "zh_CN": ("zh_TW", "zh_HK"),
 }
+
+_TARGET_URL_MATRIX_FILENAME = "target_url_matrix.json"
+_SUPPORTED_MATRIX_STATUS = "supported"
+TargetUrlMatrix = dict[str, dict[str, dict[str, dict[str, str]]]]
 
 
 def _slug_to_label(slug: str) -> str:
@@ -177,14 +155,82 @@ def _join_guide_url(path: str) -> str:
     return f"{MICHELIN_BASE_URL}/{path.lstrip('/')}"
 
 
-def _build_country_url(country_code: str, language: str = DEFAULT_LANGUAGE) -> str:
-    language_overrides = COUNTRY_LANGUAGE_PATH_OVERRIDES.get(language, {})
-    if country_code in language_overrides:
-        return _join_guide_url(language_overrides[country_code])
+def _resolve_localized_site(language: str) -> tuple[str, str] | None:
+    if language in LANGUAGE_SITE_CODES:
+        return LANGUAGE_SITE_CODES[language], language
     for fallback_language in _LANGUAGE_URL_FALLBACKS.get(language, ()):
-        fallback_overrides = COUNTRY_LANGUAGE_PATH_OVERRIDES.get(fallback_language, {})
-        if country_code in fallback_overrides:
-            return _join_guide_url(fallback_overrides[country_code])
+        if fallback_language in LANGUAGE_SITE_CODES:
+            return LANGUAGE_SITE_CODES[fallback_language], fallback_language
+    return None
+
+
+@lru_cache(maxsize=1)
+def _load_target_url_matrix() -> TargetUrlMatrix:
+    matrix_path = Path(__file__).with_name(_TARGET_URL_MATRIX_FILENAME)
+    raw_data = json.loads(matrix_path.read_text(encoding="utf-8"))
+    if not isinstance(raw_data, dict):
+        return {}
+
+    matrix: TargetUrlMatrix = {}
+    for language, language_data in raw_data.items():
+        if not isinstance(language, str) or not isinstance(language_data, dict):
+            continue
+        language_matrix: dict[str, dict[str, dict[str, str]]] = {}
+        for target_kind, entries in language_data.items():
+            if not isinstance(target_kind, str) or not isinstance(entries, dict):
+                continue
+            target_entries: dict[str, dict[str, str]] = {}
+            for target_slug, raw_entry in entries.items():
+                if not isinstance(target_slug, str) or not isinstance(raw_entry, dict):
+                    continue
+                entry = {
+                    str(key): str(value)
+                    for key, value in raw_entry.items()
+                    if isinstance(key, str) and isinstance(value, str)
+                }
+                target_entries[target_slug] = entry
+            language_matrix[target_kind] = target_entries
+        matrix[language] = language_matrix
+    return matrix
+
+
+def _resolve_matrix_language_order(language: str) -> tuple[str, ...]:
+    return (language, *_LANGUAGE_URL_FALLBACKS.get(language, ()))
+
+
+def _get_country_matrix_entry(country_slug: str, language: str) -> tuple[str, dict[str, str]] | None:
+    matrix = _load_target_url_matrix()
+    for matrix_language in _resolve_matrix_language_order(language):
+        country_entries = matrix.get(matrix_language, {}).get("countries", {})
+        if country_slug in country_entries:
+            return matrix_language, country_entries[country_slug]
+    return None
+
+
+def _build_country_url(
+    country_slug: str,
+    country_code: str,
+    language: str = DEFAULT_LANGUAGE,
+) -> str:
+    matrix_entry = _get_country_matrix_entry(country_slug, language)
+    if matrix_entry is not None:
+        matrix_language, entry = matrix_entry
+        status = entry.get("status", "")
+        url = entry.get("url", "")
+        if status == _SUPPORTED_MATRIX_STATUS and url:
+            return url
+        reason = entry.get("reason", "No verified Michelin listing URL is available.")
+        raise typer.BadParameter(
+            f"No verified {matrix_language} Michelin listing URL for country target "
+            f"'{country_slug}'. {reason}"
+        )
+
+    localized_site = _resolve_localized_site(language)
+    if localized_site:
+        site_code, url_language = localized_site
+        return _join_guide_url(
+            f"{site_code}/{url_language}/selection/{country_slug}/restaurants"
+        )
     return _join_guide_url(f"{language}/{country_code}/restaurants")
 
 
@@ -200,14 +246,25 @@ def _build_city_url(path: str, language: str = DEFAULT_LANGUAGE) -> str:
 
 
 def _resolve_city_path(city_slug: str, language: str) -> str:
-    language_overrides = CITY_LANGUAGE_PATH_OVERRIDES.get(language, {})
-    if city_slug in language_overrides:
-        return language_overrides[city_slug]
-    for fallback_language in _LANGUAGE_URL_FALLBACKS.get(language, ()):
-        fallback_overrides = CITY_LANGUAGE_PATH_OVERRIDES.get(fallback_language, {})
-        if city_slug in fallback_overrides:
-            return fallback_overrides[city_slug]
-    return _replace_path_language(CITY_PATHS[city_slug], language)
+    localized_site = _resolve_localized_site(language)
+    if not localized_site:
+        return _replace_path_language(CITY_PATHS[city_slug], language)
+
+    site_code, url_language = localized_site
+    path_segments = CITY_PATHS[city_slug].split("/")
+    suffix_segments = path_segments[1:] if path_segments[0] == DEFAULT_LANGUAGE else path_segments
+    city_country_code = suffix_segments[0] if suffix_segments else ""
+    if suffix_segments and suffix_segments[0] in COUNTRY_CODES.values():
+        suffix_segments = suffix_segments[1:]
+    if (
+        city_country_code == site_code
+        and len(suffix_segments) == 3
+        and suffix_segments[0] == f"{city_slug}-region"
+        and suffix_segments[1] == city_slug
+        and suffix_segments[2] == "restaurants"
+    ):
+        suffix_segments = (suffix_segments[0], suffix_segments[2])
+    return "/".join((site_code, url_language, *suffix_segments))
 
 
 def _resolve_city_label(city_slug: str, language: str) -> str:
@@ -225,7 +282,7 @@ def _resolve_country_label(country_slug: str, language: str) -> str:
 
 
 COUNTRY_URLS = {
-    country_slug: _build_country_url(country_code)
+    country_slug: _build_country_url(country_slug, country_code)
     for country_slug, country_code in COUNTRY_CODES.items()
 }
 
@@ -504,7 +561,7 @@ def resolve_target(value: str, language: str = DEFAULT_LANGUAGE) -> ResolvedTarg
         country_slug = COUNTRY_ALIASES[value]
         country_code = COUNTRY_CODES[country_slug]
         return ResolvedTarget(
-            start_url=_build_country_url(country_code, resolved_language),
+            start_url=_build_country_url(country_slug, country_code, resolved_language),
             scope_name=_resolve_country_label(country_slug, resolved_language),
             local_language=_get_local_language(country_code),
             local_country_code=country_code,
