@@ -5,7 +5,6 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from michelin_scraper.adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
-from michelin_scraper.application.row_router import LevelRowRouter
 from michelin_scraper.application.sync_enums import SyncRowStatus
 from michelin_scraper.application.sync_models import (
     SyncAccumulation,
@@ -203,16 +202,11 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
         on_page_sync_failures: Callable[[int, Sequence[SyncItemFailure]], None] | None = None,
     ) -> tuple[SyncPageHandler, _FakeOutput]:
         level_slugs = ("one-star",)
-        row_router = LevelRowRouter(
-            level_slugs=level_slugs,
-            rating_to_level_slug={"1 Star": "one-star"},
-        )
         output = _FakeOutput()
         handler = SyncPageHandler(
             start_url="https://example.com/start",
             checkpoint_store=_FakeCheckpointStore(),
             sync_writer=_FakeSyncWriter(),
-            row_router=row_router,
             accumulation=SyncAccumulation(
                 scraped_count_by_level=create_empty_row_counts(level_slugs),
                 added_count_by_level=create_empty_row_counts(level_slugs),
@@ -240,7 +234,7 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
             total_restaurants=1,
         )
         for row in restaurants:
-            await handler.on_item(1, None, None, row)
+            await handler.on_item(1, None, None, "one-star", row)
 
         self.assertEqual(len(output.warnings), 2)
         self.assertIn("[debug] Page 1 sync failures=1.", output.warnings[0])
@@ -274,7 +268,7 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
             total_restaurants=1,
         )
         for row in restaurants:
-            await handler.on_item(1, None, None, row)
+            await handler.on_item(1, None, None, "one-star", row)
 
         self.assertEqual(callback_calls, [(1, ("PlaceNotFound",))])
 
@@ -292,16 +286,12 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
             total_restaurants=1,
         )
         for row in restaurants:
-            await handler.on_item(1, None, None, row)
+            await handler.on_item(1, None, None, "one-star", row)
 
         self.assertEqual(output.warnings, [])
 
     async def test_on_page_limits_rows_sent_to_sync_writer(self) -> None:
         level_slugs = ("one-star",)
-        row_router = LevelRowRouter(
-            level_slugs=level_slugs,
-            rating_to_level_slug={"1 Star": "one-star"},
-        )
         output = _FakeOutput()
         sync_writer = _CapturingSyncWriter()
         accumulation = SyncAccumulation(
@@ -315,7 +305,6 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
             start_url="https://example.com/start",
             checkpoint_store=_FakeCheckpointStore(),
             sync_writer=sync_writer,
-            row_router=row_router,
             accumulation=accumulation,
             output=output,
             debug_sync_failures=False,
@@ -327,7 +316,7 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
             {"Name": "Beta", "Rating": "1 Star", "City": "Tokyo"},
         ]
         for row in restaurants:
-            await handler.on_item(1, None, None, row)
+            await handler.on_item(1, None, None, "one-star", row)
         await handler.on_page(
             page_number=1,
             page_url="https://example.com/start?page=1",
@@ -345,10 +334,6 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_on_page_fail_fast_error_logs_and_re_raises_without_checkpoint_save(self) -> None:
         level_slugs = ("one-star",)
-        row_router = LevelRowRouter(
-            level_slugs=level_slugs,
-            rating_to_level_slug={"1 Star": "one-star"},
-        )
         output = _FakeOutput()
         checkpoint_store = _FakeCheckpointStore()
         callback_calls: list[tuple[int, tuple[str, ...]]] = []
@@ -367,7 +352,6 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
             start_url="https://example.com/start",
             checkpoint_store=checkpoint_store,
             sync_writer=_FailFastSyncWriter(),
-            row_router=row_router,
             accumulation=accumulation,
             output=output,
             debug_sync_failures=True,
@@ -377,7 +361,7 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
         restaurants = [{"Name": "Alpha", "Rating": "1 Star", "City": "Tokyo"}]
         with self.assertRaises(GoogleMapsRowSyncFailFastError):
             for row in restaurants:
-                await handler.on_item(1, None, None, row)
+                await handler.on_item(1, None, None, "one-star", row)
 
         self.assertEqual(checkpoint_store.save_calls, 0)
         self.assertEqual(checkpoint_store.clear_calls, 0)
@@ -386,43 +370,6 @@ class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(callback_calls, [(1, ("NoteWriteFailed: unable to confirm note",))])
         self.assertEqual(len(output.warnings), 2)
         self.assertIn("[debug] Page 1 sync failures=1.", output.warnings[0])
-
-    async def test_on_item_records_failure_for_unrecognized_rating(self) -> None:
-        """An unknown rating must appear in failed_items, not crash."""
-        level_slugs = ("one-star",)
-        row_router = LevelRowRouter(
-            level_slugs=level_slugs,
-            rating_to_level_slug={"1 Star": "one-star"},
-        )
-        output = _FakeOutput()
-        accumulation = SyncAccumulation(
-            scraped_count_by_level=create_empty_row_counts(level_slugs),
-            added_count_by_level=create_empty_row_counts(level_slugs),
-            skipped_count_by_level=create_empty_row_counts(level_slugs),
-            sample_rows=[],
-            failed_items=[],
-        )
-        handler = SyncPageHandler(
-            start_url="https://example.com/start",
-            checkpoint_store=_FakeCheckpointStore(),
-            sync_writer=_FakeSyncWriter(),
-            row_router=row_router,
-            accumulation=accumulation,
-            output=output,
-            debug_sync_failures=True,
-        )
-
-        row = {"Name": "Mystery Place", "Rating": "Alien Rating"}
-        await handler.on_item(1, None, None, row)
-
-        self.assertEqual(len(accumulation.failed_items), 1)
-        failure = accumulation.failed_items[0]
-        self.assertIn("UnrecognizedRating", failure.reason)
-        self.assertIn("Alien Rating", failure.reason)
-        self.assertEqual(failure.restaurant_name, "Mystery Place")
-        self.assertEqual(len(output.warnings), 1)
-        self.assertIn("Unrecognized rating", output.warnings[0])
-
 
 if __name__ == "__main__":
     unittest.main()

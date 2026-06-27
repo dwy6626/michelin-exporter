@@ -10,8 +10,6 @@ from datetime import date
 from pathlib import Path
 from typing import Any, cast
 
-import urllib3
-
 from ..adapters.checkpoint_store import JsonCheckpointStore
 from ..adapters.google_maps_driver import GoogleMapsAuthRequiredError
 from ..adapters.google_maps_sync_writer import (
@@ -25,11 +23,8 @@ from ..adapters.path_builder import (
     resolve_debug_html_path,
     resolve_error_report_path,
 )
-from ..catalog import LEVEL_LABELS, normalize_target, resolve_language, resolve_target
-from ..catalog.levels import build_rating_to_output_level_slug_map, resolve_output_level_slug
 from ..config import (
     CRAWL_DELAY_OPTION_FLAGS,
-    HEADERS,
     MAPS_DELAY_OPTION_FLAGS,
     MAX_SAVE_RETRIES_OPTION_FLAGS,
     MISSING_LIST_POLICY_CHOICES,
@@ -37,9 +32,9 @@ from ..config import (
     SANDBOX_LIST_NAME_PREFIX,
 )
 from ..domain import ScrapeRunMetrics
-from ..scraping import crawl, resolve_listing_scope_name
+from ..sources.michelin import create_michelin_source_adapter
 from .html_redaction import find_unredacted_sensitive_markers, redact_html_text
-from .row_router import LevelRowRouter
+from .source_models import PlaceSourceAdapter, SourceRunHandlers
 from .sync_models import (
     MissingListReport,
     ScrapeSyncCommand,
@@ -55,7 +50,6 @@ from .sync_progress import SyncProgressCoordinator
 from .sync_resume_service import prepare_resume_plan
 
 AUTH_REQUIRED_EXIT_CODE = 3
-_SCOPE_NAME_FROM_LISTING_LANGUAGES = frozenset({"zh_tw"})
 PLAYWRIGHT_BROWSER_SETUP_GUIDE = (
     "Playwright browser runtime is missing or not installed correctly.\n"
     "Run:\n"
@@ -73,71 +67,8 @@ FastShutdownCallback = Callable[[], None]
 PageFailureDebugSnapshotCallback = Callable[[int, Sequence[SyncItemFailure]], Any]
 
 
-def _resolve_tls_verify(ca_bundle: str, insecure: bool) -> bool | str:
-    return ca_bundle if ca_bundle else (not insecure)
-
-
-def _resolve_scope_name_for_lists(
-    *,
-    fallback_scope_name: str,
-    start_url: str,
-    use_listing_scope_name: bool,
-    tls_verify: bool | str,
-    output: SyncOutputPort,
-) -> str:
-    if not use_listing_scope_name:
-        return fallback_scope_name
-
-    try:
-        listing_scope_name = resolve_listing_scope_name(
-            url=start_url,
-            headers=HEADERS,
-            tls_verify=tls_verify,
-        )
-    except Exception as exc:  # noqa: BLE001
-        output.warn(
-            
-                "Failed to resolve language-specific list scope name from Michelin listing page. "
-                f"Using fallback scope name '{fallback_scope_name}'. Error: {exc}"
-            
-        )
-        return fallback_scope_name
-
-    if listing_scope_name:
-        if (_contains_ascii_letters(listing_scope_name) and not _is_ascii_only(listing_scope_name)
-                and not _is_ascii_only(fallback_scope_name)):
-            return fallback_scope_name
-        return listing_scope_name
-
-    output.warn(
-        
-            "Unable to extract language-specific list scope name from Michelin listing page. "
-            f"Using fallback scope name '{fallback_scope_name}'."
-        
-    )
-    return fallback_scope_name
-
-
-def _normalize_language_key(language: str) -> str:
-    resolved_language = resolve_language(language)
-    return resolved_language.lower().replace("-", "_")
-
-
-def _is_ascii_only(value: str) -> bool:
-    return value.isascii()
-
-
-def _contains_ascii_letters(value: str) -> bool:
-    return any("a" <= character.lower() <= "z" for character in value)
-
-
-def _build_row_router(level_slugs: Sequence[str]) -> LevelRowRouter:
-    # Register ALL known Michelin ratings so the router can distinguish
-    # "known but not selected" (skip) from "truly unknown" (error).
-    return LevelRowRouter(
-        level_slugs=level_slugs,
-        rating_to_level_slug=build_rating_to_output_level_slug_map(tuple(level_slugs)),
-    )
+def _create_source_adapter(command: ScrapeSyncCommand) -> PlaceSourceAdapter:
+    return create_michelin_source_adapter(command)
 
 
 def _create_sync_writer(
@@ -482,39 +413,6 @@ def _load_maps_probe_rows(rows_file: str) -> list[dict[str, Any]]:
     return parsed_rows
 
 
-def _group_probe_rows_by_level(
-    *,
-    rows: Sequence[dict[str, Any]],
-    level_slugs: Sequence[str],
-) -> dict[str, list[dict[str, Any]]]:
-    grouped_rows: dict[str, list[dict[str, Any]]] = {level_slug: [] for level_slug in level_slugs}
-    rows_for_rating_router: list[dict[str, Any]] = []
-
-    for row in rows:
-        explicit_level_slug = str(row.get("LevelSlug", "")).strip().lower()
-        if not explicit_level_slug:
-            rows_for_rating_router.append(row)
-            continue
-        resolved_output_level_slug = resolve_output_level_slug(
-            explicit_level_slug,
-            tuple(level_slugs),
-        )
-        if resolved_output_level_slug is None:
-            allowed_values = ", ".join(level_slugs)
-            raise ValueError(
-                f"Unsupported LevelSlug value in maps-probe-rows-file: '{explicit_level_slug}'. "
-                f"Allowed values: {allowed_values}."
-            )
-        grouped_rows[resolved_output_level_slug].append(row)
-
-    if rows_for_rating_router:
-        routed_rows = _build_row_router(level_slugs).group_rows_by_level(rows_for_rating_router)
-        for level_slug in level_slugs:
-            grouped_rows[level_slug].extend(routed_rows.get(level_slug, []))
-
-    return grouped_rows
-
-
 def _apply_sandbox_overrides(
     *,
     command: ScrapeSyncCommand,
@@ -578,7 +476,7 @@ def _warn_sandbox_created_lists(
 
 
 async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputPort) -> int:
-    """Run Michelin scrape + Google Maps sync workflow for one command input."""
+    """Run source scrape/import + Google Maps sync workflow for one command input."""
 
     if command.on_missing_list not in MISSING_LIST_POLICY_CHOICES:
         valid_values = ", ".join(MISSING_LIST_POLICY_CHOICES)
@@ -590,35 +488,20 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
 
     command = _apply_sandbox_overrides(command=command, output=output)
 
-    resolved_language = resolve_language(command.language)
-    language_key = _normalize_language_key(resolved_language)
-
-    target = resolve_target(
-        normalize_target(command.target),
-        language=resolved_language,
-    )
-    if command.insecure:
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    tls_verify = _resolve_tls_verify(ca_bundle=command.ca_bundle, insecure=command.insecure)
-    use_listing_scope_name = language_key in _SCOPE_NAME_FROM_LISTING_LANGUAGES
-    effective_scope_name = _resolve_scope_name_for_lists(
-        fallback_scope_name=target.scope_name,
-        start_url=target.start_url,
-        use_listing_scope_name=use_listing_scope_name,
-        tls_verify=tls_verify,
-        output=output,
-    )
+    source_adapter = _create_source_adapter(command)
+    source_plan = source_adapter.prepare(command, output)
+    bucket_slugs = tuple(bucket.slug for bucket in source_plan.buckets)
 
     start_time = time.perf_counter()
-    output_targets = tuple((level_slug, LEVEL_LABELS[level_slug]) for level_slug in command.levels)
+    output_targets = tuple((bucket.slug, bucket.label) for bucket in source_plan.buckets)
     checkpoint_store = JsonCheckpointStore(
-        path=resolve_checkpoint_path(output_dir=command.state_dir, scope_name=target.scope_name),
-        level_slugs=command.levels,
+        path=resolve_checkpoint_path(output_dir=command.state_dir, scope_name=source_plan.checkpoint_scope),
+        level_slugs=bucket_slugs,
     )
     sync_writer = _create_sync_writer(
         command,
-        effective_scope_name,
-        language=resolved_language,
+        source_plan.scope_name,
+        language=command.language,
         checkpoint_store=checkpoint_store,
     )
     if command.maps_probe_only and command.dry_run:
@@ -643,14 +526,14 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
         if command.max_rows_per_page > 0:
             output.warn("max-rows-per-page is ignored in maps-probe-rows-file mode.")
 
-    error_report_path = resolve_error_report_path(command.state_dir, target.scope_name)
+    error_report_path = resolve_error_report_path(command.state_dir, source_plan.checkpoint_scope)
 
     progress_coordinator = SyncProgressCoordinator(output.create_progress_reporter())
     progress_reporter = progress_coordinator.create_crawl_reporter()
     accumulation = SyncAccumulation(
-        scraped_count_by_level=create_empty_row_counts(command.levels),
-        added_count_by_level=create_empty_row_counts(command.levels),
-        skipped_count_by_level=create_empty_row_counts(command.levels),
+        scraped_count_by_level=create_empty_row_counts(bucket_slugs),
+        added_count_by_level=create_empty_row_counts(bucket_slugs),
+        skipped_count_by_level=create_empty_row_counts(bucket_slugs),
         sample_rows=[],
         failed_items=[],
     )
@@ -670,9 +553,9 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
                 await _capture_sync_failure_debug_html(
                     sync_writer=sync_writer,
                     state_dir=command.state_dir,
-                    scope_name=target.scope_name,
+                    scope_name=source_plan.checkpoint_scope,
                     context=f"page-{page_number}-{_slugify_debug_context(reason_prefix)}",
-                    language=resolved_language,
+                    language=command.language,
                     record_fixtures_dir=command.record_fixtures_dir,
                     output=output,
                 )
@@ -704,22 +587,22 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
             _register_row_failure_callback(
                 sync_writer=sync_writer,
                 state_dir=command.state_dir,
-                scope_name=effective_scope_name,
-                language=resolved_language,
+                scope_name=source_plan.scope_name,
+                language=command.language,
                 record_fixtures_dir=command.record_fixtures_dir,
                 output=output,
             )
 
-        await sync_writer.initialize_run(scope_name=effective_scope_name, level_slugs=command.levels)
+        await sync_writer.initialize_run(scope_name=source_plan.scope_name, level_slugs=bucket_slugs)
         if command.maps_probe_rows_file:
             progress_coordinator.update_setup_progress(
                 "Loading probe rows...",
                 completion=0.75,
             )
             probe_rows = _load_maps_probe_rows(command.maps_probe_rows_file)
-            rows_by_level = _group_probe_rows_by_level(
+            rows_by_level = source_adapter.group_local_rows_by_bucket(
                 rows=probe_rows,
-                level_slugs=command.levels,
+                bucket_slugs=bucket_slugs,
             )
             progress_coordinator.update_setup_progress(
                 "Setup complete. Starting direct Maps probe...",
@@ -728,7 +611,7 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
             batch_result = await sync_writer.sync_rows_by_level(rows_by_level)
             progress_reporter.finish()
 
-            for level_slug in command.levels:
+            for level_slug in bucket_slugs:
                 accumulation.scraped_count_by_level[level_slug] = len(rows_by_level.get(level_slug, []))
                 accumulation.added_count_by_level[level_slug] = int(
                     batch_result.added_count_by_level.get(level_slug, 0)
@@ -748,8 +631,8 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
                 completion=0.75,
             )
             resume_plan = prepare_resume_plan(
-                start_url=target.start_url,
-                level_slugs=command.levels,
+                start_url=source_plan.start_url or "",
+                level_slugs=bucket_slugs,
                 checkpoint_store=checkpoint_store,
                 output=output,
                 ignore_checkpoint=command.ignore_checkpoint,
@@ -779,10 +662,9 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
                     f"levels=({level_breakdown})"
                 )
             page_handler = SyncPageHandler(
-                start_url=target.start_url,
+                start_url=source_plan.start_url or "",
                 checkpoint_store=checkpoint_store,
                 sync_writer=sync_writer,
-                row_router=_build_row_router(command.levels),
                 accumulation=accumulation,
                 output=output,
                 debug_sync_failures=command.debug_sync_failures,
@@ -811,29 +693,28 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
             )
 
             def _scrape_fn(on_item, on_page):  # type: ignore[no-untyped-def]
-                return crawl(
-                    start_url=resume_plan.start_scrape_url,
-                    on_page=on_page,
-                    on_item=on_item,
-                    sleep_seconds=command.sleep_seconds,
-                    tls_verify=tls_verify,
-                    start_page_number=resume_plan.start_page_number,
-                    start_estimated_total_pages=resume_plan.start_estimated_total_pages,
-                    initial_total_restaurants=resume_plan.initial_total_restaurants,
-                    progress_reporter=progress_reporter,
-                    max_pages=command.max_pages,
-                    on_interrupt=_handle_interrupt,
-                    local_language=target.local_language,
-                    local_country_code=target.local_country_code,
-                    requested_language=resolved_language,
+                source_result = source_adapter.run(
+                    command=command,
+                    plan=source_plan,
+                    handlers=SourceRunHandlers(
+                        on_item=on_item,
+                        on_page=on_page,
+                        on_interrupt=_handle_interrupt,
+                        progress_reporter=progress_reporter,
+                        start_cursor=resume_plan.start_scrape_url,
+                        start_page_number=resume_plan.start_page_number,
+                        start_estimated_total_pages=resume_plan.start_estimated_total_pages,
+                        initial_total_rows=resume_plan.initial_total_restaurants,
+                    ),
                 )
+                return source_result.to_scrape_metrics()
 
             metrics = await pipeline.run_async(_scrape_fn)
     except KeyboardInterrupt:
         if interrupt_checkpoint is not None:
             try:
                 checkpoint_store.save(
-                    start_url=target.start_url,
+                    start_url=source_plan.start_url or "",
                     page_number=int(interrupt_checkpoint["page_number"]),
                     page_url=str(interrupt_checkpoint["page_url"]),
                     next_url=str(interrupt_checkpoint["page_url"]),
@@ -849,9 +730,9 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
         await _capture_sync_failure_debug_html(
             sync_writer=sync_writer,
             state_dir=command.state_dir,
-            scope_name=effective_scope_name,
+            scope_name=source_plan.scope_name,
             context="keyboard-interrupt",
-            language=resolved_language,
+            language=command.language,
             record_fixtures_dir=command.record_fixtures_dir,
             output=output,
         )
@@ -881,9 +762,9 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
         await _capture_sync_failure_debug_html(
             sync_writer=sync_writer,
             state_dir=command.state_dir,
-            scope_name=target.scope_name,
+            scope_name=source_plan.checkpoint_scope,
             context="auth-required",
-            language=resolved_language,
+            language=command.language,
             record_fixtures_dir=command.record_fixtures_dir,
             output=output,
         )
@@ -902,9 +783,9 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
         await _capture_sync_failure_debug_html(
             sync_writer=sync_writer,
             state_dir=command.state_dir,
-            scope_name=target.scope_name,
+            scope_name=source_plan.checkpoint_scope,
             context=f"fail-fast-{_slugify_debug_context(reason_prefix)}",
-            language=resolved_language,
+            language=command.language,
             record_fixtures_dir=command.record_fixtures_dir,
             output=output,
         )
@@ -956,9 +837,9 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
         await _capture_sync_failure_debug_html(
             sync_writer=sync_writer,
             state_dir=command.state_dir,
-            scope_name=target.scope_name,
+            scope_name=source_plan.checkpoint_scope,
             context=exc.__class__.__name__,
-            language=resolved_language,
+            language=command.language,
             record_fixtures_dir=command.record_fixtures_dir,
             output=output,
         )
@@ -976,7 +857,7 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
             output.warn(f"Failed to finalize Maps writer cleanly: {finalize_exc}")
 
     missing_reports = _build_missing_list_reports(
-        level_slugs=command.levels,
+        level_slugs=bucket_slugs,
         list_names_by_level=dict(sync_writer.list_names_by_level),
         missing_row_counts_by_level=dict(sync_writer.missing_row_counts_by_level),
     )

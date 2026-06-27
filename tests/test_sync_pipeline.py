@@ -16,7 +16,7 @@ class _FakePageHandler:
     """Minimal page handler that records calls."""
 
     def __init__(self, *, item_delay: float = 0.0, item_error: Exception | None = None) -> None:
-        self.item_calls: list[tuple[int, int | None, int | None, dict]] = []
+        self.item_calls: list[tuple[int, int | None, int | None, str, dict]] = []
         self.page_calls: list[tuple] = []
         self._item_delay = item_delay
         self._item_error = item_error
@@ -26,13 +26,14 @@ class _FakePageHandler:
         page_number: int,
         estimated_total_pages: int | None,
         total_restaurants_expected: int | None,
+        bucket_slug: str,
         row: dict[str, Any],
     ) -> None:
         if self._item_error is not None:
             raise self._item_error
         if self._item_delay > 0:
             await asyncio.sleep(self._item_delay)
-        self.item_calls.append((page_number, estimated_total_pages, total_restaurants_expected, row))
+        self.item_calls.append((page_number, estimated_total_pages, total_restaurants_expected, bucket_slug, row))
 
     async def on_page(self, *args: Any) -> None:
         self.page_calls.append(args)
@@ -48,14 +49,14 @@ class SyncPipelineTests(unittest.TestCase):
         row_b = {"name": "B"}
 
         def scrape_fn(on_item, on_page):
-            on_item(1, 3, 100, row_a)
-            on_item(1, 3, 100, row_b)
+            on_item(1, 3, 100, "one-star", row_a)
+            on_item(1, 3, 100, "one-star", row_b)
 
         asyncio.run(pipeline.run_async(scrape_fn))
 
         self.assertEqual(len(handler.item_calls), 2)
-        self.assertEqual(handler.item_calls[0], (1, 3, 100, row_a))
-        self.assertEqual(handler.item_calls[1], (1, 3, 100, row_b))
+        self.assertEqual(handler.item_calls[0], (1, 3, 100, "one-star", row_a))
+        self.assertEqual(handler.item_calls[1], (1, 3, 100, "one-star", row_b))
 
     def test_page_events_are_forwarded(self) -> None:
         handler = _FakePageHandler()
@@ -77,7 +78,8 @@ class SyncPipelineTests(unittest.TestCase):
         calls: list[str] = []
 
         class _OrderTracker:
-            async def on_item(self, pn, etp, tre, row):
+            async def on_item(self, pn, etp, tre, bucket_slug, row):
+                del bucket_slug
                 calls.append(f"item:{row['name']}")
 
             async def on_page(self, page_number, *args):
@@ -86,10 +88,10 @@ class SyncPipelineTests(unittest.TestCase):
         pipeline = SyncPipeline(_page_handler=_OrderTracker(), _max_queue_size=5)
 
         def scrape_fn(on_item, on_page):
-            on_item(1, 3, 100, {"name": "A"})
-            on_item(1, 3, 100, {"name": "B"})
+            on_item(1, 3, 100, "one-star", {"name": "A"})
+            on_item(1, 3, 100, "one-star", {"name": "B"})
             on_page(1, "url1", [], "url2", 2, 3, 100)
-            on_item(2, 3, 100, {"name": "C"})
+            on_item(2, 3, 100, "one-star", {"name": "C"})
 
         asyncio.run(pipeline.run_async(scrape_fn))
 
@@ -110,10 +112,10 @@ class SyncPipelineTests(unittest.TestCase):
         pipeline = SyncPipeline(_page_handler=handler, _max_queue_size=5)
 
         def scrape_fn(on_item, on_page):
-            on_item(1, 3, 100, {"name": "A"})
+            on_item(1, 3, 100, "one-star", {"name": "A"})
             # Give consumer time to process and fail before producing more.
             time.sleep(0.15)
-            on_item(1, 3, 100, {"name": "B"})
+            on_item(1, 3, 100, "one-star", {"name": "B"})
 
         with self.assertRaises(RuntimeError):
             asyncio.run(pipeline.run_async(scrape_fn))
@@ -136,7 +138,7 @@ class SyncPipelineTests(unittest.TestCase):
         pipeline = SyncPipeline(_page_handler=handler, _max_queue_size=5)
 
         def scrape_fn(on_item, on_page):
-            on_item(1, 3, 100, {"name": "A"})
+            on_item(1, 3, 100, "one-star", {"name": "A"})
             time.sleep(0.15)
 
         with self.assertRaises(GoogleMapsRowSyncFailFastError):
@@ -151,7 +153,7 @@ class SyncPipelineTests(unittest.TestCase):
 
         def scrape_fn(on_item, on_page):
             for i in range(4):
-                on_item(1, 1, 4, {"name": f"R{i}"})
+                on_item(1, 1, 4, "one-star", {"name": f"R{i}"})
                 timestamps.append(time.monotonic())
 
         asyncio.run(pipeline.run_async(scrape_fn))
@@ -178,7 +180,7 @@ class SyncPipelineTests(unittest.TestCase):
         pipeline = SyncPipeline(_page_handler=handler, _max_queue_size=5)
 
         def scrape_fn(on_item, on_page):
-            on_item(1, 1, 10, {"name": "A"})
+            on_item(1, 1, 10, "one-star", {"name": "A"})
             raise KeyboardInterrupt
 
         with self.assertRaises(KeyboardInterrupt):

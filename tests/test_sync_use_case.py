@@ -419,7 +419,7 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertEqual(len(output.failures), 1)
         self.assertIn("uv run playwright install chromium", output.failures[0])
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_fails_before_crawl_when_required_list_exists_at_startup(
         self,
@@ -516,7 +516,7 @@ class SyncUseCaseTests(unittest.TestCase):
                 )
             )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_captures_deidentified_debug_html_on_page_failure(
         self,
@@ -577,7 +577,7 @@ class SyncUseCaseTests(unittest.TestCase):
                 )
             )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_fail_fast_writes_failure_report_and_stops_without_summary(
         self,
@@ -634,7 +634,7 @@ class SyncUseCaseTests(unittest.TestCase):
             self.assertIn("NoteWriteFailed", error_report_text)
             self.assertIn("one-star::alpha", error_report_text)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_reports_partial_totals_on_interrupt(
         self,
@@ -667,7 +667,7 @@ class SyncUseCaseTests(unittest.TestCase):
                 },
             )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_saves_checkpoint_on_interrupt(
         self,
@@ -706,7 +706,7 @@ class SyncUseCaseTests(unittest.TestCase):
             self.assertEqual(payload["total_restaurants"], 120)
             self.assertEqual(payload["rows_per_level"], {"one-star": 0})
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_writes_partial_failure_report_on_interrupt(
         self,
@@ -764,7 +764,7 @@ class SyncUseCaseTests(unittest.TestCase):
             self.assertIn("PlaceNotFound", report_body)
             self.assertIn("one-star::alpha", report_body)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_progress_includes_sync_row_updates(
         self,
@@ -811,7 +811,7 @@ class SyncUseCaseTests(unittest.TestCase):
             any(message.startswith("sync page 1/10 | item 1/1") for message in rendered_messages)
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_debug_timing_warning_uses_cli_option_names(
         self,
@@ -845,7 +845,7 @@ class SyncUseCaseTests(unittest.TestCase):
             output.warnings,
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_passes_max_pages_and_warns_probe_mode(
         self,
@@ -877,7 +877,7 @@ class SyncUseCaseTests(unittest.TestCase):
             any("maps-probe-only mode enabled" in warning for warning in output.warnings)
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_sandbox_overrides_prefix_checks_and_default_max_pages(
         self,
@@ -913,7 +913,7 @@ class SyncUseCaseTests(unittest.TestCase):
             any("sandbox mode default applied: max-pages=1" in warning for warning in output.warnings)
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_sandbox_preserves_explicit_max_pages(
         self,
@@ -948,7 +948,7 @@ class SyncUseCaseTests(unittest.TestCase):
             any("sandbox mode default applied: max-pages=1" in warning for warning in output.warnings)
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_sandbox_reports_created_test_lists(
         self,
@@ -982,8 +982,8 @@ class SyncUseCaseTests(unittest.TestCase):
             any("[TEST] Tokyo Michelin one-star" in warning for warning in output.warnings)
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
-    @patch("michelin_scraper.application.sync_use_case.resolve_listing_scope_name")
+    @patch("michelin_scraper.sources.michelin.crawl")
+    @patch("michelin_scraper.sources.michelin.resolve_listing_scope_name")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_uses_listing_scope_name_when_language_is_zh_tw(
         self,
@@ -1017,8 +1017,8 @@ class SyncUseCaseTests(unittest.TestCase):
         mock_crawl.assert_not_called()
         self.assertEqual(writer.list_names_by_level["one-star"], "Language Scope|one-star")
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
-    @patch("michelin_scraper.application.sync_use_case.resolve_listing_scope_name")
+    @patch("michelin_scraper.sources.michelin.crawl")
+    @patch("michelin_scraper.sources.michelin.resolve_listing_scope_name")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_prefers_traditional_scope_label_when_listing_scope_contains_ascii_letters(
         self,
@@ -1052,7 +1052,7 @@ class SyncUseCaseTests(unittest.TestCase):
         mock_crawl.assert_not_called()
         self.assertEqual(writer.list_names_by_level["one-star"], "\u81fa\u5357|one-star")
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_uses_maps_probe_rows_file_without_crawl(
         self,
@@ -1093,7 +1093,7 @@ class SyncUseCaseTests(unittest.TestCase):
             any("maps-probe-rows-file mode enabled" in warning for warning in output.warnings)
         )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_routes_probe_rows_explicit_split_star_levelslug_into_stars_bucket(
         self,
@@ -1127,7 +1127,7 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertEqual(len(writer.rows_by_level_calls[0]["selected"]), 0)
         self.assertEqual(len(writer.rows_by_level_calls[0]["bib-gourmand"]), 0)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_routes_probe_rows_rating_slug_into_stars_bucket_by_default(
         self,
@@ -1161,7 +1161,7 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertEqual(len(writer.rows_by_level_calls[0]["selected"]), 0)
         self.assertEqual(len(writer.rows_by_level_calls[0]["bib-gourmand"]), 0)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_routes_probe_rows_rating_slug_without_falling_to_selected(
         self,
@@ -1194,7 +1194,7 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertEqual(len(writer.rows_by_level_calls[0]["one-star"]), 1)
         self.assertEqual(len(writer.rows_by_level_calls[0]["selected"]), 0)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_routes_probe_rows_rating_badge_without_falling_to_selected(
         self,
@@ -1252,7 +1252,7 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertEqual(len(output.failures), 1)
         self.assertIn("Invalid JSON in maps-probe-rows-file", output.failures[0])
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_handles_finalize_interrupt_after_keyboard_interrupt(
         self,
@@ -1281,7 +1281,7 @@ class SyncUseCaseTests(unittest.TestCase):
                 )
             )
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_requests_fast_shutdown_on_interrupt(
         self,
@@ -1306,7 +1306,7 @@ class SyncUseCaseTests(unittest.TestCase):
             self.assertEqual(exit_code, 130)
             self.assertTrue(writer.fast_shutdown_requested)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_captures_debug_html_on_interrupt(
         self,
@@ -1368,7 +1368,7 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertIn('<div class="gb_g"><redacted-account-name></div>', redacted_html)
         self.assertIn('aria-label="Google Account: <redacted-account-name>"', redacted_html)
 
-    @patch("michelin_scraper.application.sync_use_case.crawl")
+    @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_run_scrape_sync_returns_non_zero_when_listing_fetch_fails(
         self,

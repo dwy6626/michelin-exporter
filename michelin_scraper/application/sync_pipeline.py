@@ -25,6 +25,7 @@ class _ItemWork:
     page_number: int
     estimated_total_pages: int | None
     total_restaurants_expected: int | None
+    bucket_slug: str
     row: dict[str, Any]
 
 
@@ -81,12 +82,14 @@ class SyncPipeline:
             page_number: int,
             estimated_total_pages: int | None,
             total_restaurants_expected: int | None,
+            bucket_slug: str,
             row: dict[str, Any],
         ) -> None:
             work = _ItemWork(
                 page_number=page_number,
                 estimated_total_pages=estimated_total_pages,
                 total_restaurants_expected=total_restaurants_expected,
+                bucket_slug=bucket_slug,
                 row=row,
             )
             # Called from producer thread — use thread-safe put.
@@ -139,6 +142,7 @@ class SyncPipeline:
                             work.page_number,
                             work.estimated_total_pages,
                             work.total_restaurants_expected,
+                            work.bucket_slug,
                             work.row,
                         )
                     elif isinstance(work, _PageWork):

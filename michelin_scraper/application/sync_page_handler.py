@@ -6,7 +6,6 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from ..adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
-from .row_router import LevelRowRouter, UnrecognizedRatingError
 from .sync_enums import SyncRowStatus
 from .sync_models import SyncAccumulation, SyncItemFailure
 from .sync_ports import CheckpointStorePort, LevelSyncWriterPort, SyncOutputPort
@@ -21,7 +20,6 @@ class SyncPageHandler:
         start_url: str,
         checkpoint_store: CheckpointStorePort,
         sync_writer: LevelSyncWriterPort,
-        row_router: LevelRowRouter,
         accumulation: SyncAccumulation,
         output: SyncOutputPort | None = None,
         debug_sync_failures: bool = False,
@@ -33,7 +31,6 @@ class SyncPageHandler:
         self._start_url = start_url
         self._checkpoint_store = checkpoint_store
         self._sync_writer = sync_writer
-        self._row_router = row_router
         self._accumulation = accumulation
         self._output = output
         self._debug_sync_failures = debug_sync_failures
@@ -46,9 +43,14 @@ class SyncPageHandler:
         self._page_item_budget: int = self._max_rows_per_page
 
     async def on_item(
-        self, page_number: int, estimated_total_pages: int | None, total_restaurants_expected: int | None, row: dict[str, Any]
+        self,
+        page_number: int,
+        estimated_total_pages: int | None,
+        total_restaurants_expected: int | None,
+        bucket_slug: str,
+        row: dict[str, Any],
     ) -> None:
-        """Sync one scraped item to Google Maps immediately after it is fetched."""
+        """Sync one source-routed item to Google Maps immediately after it is fetched."""
         if page_number != self._current_page_number:
             self._current_page_number = page_number
             self._current_estimated_total_pages = estimated_total_pages
@@ -57,23 +59,7 @@ class SyncPageHandler:
                 total_scraped_rows = sum(self._accumulation.scraped_count_by_level.values())
                 self._on_page_sync_start(page_number, estimated_total_pages, total_restaurants_expected, total_scraped_rows, 0)
         self._collect_sample_rows([row])
-        try:
-            grouped_rows = self._row_router.group_rows_by_level([row])
-        except UnrecognizedRatingError as exc:
-            failure = SyncItemFailure(
-                level_slug="",
-                row_key="",
-                restaurant_name=exc.restaurant_name,
-                reason=f"UnrecognizedRating: {exc.rating!r}",
-                attempted_queries=(),
-            )
-            self._accumulation.failed_items.append(failure)
-            if self._output is not None:
-                self._output.warn(
-                    f"Unrecognized rating {exc.rating!r} for restaurant "
-                    f"{exc.restaurant_name!r} — recorded as failure."
-                )
-            return
+        grouped_rows = {bucket_slug: [row]}
         self._increment_scraped_counts(grouped_rows)
         grouped_rows_for_sync, limited_out_count = self._apply_page_sync_row_limit(grouped_rows)
         if limited_out_count > 0:

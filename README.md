@@ -171,6 +171,18 @@ rows already recorded in the journal.
   `{prefix}{scope} Michelin {level_badge}`.
 - Please respect Michelin Guide and Google Maps terms of use and rate limits.
 
+## Architecture Note
+
+The sync workflow is organized as source adapters feeding Google Maps Saved
+Lists. Michelin is the first source adapter: it resolves Michelin targets,
+crawls listing pages, and routes restaurant rows into output buckets such as
+`stars`, `selected`, and `bib-gourmand`. The shared sync core only receives
+bucketed place rows and writes them to Google Maps lists.
+
+Future sources should implement the same adapter boundary and produce rows with
+at least `Name`; `Address`, `City`, `Latitude`, `Longitude`, and `Description`
+should be included when available to improve Maps search and matching.
+
 ## Target Matrix Maintenance
 
 Use the live matrix updater when Michelin changes localized country listing
