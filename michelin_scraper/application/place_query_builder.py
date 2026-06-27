@@ -4,8 +4,8 @@ import re
 from typing import Any
 
 _TAIWAN_LOCAL_AREA_PATTERNS = (
+    re.compile(r"(?:\d{3,5})?((?:臺|台)?[\u4e00-\u9fff]{1,4}(?:縣|市)[\u4e00-\u9fff]{1,4}(?:區|鎮|鄉|市))"),
     re.compile(r"([\u4e00-\u9fff]{1,4}(?:區|鎮|鄉))"),
-    re.compile(r"(?:縣|市)([\u4e00-\u9fff]{1,4}市)"),
     re.compile(r"^([\u4e00-\u9fff]{1,4}市)"),
 )
 _TAIWAN_STREET_HOUSE_PATTERN = re.compile(
@@ -44,6 +44,30 @@ def _extract_street_house_hint(address: str) -> str:
     return match.group(1)
 
 
+def _extract_aliases(row: dict[str, Any], *, excluded_names: tuple[str, ...]) -> tuple[str, ...]:
+    raw_aliases = row.get("Aliases", ())
+    if isinstance(raw_aliases, str):
+        alias_candidates = (raw_aliases,)
+    elif isinstance(raw_aliases, (list, tuple, set)):
+        alias_candidates = tuple(str(alias) for alias in raw_aliases)
+    else:
+        return ()
+
+    excluded = {name.strip().casefold() for name in excluded_names if name.strip()}
+    aliases: list[str] = []
+    seen: set[str] = set(excluded)
+    for alias in alias_candidates:
+        normalized_alias = " ".join(alias.split()).strip()
+        if not normalized_alias:
+            continue
+        alias_key = normalized_alias.casefold()
+        if alias_key in seen:
+            continue
+        aliases.append(normalized_alias)
+        seen.add(alias_key)
+    return tuple(aliases)
+
+
 def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     """Build ordered search query attempts for one Michelin row."""
 
@@ -54,6 +78,7 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     name_local = str(row.get("NameLocal", "")).strip()
     local_area_hint = _extract_local_area_hint(address)
     street_house_hint = _extract_street_house_hint(address)
+    aliases = _extract_aliases(row, excluded_names=(name, name_local))
 
     # Build attempts with priority: local name variants, then fallback to English name
     attempts = []
@@ -78,6 +103,15 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
         attempts.append(_build_text(name, street_house_hint))
     attempts.append(_build_text(name, city))
     attempts.append(_build_text(name))
+
+    for alias in aliases:
+        if local_area_hint:
+            attempts.append(_build_text(alias, local_area_hint))
+        if street_house_hint:
+            attempts.append(_build_text(alias, street_house_hint))
+        attempts.append(_build_text(alias, city))
+        attempts.append(_build_text(alias))
+
     attempts.append(_build_text(address))
     if cuisine:
         if local_area_hint:

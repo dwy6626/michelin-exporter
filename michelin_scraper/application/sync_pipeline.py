@@ -1,4 +1,4 @@
-"""Async pipeline that overlaps Michelin scraping with Google Maps sync.
+"""Async pipeline that overlaps source collection with Google Maps sync.
 
 Uses asyncio.Queue to coordinate a producer (HTTP scraping in a thread)
 with a consumer (async Playwright Maps sync) in the same event loop.

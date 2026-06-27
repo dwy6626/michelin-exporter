@@ -1,6 +1,7 @@
 # michelin
 
-Scrape Michelin Guide listings and sync restaurants into Google Maps lists.
+Sync place sources into Google Maps Saved Lists. Current sources are Michelin
+Guide listings and local Google My Maps `.kml` / `.kmz` exports.
 
 ## Requirements
 
@@ -103,8 +104,9 @@ uv run python tools/import_real_html_fixture.py \
 
 ## Direct Maps Probe (No Crawl)
 
-Use this when validating search/open/match behavior for known restaurants
-without re-running Michelin scraping.
+Use this when validating search/open/match behavior for known places without
+re-running source collection. Direct probe rows currently live under
+`sync-michelin` because they use the Michelin bucket router.
 
 Example JSONL input (`Name` required; `City`, `Address`, `Cuisine`, `Rating`,
 `LevelSlug`, `Latitude`, `Longitude` optional):
@@ -117,6 +119,7 @@ Run direct probe:
 
 ```bash
 uv run python -m michelin_scraper \
+  sync-michelin \
   --target "tokyo" \
   --maps-probe-rows-file /tmp/michelin-probe-rows.jsonl \
   --google-user-data-dir /tmp/michelin-codex-profile \
@@ -124,11 +127,59 @@ uv run python -m michelin_scraper \
   --headless
 ```
 
+## Sync Michelin
+
+Michelin is a source adapter under the `sync-michelin` command:
+
+```bash
+uv run python -m michelin_scraper sync-michelin --target "tokyo"
+```
+
+Use `--help` as the canonical CLI reference:
+
+```bash
+uv run python -m michelin_scraper sync-michelin --help
+```
+
+Michelin-only options include `--target`, `--levels`, `--language`,
+`--crawl-delay`, `--max-pages`, `--ca-bundle`, and `--insecure`.
+
+## Sync Google My Maps KML/KMZ
+
+Export your Google My Maps data as `.kml` or `.kmz`, then import the local file
+into one Google Maps Saved List:
+
+```bash
+uv run python -m michelin_scraper sync-my-maps \
+  --my-maps-file /path/to/my-map.kmz
+```
+
+Override the destination list name when needed:
+
+```bash
+uv run python -m michelin_scraper sync-my-maps \
+  --my-maps-file /path/to/my-map.kml \
+  --list-name "Taipei saved places"
+```
+
+If `--list-name` is omitted, the importer uses the KML document name, then the
+file stem. My Maps imports create a single `imported` bucket and use
+`{prefix}{scope}` as the default list naming template.
+
+Supported KML rows are named `Placemark` entries with either an address or
+valid `Point/coordinates`. Coordinates are parsed in KML order:
+`longitude,latitude[,altitude]`; rows without coordinates use their address for
+Google Maps search/match. The importer recognizes KML `<address>` plus common
+ExtendedData address/city keys, including `address`, `formatted_address`,
+`地址`, `city`, and `地區`. Unnamed placemarks and placemarks without address or
+coordinates are skipped and reported in run warnings.
+
 ## Run State
 
 State files are stored in `--state-dir` (or current directory when omitted):
 
-- `{scope}-michelin-checkpoint.json`
+- `{checkpoint-scope}-michelin-checkpoint.json` (legacy checkpoint filename
+  suffix retained for existing state files)
 - `{scope}-maps-sync-journal.json`
 - `{scope}-maps-sync-errors.jsonl` (only when row failures occur)
 - `debug/{scope}-maps-debug-<context>-<timestamp>.html` (de-identified
@@ -141,7 +192,7 @@ State files are stored in `--state-dir` (or current directory when omitted):
 
 Checkpoint and journal serve different purposes:
 
-- Checkpoint controls where crawl resumes next.
+- Checkpoint controls where source collection resumes next.
 - Journal stores only rows that were confirmed as successfully synced.
 
 When debug logging is enabled, Maps sync logs every accepted and rejected
@@ -156,7 +207,7 @@ rows already recorded in the journal.
 
 ## Notes
 
-- `--target` is required and accepts country or predefined city values.
+- `sync-michelin --target` is required and accepts country or predefined city values.
 - If the same value exists in both lists, city target takes precedence.
 - Localized country listing URLs are resolved from the verified target matrix in
   `michelin_scraper/catalog/target_url_matrix.json`. If a localized country has
@@ -169,15 +220,18 @@ rows already recorded in the journal.
   levels split into separate lists.
 - Each selected output bucket maps to one Google Maps list name generated from
   `{prefix}{scope} Michelin {level_badge}`.
+- `sync-my-maps --my-maps-file` requires a local `.kml` or `.kmz` export; My
+  Maps viewer URLs are not fetched directly.
 - Please respect Michelin Guide and Google Maps terms of use and rate limits.
 
 ## Architecture Note
 
 The sync workflow is organized as source adapters feeding Google Maps Saved
-Lists. Michelin is the first source adapter: it resolves Michelin targets,
-crawls listing pages, and routes restaurant rows into output buckets such as
-`stars`, `selected`, and `bib-gourmand`. The shared sync core only receives
-bucketed place rows and writes them to Google Maps lists.
+Lists. Michelin resolves Michelin targets, crawls listing pages, and routes
+restaurant rows into output buckets such as `stars`, `selected`, and
+`bib-gourmand`. My Maps parses local KML/KMZ exports into a single `imported`
+bucket. The shared sync core only receives bucketed place rows and writes them
+to Google Maps lists.
 
 Future sources should implement the same adapter boundary and produce rows with
 at least `Name`; `Address`, `City`, `Latitude`, `Longitude`, and `Description`
@@ -223,6 +277,7 @@ If browser launch fails with `Target page, context or browser has been closed` (
 ```bash
 # close all Chrome windows first, then retry with a fresh profile directory
 uv run python -m michelin_scraper \
+  sync-michelin \
   --target "tokyo" \
   --google-user-data-dir ~/.michelin-gmaps-profile-fresh
 ```

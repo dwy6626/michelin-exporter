@@ -20,6 +20,9 @@ from ..config import (
 from ..domain import ScrapeRunMetrics
 from .sync_enums import SyncRowStatus
 
+SOURCE_MICHELIN = "michelin"
+SOURCE_MY_MAPS = "my-maps"
+
 
 @dataclass(frozen=True)
 class ScrapeSyncCommand:
@@ -28,6 +31,9 @@ class ScrapeSyncCommand:
     target: str
     google_user_data_dir: str
     levels: tuple[str, ...]
+    source: str = SOURCE_MICHELIN
+    my_maps_file: str = ""
+    my_maps_list_name: str = ""
     language: str = DEFAULT_LANGUAGE
     state_dir: str = ""
     ignore_checkpoint: bool = False

@@ -1,7 +1,7 @@
 [project]
 name = "michelin"
 version = "0.1.0"
-description = "Scrape Michelin Guide listings and sync restaurants to Google Maps lists."
+description = "Sync place sources into Google Maps Saved Lists."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [

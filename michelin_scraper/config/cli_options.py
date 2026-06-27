@@ -3,6 +3,8 @@
 HELP_OPTION_NAMES = ("-h", "--help")
 
 TARGET_OPTION_FLAGS = ("--target", "-t")
+MY_MAPS_FILE_OPTION_FLAGS = ("--my-maps-file",)
+LIST_NAME_OPTION_FLAGS = ("--list-name",)
 LANGUAGE_OPTION_FLAGS = ("--language", "-l")
 LEVELS_OPTION_FLAGS = ("--levels",)
 GOOGLE_USER_DATA_DIR_OPTION_FLAGS = ("--google-user-data-dir",)

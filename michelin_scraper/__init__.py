@@ -1,4 +1,4 @@
-"""Michelin scraper package."""
+"""Place source to Google Maps Saved Lists sync package."""
 
 from .domain import ScrapeRunMetrics
 

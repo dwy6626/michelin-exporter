@@ -1,7 +1,9 @@
 """Tests for the generic source-to-Maps sync boundary."""
 
 import inspect
+import tempfile
 import unittest
+from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
@@ -145,6 +147,124 @@ class GenericSourceSyncUseCaseTests(unittest.TestCase):
         summary = output.final_summaries[0]
         self.assertEqual(summary.output_targets, (("imported", "Imported"),))
         self.assertEqual(summary.scraped_count_by_level, {"imported": 1})
+
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_sync_core_runs_real_my_maps_source_adapter_from_kml(
+        self,
+        mock_create_sync_writer: Mock,
+    ) -> None:
+        writer = _RecordingWriter()
+        mock_create_sync_writer.return_value = writer
+        output = _FakeOutput()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            kml_path = Path(temp_dir) / "map.kml"
+            kml_path.write_text(
+                (
+                    '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'
+                    "<name>Imported Map</name>"
+                    "<Placemark><name>Alpha</name><Point>"
+                    "<coordinates>121.5,25.1</coordinates>"
+                    "</Point></Placemark>"
+                    "</Document></kml>"
+                ),
+                encoding="utf-8",
+            )
+            command = ScrapeSyncCommand(
+                target="",
+                google_user_data_dir="/tmp/profile",
+                levels=("imported",),
+                source="my-maps",
+                my_maps_file=str(kml_path),
+                maps_probe_only=True,
+                list_name_template="{prefix}{scope}",
+            )
+
+            exit_code = sync_use_case.run_scrape_sync(command=command, output=output)
+
+        self.assertEqual(exit_code, 0)
+        called_command = mock_create_sync_writer.call_args.args[0]
+        self.assertTrue(called_command.maps_probe_only)
+        self.assertEqual(writer.list_names_by_level, {"imported": "Imported Map|imported"})
+        self.assertEqual(writer.synced_rows[0][0], "imported")
+        self.assertEqual(writer.synced_rows[0][1]["Name"], "Alpha")
+        self.assertEqual(writer.synced_rows[0][1]["Address"], "25.1,121.5")
+
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_sync_core_runs_real_my_maps_source_adapter_from_address_only_kml(
+        self,
+        mock_create_sync_writer: Mock,
+    ) -> None:
+        writer = _RecordingWriter()
+        mock_create_sync_writer.return_value = writer
+        output = _FakeOutput()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            kml_path = Path(temp_dir) / "map.kml"
+            kml_path.write_text(
+                (
+                    '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'
+                    "<name>Address Import</name>"
+                    "<Placemark><name>Alpha</name>"
+                    "<address>Verbose fallback address</address>"
+                    "<ExtendedData>"
+                    '<Data name="地址"><value>100臺北市中正區測試路1號</value></Data>'
+                    '<Data name="地區"><value>台北</value></Data>'
+                    "</ExtendedData>"
+                    "</Placemark>"
+                    "</Document></kml>"
+                ),
+                encoding="utf-8",
+            )
+            command = ScrapeSyncCommand(
+                target="",
+                google_user_data_dir="/tmp/profile",
+                levels=("imported",),
+                source="my-maps",
+                my_maps_file=str(kml_path),
+                maps_probe_only=True,
+                list_name_template="{prefix}{scope}",
+            )
+
+            exit_code = sync_use_case.run_scrape_sync(command=command, output=output)
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(writer.list_names_by_level, {"imported": "Address Import|imported"})
+        self.assertEqual(writer.synced_rows[0][0], "imported")
+        self.assertEqual(writer.synced_rows[0][1]["Name"], "Alpha")
+        self.assertEqual(writer.synced_rows[0][1]["Address"], "100臺北市中正區測試路1號")
+        self.assertEqual(writer.synced_rows[0][1]["City"], "台北")
+        self.assertNotIn("Latitude", writer.synced_rows[0][1])
+
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_my_maps_source_prepare_failure_is_reported_without_maps_writer(
+        self,
+        mock_create_sync_writer: Mock,
+    ) -> None:
+        output = _FakeOutput()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            kml_path = Path(temp_dir) / "empty.kml"
+            kml_path.write_text(
+                (
+                    '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'
+                    "<name>Empty Import</name>"
+                    "<Placemark><name>No Address</name></Placemark>"
+                    "</Document></kml>"
+                ),
+                encoding="utf-8",
+            )
+            command = ScrapeSyncCommand(
+                target="",
+                google_user_data_dir="/tmp/profile",
+                levels=("imported",),
+                source="my-maps",
+                my_maps_file=str(kml_path),
+            )
+
+            exit_code = sync_use_case.run_scrape_sync(command=command, output=output)
+
+        self.assertEqual(exit_code, 1)
+        mock_create_sync_writer.assert_not_called()
+        self.assertEqual(len(output.failures), 1)
+        self.assertIn("no importable placemarks", output.failures[0])
 
     def test_sync_use_case_no_longer_imports_michelin_catalog_or_scraping_modules(self) -> None:
         source = inspect.getsource(sync_use_case)

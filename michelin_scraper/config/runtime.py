@@ -27,6 +27,7 @@ LIST_NAME_TEMPLATE_PLACEHOLDERS = (
     "{level_badge}",
 )
 DEFAULT_LIST_NAME_TEMPLATE = "{prefix}{scope} Michelin {level_badge}"
+DEFAULT_MY_MAPS_LIST_NAME_TEMPLATE = "{prefix}{scope}"
 LANGUAGE_LIST_NAME_TEMPLATE_OVERRIDES = {
     "zh_TW": "{prefix}{scope} \u7c73\u5176\u6797 {level_badge}",
 }

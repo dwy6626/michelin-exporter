@@ -14,6 +14,10 @@ _CJK_SEQUENCE_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+"
 _PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
 _CJK_HOUSE_NUMBER_PATTERN = re.compile(r"(\d+(?:[-之]\d+)?)\s*號")
 _LATIN_HOUSE_NUMBER_PATTERN = re.compile(r"\bno\.?\s*(\d+(?:-\d+)?)\b", re.IGNORECASE)
+_ADDRESS_LIKE_PLACE_NAME_PATTERN = re.compile(
+    r"^\s*(?:no\.?\s*\d|\d+\s*(?:f|floor|樓)\s*$)",
+    re.IGNORECASE,
+)
 _COORDINATE_DMS_PATTERN = re.compile(
     r"""^\s*
     \d{1,3}\s*°\s*\d{1,2}\s*['′]\s*\d{1,2}(?:\.\d+)?\s*["″]\s*[NS]
@@ -171,6 +175,7 @@ class PlaceMatchAssessment:
     street_overlap_tokens: tuple[str, ...]
     city_in_candidate_address: bool
     coordinate_like_candidate_name: bool
+    address_like_candidate_name: bool
     house_number_conflict: bool
     located_in_match: bool
     informative_category: bool
@@ -232,6 +237,10 @@ def is_coordinate_like_place_name(value: str) -> bool:
     )
 
 
+def _is_address_like_place_name(value: str) -> bool:
+    return bool(_ADDRESS_LIKE_PLACE_NAME_PATTERN.search(value.strip()))
+
+
 def _significant_location_tokens(tokens: set[str]) -> set[str]:
     significant: set[str] = set()
     for token in tokens:
@@ -241,6 +250,26 @@ def _significant_location_tokens(tokens: set[str]) -> set[str]:
             continue
         significant.add(token)
     return significant
+
+
+def _extract_row_name_aliases(row: dict[str, Any]) -> tuple[str, ...]:
+    raw_aliases = row.get("Aliases", ())
+    if isinstance(raw_aliases, str):
+        alias_candidates = (raw_aliases,)
+    elif isinstance(raw_aliases, (list, tuple, set)):
+        alias_candidates = tuple(str(alias) for alias in raw_aliases)
+    else:
+        return ()
+
+    aliases: list[str] = []
+    seen: set[str] = set()
+    for alias in alias_candidates:
+        normalized_alias = _normalize_text(alias)
+        if not normalized_alias or normalized_alias in seen:
+            continue
+        aliases.append(normalized_alias)
+        seen.add(normalized_alias)
+    return tuple(aliases)
 
 
 def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
@@ -266,6 +295,10 @@ def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
         if len(candidate_meaningful_tokens) <= 2:
             return True
     if _is_confident_cjk_substring_match(row_name, candidate_name):
+        return True
+    if _is_confident_compact_cjk_substring_match(row_name, candidate_name):
+        return True
+    if _has_confident_cjk_bigram_overlap(row_name, candidate_name):
         return True
     if _has_branch_stripped_cjk_name_match(row_name, candidate_name):
         return True
@@ -340,6 +373,44 @@ def _is_confident_cjk_substring_match(row_name: str, candidate_name: str) -> boo
     if len(shorter_name) < 2:
         return False
     return shorter_name in longer_name
+
+
+def _compact_cjk_name(value: str) -> str:
+    stripped_value = _strip_parenthetical_segments(_normalize_text(value))
+    return "".join(_CJK_SEQUENCE_PATTERN.findall(stripped_value))
+
+
+def _is_confident_compact_cjk_substring_match(row_name: str, candidate_name: str) -> bool:
+    row_compact = _compact_cjk_name(row_name)
+    candidate_compact = _compact_cjk_name(candidate_name)
+    if not row_compact or not candidate_compact:
+        return False
+
+    shorter_name, longer_name = sorted((row_compact, candidate_compact), key=len)
+    if len(shorter_name) < 4:
+        return False
+    return shorter_name in longer_name
+
+
+def _cjk_bigrams(value: str) -> set[str]:
+    compact_name = _compact_cjk_name(value)
+    if len(compact_name) < 4:
+        return set()
+    return {
+        compact_name[index : index + 2]
+        for index in range(0, len(compact_name) - 1)
+    }
+
+
+def _has_confident_cjk_bigram_overlap(row_name: str, candidate_name: str) -> bool:
+    row_bigrams = _cjk_bigrams(row_name)
+    candidate_bigrams = _cjk_bigrams(candidate_name)
+    if not row_bigrams or not candidate_bigrams:
+        return False
+
+    overlap_count = len(row_bigrams.intersection(candidate_bigrams))
+    shorter_bigram_count = min(len(row_bigrams), len(candidate_bigrams))
+    return overlap_count >= 2 and overlap_count / shorter_bigram_count >= 0.7
 
 
 _LATIN_SUBSTRING_MIN_LENGTH = 4
@@ -449,6 +520,7 @@ def assess_place_match(
     row_address = _normalize_text(str(row.get("Address", "")))
     row_cuisine = _normalize_text(str(row.get("Cuisine", "")))
     row_name_local = _normalize_text(str(row.get("NameLocal", "")))
+    row_aliases = _extract_row_name_aliases(row)
 
     candidate_name = _normalize_text(candidate.name)
     candidate_subtitle = _normalize_text(candidate.subtitle)
@@ -458,6 +530,7 @@ def assess_place_match(
     informative_category = bool(candidate_category)
     food_service_category = _is_food_service_category(candidate_category)
     coordinate_like_candidate_name = is_coordinate_like_place_name(candidate.name)
+    address_like_candidate_name = _is_address_like_place_name(candidate.name)
 
     if not row_name or not candidate_name:
         return PlaceMatchAssessment(
@@ -469,26 +542,29 @@ def assess_place_match(
             street_overlap_tokens=(),
             city_in_candidate_address=False,
             coordinate_like_candidate_name=coordinate_like_candidate_name,
+            address_like_candidate_name=address_like_candidate_name,
             house_number_conflict=False,
             located_in_match=False,
             informative_category=informative_category,
             food_service_category=food_service_category,
         )
 
+    row_names = [row_name]
+    if row_name_local:
+        row_names.append(row_name_local)
+    row_names.extend(alias for alias in row_aliases if alias not in row_names)
+
     candidate_names = [candidate_name]
     if candidate_subtitle:
         candidate_names.append(candidate_subtitle)
     name_match = any(
-        _has_confident_name_match(row_name, cn) or (
-            bool(row_name_local) and _has_confident_name_match(row_name_local, cn)
-        )
-        for cn in candidate_names
+        _has_confident_name_match(row_name_candidate, candidate_name_candidate)
+        for row_name_candidate in row_names
+        for candidate_name_candidate in candidate_names
     )
-    located_in_match = bool(candidate_located_in) and (
-        _has_confident_name_match(row_name, candidate_located_in) or (
-            bool(row_name_local)
-            and _has_confident_name_match(row_name_local, candidate_located_in)
-        )
+    located_in_match = bool(candidate_located_in) and any(
+        _has_confident_name_match(row_name_candidate, candidate_located_in)
+        for row_name_candidate in row_names
     )
     location_tokens = _tokenize(" ".join((row_city, row_address)))
     candidate_tokens = _tokenize(candidate_address)
@@ -519,7 +595,7 @@ def assess_place_match(
     candidate_postal_codes = _extract_postal_code_tokens(candidate_address)
     postal_code_overlap_tokens = tuple(sorted(row_postal_codes.intersection(candidate_postal_codes)))
 
-    if coordinate_like_candidate_name:
+    if coordinate_like_candidate_name or address_like_candidate_name:
         strength: MatchStrength = "weak"
     elif name_match and house_number_conflict:
         # Chain restaurants and branch-labeled rows can share a name and city
@@ -571,6 +647,7 @@ def assess_place_match(
         street_overlap_tokens=tuple(sorted(street_overlap_tokens_set)),
         city_in_candidate_address=city_in_candidate_address,
         coordinate_like_candidate_name=coordinate_like_candidate_name,
+        address_like_candidate_name=address_like_candidate_name,
         house_number_conflict=house_number_conflict,
         located_in_match=located_in_match,
         informative_category=informative_category,

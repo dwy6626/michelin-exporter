@@ -54,10 +54,64 @@ class SyncProgressCoordinatorTests(unittest.TestCase):
         assert scrape_progress is not None
         assert sync_progress is not None
         self.assertGreater(scrape_progress, setup_progress)
-        # sync progress equals scrape progress: both are driven by the same
-        # scrape_sync_completion value; sync row updates affect message text only
         self.assertGreaterEqual(sync_progress, scrape_progress)
         self.assertIn("sync page 1/10", reporter.updates[-1][0])
+
+    def test_sync_row_processing_advances_progress_from_completed_rows(self) -> None:
+        reporter = _RecordingReporter()
+        coordinator = SyncProgressCoordinator(reporter)
+
+        coordinator.update_setup_progress("setup", completion=1.0)
+        coordinator.on_page_sync_start(
+            page_number=1,
+            estimated_total_pages=1,
+            total_restaurants_expected=472,
+            total_scraped_rows=472,
+            rows_on_page=472,
+        )
+        coordinator.on_sync_row_progress(
+            processed_rows=202,
+            total_rows=472,
+            status="processing",
+            restaurant_name="日進客家菜",
+        )
+
+        message, progress = reporter.updates[-1]
+
+        self.assertIn("item 203/472", message)
+        self.assertIsNotNone(progress)
+        assert progress is not None
+        self.assertAlmostEqual(progress, 0.05 + (0.95 * (202 / 472)))
+
+    def test_sync_row_progress_does_not_reduce_existing_crawl_estimate(self) -> None:
+        reporter = _RecordingReporter()
+        coordinator = SyncProgressCoordinator(reporter)
+        crawl_reporter = coordinator.create_crawl_reporter()
+
+        coordinator.update_setup_progress("setup", completion=1.0)
+        crawl_reporter.update("scrape", progress=0.8)
+        crawl_progress = reporter.updates[-1][1]
+        coordinator.on_page_sync_start(
+            page_number=1,
+            estimated_total_pages=10,
+            total_restaurants_expected=100,
+            total_scraped_rows=10,
+            rows_on_page=10,
+        )
+        coordinator.on_sync_row_progress(
+            processed_rows=1,
+            total_rows=10,
+            status="added",
+            restaurant_name="Alpha",
+        )
+
+        sync_progress = reporter.updates[-1][1]
+
+        self.assertIsNotNone(crawl_progress)
+        self.assertIsNotNone(sync_progress)
+        assert crawl_progress is not None
+        assert sync_progress is not None
+        self.assertEqual(sync_progress, crawl_progress)
 
 if __name__ == "__main__":
     unittest.main()

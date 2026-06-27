@@ -1,4 +1,4 @@
-"""Use-case orchestration for syncing Michelin listings to Google Maps lists."""
+"""Use-case orchestration for syncing place sources to Google Maps lists."""
 
 import asyncio
 import json
@@ -33,9 +33,12 @@ from ..config import (
 )
 from ..domain import ScrapeRunMetrics
 from ..sources.michelin import create_michelin_source_adapter
+from ..sources.my_maps import MyMapsSourceAdapter
 from .html_redaction import find_unredacted_sensitive_markers, redact_html_text
 from .source_models import PlaceSourceAdapter, SourceRunHandlers
 from .sync_models import (
+    SOURCE_MICHELIN,
+    SOURCE_MY_MAPS,
     MissingListReport,
     ScrapeSyncCommand,
     SyncAccumulation,
@@ -68,7 +71,11 @@ PageFailureDebugSnapshotCallback = Callable[[int, Sequence[SyncItemFailure]], An
 
 
 def _create_source_adapter(command: ScrapeSyncCommand) -> PlaceSourceAdapter:
-    return create_michelin_source_adapter(command)
+    if command.source == SOURCE_MICHELIN:
+        return create_michelin_source_adapter(command)
+    if command.source == SOURCE_MY_MAPS:
+        return MyMapsSourceAdapter()
+    raise ValueError(f"Unsupported source: {command.source}")
 
 
 def _create_sync_writer(
@@ -489,7 +496,11 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
     command = _apply_sandbox_overrides(command=command, output=output)
 
     source_adapter = _create_source_adapter(command)
-    source_plan = source_adapter.prepare(command, output)
+    try:
+        source_plan = source_adapter.prepare(command, output)
+    except ValueError as exc:
+        output.show_failure(str(exc))
+        return 1
     bucket_slugs = tuple(bucket.slug for bucket in source_plan.buckets)
 
     start_time = time.perf_counter()
@@ -512,10 +523,8 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
         )
     if command.maps_probe_rows_file:
         output.warn(
-            
-                "maps-probe-rows-file mode enabled: skipping Michelin crawl and probing Google Maps "
-                "with local rows only."
-            
+            "maps-probe-rows-file mode enabled: skipping source collection and probing Google Maps "
+            "with local rows only."
         )
         if not command.maps_probe_only:
             output.warn("maps-probe-rows-file implies maps-probe-only (no list writes).")
@@ -563,12 +572,10 @@ async def _run_scrape_sync_async(command: ScrapeSyncCommand, output: SyncOutputP
             page_failure_debug_snapshot = _capture_page_failure_debug_snapshot
         if command.debug_sync_failures:
             output.warn(
-                
-                    "[debug] Effective timing: "
-                    f"{CRAWL_DELAY_OPTION_FLAGS[0]}={command.sleep_seconds}, "
-                    f"{MAPS_DELAY_OPTION_FLAGS[0]}={command.sync_delay_seconds}, "
-                    f"{MAX_SAVE_RETRIES_OPTION_FLAGS[0]}={command.max_save_retries}"
-                
+                "[debug] Effective timing: "
+                f"{CRAWL_DELAY_OPTION_FLAGS[0]}={command.sleep_seconds}, "
+                f"{MAPS_DELAY_OPTION_FLAGS[0]}={command.sync_delay_seconds}, "
+                f"{MAX_SAVE_RETRIES_OPTION_FLAGS[0]}={command.max_save_retries}"
             )
         progress_coordinator.update_setup_progress(
             "Setting up Google Maps session...",

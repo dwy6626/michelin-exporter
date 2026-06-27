@@ -3,7 +3,7 @@
 - Use English for code comments and developer-facing docs. Multilingual literals are allowed only for real data, user-facing content, or fixtures; do not replace them with Unicode escapes unless explicitly required.
 - `--help` is the canonical CLI usage reference. Keep option values/choices sourced from `constants`; document any new debug flags, logs, probe modes, troubleshooting flows, or failure artifacts in `README.md`.
 - Breaking refactors are allowed. Do not add compatibility wrappers, aliases, shim modules, re-export facades, deprecated paths, or legacy Python-version support unless explicitly requested.
-- Agents must run targeted validation before handoff and fix lint violations in files they change.
+- Agents must run targeted validation before handoff and fix lint violations in files they change. Run Python validation through `uv run` (for example, `uv run python -m unittest ...`, `uv run --extra dev ruff check .`, and `uv run --extra dev basedpyright`); do not call bare `python`, `ruff`, or `basedpyright` for project validation.
 - Tests and fixtures must never contain real personal account names or account labels. Redact Google account display names as `<redacted-account-name>` and use isolated temporary browser profiles only.
 - Persisted debug HTML snapshots must be de-identified before storage: redact account identifiers, account names, email, cookie/session/token values, and local user-path data.
 - Google Maps selector and note-save work must use recorded, de-identified real DOM snapshots committed as fixtures; synthetic-only DOM guesses are not acceptable coverage.

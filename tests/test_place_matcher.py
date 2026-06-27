@@ -436,6 +436,80 @@ class PlaceMatcherTests(unittest.TestCase):
         self.assertTrue(assessment.name_match)
         self.assertNotEqual(assessment.strength, "weak")
 
+    def test_assess_place_match_accepts_my_maps_alias_with_maps_name_variant_from_real_log(self) -> None:
+        row = {
+            "Name": "饅頭達人｜金獅湖肉包",
+            "Aliases": ("饅頭達人 金獅湖肉包", "金獅湖肉包"),
+            "City": "高雄",
+            "Address": "807高雄市三民區鼎金後路45號",
+            "Cuisine": "",
+        }
+        candidate = PlaceCandidate(
+            name="金獅湖饅頭／肉包店",
+            address="807台灣高雄市三民區鼎金後路45號",
+            category="中式包點店",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_accepts_compact_subtitle_variant_from_real_log(self) -> None:
+        row = {
+            "Name": "無名羊肉湯大菜市",
+            "City": "台南",
+            "Address": "700臺南市中西區府前路二段144號",
+            "Cuisine": "",
+        }
+        candidate = PlaceCandidate(
+            name="Wu Ming Mutton Soup",
+            address="700台灣台南市中西區府前路二段144號",
+            category="早午餐餐廳",
+            subtitle="無名羊肉湯-大菜市",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_accepts_cjk_bigram_name_variant_from_real_log(self) -> None:
+        row = {
+            "Name": "大橋頭老牌筒仔米糕",
+            "City": "台北",
+            "Address": "103臺北市大同區延平北路三段41號",
+            "Cuisine": "",
+        }
+        candidate = PlaceCandidate(
+            name="大橋頭米糕",
+            address="103台灣台北市大同區延平北路三段41號",
+            category="台灣餐廳",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertTrue(assessment.name_match)
+        self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_keeps_address_only_building_candidate_weak_from_real_log(self) -> None:
+        row = {
+            "Name": "大橋頭老牌筒仔米糕",
+            "City": "台北",
+            "Address": "103臺北市大同區延平北路三段41號",
+            "Cuisine": "",
+        }
+        candidate = PlaceCandidate(
+            name="No. 41, Section 3, Yanping North Road",
+            address="103台灣台北市大同區延平北路三段41號",
+            category="",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertFalse(assessment.name_match)
+        self.assertEqual(assessment.strength, "weak")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,11 +1,16 @@
-"""CLI entrypoint for Michelin scraper Google Maps sync workflow."""
+"""CLI entrypoint for place source Google Maps sync workflows."""
 
 from typing import Annotated
 
 import typer
 
 from ..application.maps_login_use_case import run_maps_login
-from ..application.sync_models import MapsLoginCommand, ScrapeSyncCommand
+from ..application.sync_models import (
+    SOURCE_MICHELIN,
+    SOURCE_MY_MAPS,
+    MapsLoginCommand,
+    ScrapeSyncCommand,
+)
 from ..application.sync_use_case import AUTH_REQUIRED_EXIT_CODE, run_scrape_sync
 from ..catalog import (
     LANGUAGE_VALUES_HELP,
@@ -27,6 +32,7 @@ from ..config import (
     DEFAULT_MAX_ROWS_PER_PAGE,
     DEFAULT_MAX_SAVE_RETRIES,
     DEFAULT_MISSING_LIST_POLICY,
+    DEFAULT_MY_MAPS_LIST_NAME_TEMPLATE,
     DEFAULT_RECORD_FIXTURES_DIR,
     DEFAULT_SLEEP_SECONDS,
     DEFAULT_SYNC_DELAY_SECONDS,
@@ -40,6 +46,7 @@ from ..config import (
     LANGUAGE_LIST_NAME_TEMPLATE_OVERRIDES,
     LANGUAGE_OPTION_FLAGS,
     LEVELS_OPTION_FLAGS,
+    LIST_NAME_OPTION_FLAGS,
     LIST_NAME_PREFIX_OPTION_FLAGS,
     LIST_NAME_TEMPLATE_OPTION_FLAGS,
     LIST_NAME_TEMPLATE_PLACEHOLDERS,
@@ -51,6 +58,7 @@ from ..config import (
     MAX_ROWS_PER_PAGE_OPTION_FLAGS,
     MAX_SAVE_RETRIES_OPTION_FLAGS,
     MISSING_LIST_POLICY_CHOICES,
+    MY_MAPS_FILE_OPTION_FLAGS,
     ON_MISSING_LIST_OPTION_FLAGS,
     RECORD_FIXTURES_DIR_OPTION_FLAGS,
     SANDBOX_DEFAULT_MAX_PAGES,
@@ -67,19 +75,21 @@ USER_OPTIONS_HELP_PANEL = "User Options"
 DEVELOPER_DEBUG_OPTIONS_HELP_PANEL = "Developer and Debug Options"
 
 APP_HELP_TEXT = (
-    "Scrape Michelin listings and sync restaurants into Google Maps lists.\n\n"
+    "Sync place sources into Google Maps Saved Lists.\n\n"
     "Quick Start:\n"
     "- Install dependencies and browser runtime:\n"
     "  uv sync\n"
     "  uv run playwright install chromium\n"
-    "- Run sync:\n"
-    f"  python -m michelin_scraper {TARGET_OPTION_FLAGS[0]} <TARGET>\n"
+    "- Sync Michelin listings:\n"
+    f"  python -m michelin_scraper sync-michelin {TARGET_OPTION_FLAGS[0]} <TARGET>\n"
+    "- Sync a Google My Maps export:\n"
+    f"  python -m michelin_scraper sync-my-maps {MY_MAPS_FILE_OPTION_FLAGS[0]} <MAP.kml|MAP.kmz>\n"
     f"- Default Google profile path: {DEFAULT_GOOGLE_USER_DATA_DIR}\n"
     "- Default state directory: .michelin-state/ (git-ignored, created in current working directory).\n"
     "- Login handling:\n"
-    "  The command checks Google login state automatically.\n"
-    "  If not logged in, it prompts to open a browser for interactive login,\n"
-    "  then retries sync automatically.\n"
+    "  Commands check Google login state automatically.\n"
+    "  If not logged in, they prompt to open a browser for interactive login,\n"
+    "  then retry sync automatically.\n"
     "- If sign-in shows 'This browser or app may not be secure':\n"
     "  install or update Google Chrome and retry.\n"
     "  If still blocked, login once in regular Chrome with the same profile path,\n"
@@ -94,15 +104,10 @@ APP_HELP_TEXT = (
     "  In that mode, rows already saved in target lists are skipped without modifying list membership.\n"
     "  Without that flag, detecting an already-saved row is treated as a hard error.\n"
     "- Safe workflow for small-batch debugging (no list writes):\n"
-    f"  combine {MAPS_PROBE_ONLY_OPTION_FLAGS[0]} with "
-    f"{MAX_PAGES_OPTION_FLAGS[0]} / {MAX_ROWS_PER_PAGE_OPTION_FLAGS[0]}.\n"
-    "- Fast Maps-only probe from local rows (skip Michelin crawl):\n"
-    f"  use {MAPS_PROBE_ROWS_FILE_OPTION_FLAGS[0]} <ROWS.jsonl>.\n"
-    "  JSONL rows require 'Name'; optional fields: City, Address, Cuisine, Description, "
-    "Rating, LevelSlug, Latitude, Longitude.\n"
+    f"  use {MAPS_PROBE_ONLY_OPTION_FLAGS[0]}.\n"
     "- Safe live end-to-end validation in Google Maps:\n"
     f"  use {SANDBOX_OPTION_FLAGS[0]} to force test-list prefixing, reuse checks, "
-    f"and a {SANDBOX_DEFAULT_MAX_PAGES}-page default crawl limit.\n"
+    f"and a {SANDBOX_DEFAULT_MAX_PAGES}-page default crawl limit for Michelin.\n"
     "- Automatically record de-identified debug snapshots as reusable fixtures:\n"
     f"  set {RECORD_FIXTURES_DIR_OPTION_FLAGS[0]} <DIR>.\n"
     f"- Sync failure policy ({ON_MISSING_LIST_OPTION_FLAGS[0]}):\n"
@@ -125,18 +130,54 @@ APP_HELP_TEXT = (
 app = typer.Typer(
     add_completion=False,
     help=APP_HELP_TEXT,
+    no_args_is_help=True,
     context_settings={"help_option_names": list(HELP_OPTION_NAMES)},
 )
 
 
-@app.command(help=APP_HELP_TEXT)
-def main(
+def _run_with_login_prompt(
+    *,
+    command: ScrapeSyncCommand,
+    google_user_data_dir: str,
+    headed: bool,
+    login_timeout: int,
+) -> None:
+    presenter = ConsoleSyncPresenter()
+    exit_code = run_scrape_sync(command=command, output=presenter)
+    if exit_code != AUTH_REQUIRED_EXIT_CODE:
+        raise typer.Exit(exit_code)
+
+    should_login_now = typer.confirm(
+        (
+            "No authenticated Google Maps session was found. "
+            "Open browser and login now?"
+        ),
+        default=True,
+    )
+    if not should_login_now:
+        presenter.show_failure("Google login is required before sync can continue.")
+        raise typer.Exit(AUTH_REQUIRED_EXIT_CODE)
+
+    login_command = MapsLoginCommand(
+        google_user_data_dir=google_user_data_dir,
+        login_timeout_seconds=login_timeout,
+        headless=not headed,
+    )
+    login_exit_code = run_maps_login(command=login_command, output=presenter)
+    if login_exit_code != 0:
+        raise typer.Exit(login_exit_code)
+
+    raise typer.Exit(run_scrape_sync(command=command, output=presenter))
+
+
+@app.command("sync-michelin", help="Scrape Michelin listings and sync places into Google Maps lists.")
+def sync_michelin(
     target: Annotated[
         str,
         typer.Option(
             *TARGET_OPTION_FLAGS,
             help=(
-                "Required target (country or predefined city). "
+                "Required Michelin target (country or predefined city). "
                 f"{TARGET_VALUES_HELP} "
                 "When the same value exists in both lists, the city target is used."
             ),
@@ -171,7 +212,7 @@ def main(
         typer.Option(
             *LEVELS_OPTION_FLAGS,
             help=(
-                "Comma-separated level slugs to sync. "
+                "Comma-separated Michelin level slugs to sync. "
                 f"Supported values: {LEVEL_CHOICES_HELP}. "
                 "Empty value means default buckets: stars, selected, bib-gourmand. "
                 "Use one-star,two-star,three-star to keep star lists separate."
@@ -194,7 +235,7 @@ def main(
         bool,
         typer.Option(
             *IGNORE_CHECKPOINT_OPTION_FLAGS,
-            help="Ignore checkpoint and start scraping from the first page.",
+            help="Ignore checkpoint and start scraping/importing from the beginning.",
             rich_help_panel=USER_OPTIONS_HELP_PANEL,
         ),
     ] = False,
@@ -227,7 +268,7 @@ def main(
         typer.Option(
             *MAX_ROWS_PER_PAGE_OPTION_FLAGS,
             help=(
-                "Maximum rows per scraped page to send into Maps sync. "
+                "Maximum rows per source page to send into Maps sync. "
                 "Use 0 for no limit."
             ),
             rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
@@ -272,7 +313,7 @@ def main(
         bool,
         typer.Option(
             *DRY_RUN_OPTION_FLAGS,
-            help="Scrape and route rows by level without writing to Google Maps.",
+            help="Read and route rows without writing to Google Maps.",
             rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
         ),
     ] = False,
@@ -304,7 +345,7 @@ def main(
         typer.Option(
             *MAPS_PROBE_ROWS_FILE_OPTION_FLAGS,
             help=(
-                "Path to JSONL rows for direct Maps probe mode (skip Michelin crawl). "
+                "Path to JSONL rows for direct Maps probe mode (skip Michelin source collection). "
                 "One JSON object per line. "
                 "Required field: Name. Optional fields: City, Address, Cuisine, Description, "
                 "Rating, LevelSlug, Latitude, Longitude."
@@ -411,6 +452,7 @@ def main(
         target=target,
         google_user_data_dir=google_user_data_dir,
         levels=selected_levels,
+        source=SOURCE_MICHELIN,
         language=effective_language,
         state_dir=state_dir,
         ignore_checkpoint=ignore_checkpoint,
@@ -434,29 +476,232 @@ def main(
         ca_bundle=ca_bundle,
         insecure=insecure,
     )
-    presenter = ConsoleSyncPresenter()
-    exit_code = run_scrape_sync(command=command, output=presenter)
-    if exit_code != AUTH_REQUIRED_EXIT_CODE:
-        raise typer.Exit(exit_code)
-
-    should_login_now = typer.confirm(
-        (
-            "No authenticated Google Maps session was found. "
-            "Open browser and login now?"
-        ),
-        default=True,
-    )
-    if not should_login_now:
-        presenter.show_failure("Google login is required before sync can continue.")
-        raise typer.Exit(AUTH_REQUIRED_EXIT_CODE)
-
-    login_command = MapsLoginCommand(
+    _run_with_login_prompt(
+        command=command,
         google_user_data_dir=google_user_data_dir,
-        login_timeout_seconds=login_timeout,
-        headless=not headed,
+        headed=headed,
+        login_timeout=login_timeout,
     )
-    login_exit_code = run_maps_login(command=login_command, output=presenter)
-    if login_exit_code != 0:
-        raise typer.Exit(login_exit_code)
 
-    raise typer.Exit(run_scrape_sync(command=command, output=presenter))
+
+@app.command("sync-my-maps", help="Import a Google My Maps KML/KMZ export into one Google Maps list.")
+def sync_my_maps(
+    my_maps_file: Annotated[
+        str,
+        typer.Option(
+            *MY_MAPS_FILE_OPTION_FLAGS,
+            help="Path to a Google My Maps .kml or .kmz export file.",
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ],
+    list_name: Annotated[
+        str,
+        typer.Option(
+            *LIST_NAME_OPTION_FLAGS,
+            help="Google Maps list name. Defaults to KML document name, then file stem.",
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = "",
+    google_user_data_dir: Annotated[
+        str,
+        typer.Option(
+            *GOOGLE_USER_DATA_DIR_OPTION_FLAGS,
+            help=(
+                "Persistent Chrome profile path used to store Google login session. "
+                f"Default: {DEFAULT_GOOGLE_USER_DATA_DIR}."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_GOOGLE_USER_DATA_DIR,
+    state_dir: Annotated[
+        str,
+        typer.Option(
+            *STATE_DIR_OPTION_FLAGS,
+            help=(
+                "Directory for checkpoint, sync journal, and failure reports. "
+                "Default: .michelin-state/ in the current working directory (git-ignored)."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = "",
+    ignore_checkpoint: Annotated[
+        bool,
+        typer.Option(
+            *IGNORE_CHECKPOINT_OPTION_FLAGS,
+            help="Ignore checkpoint and start importing from the beginning.",
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = False,
+    debug_sync_failures: Annotated[
+        bool,
+        typer.Option(
+            *DEBUG_SYNC_FAILURES_OPTION_FLAGS,
+            help=(
+                "Emit per-page sync failure debug details (reason counts and sample queries), "
+                "and persist de-identified debug HTML snapshots."
+            ),
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = False,
+    max_rows_per_page: Annotated[
+        int,
+        typer.Option(
+            *MAX_ROWS_PER_PAGE_OPTION_FLAGS,
+            help=(
+                "Maximum imported rows to send into Maps sync. "
+                "Use 0 for no limit."
+            ),
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_MAX_ROWS_PER_PAGE,
+    headed: Annotated[
+        bool,
+        typer.Option(
+            *HEADED_OPTION_FLAGS,
+            help="Run browser in headed mode. Use --headless for background execution.",
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = True,
+    maps_delay: Annotated[
+        float,
+        typer.Option(
+            *MAPS_DELAY_OPTION_FLAGS,
+            help="Delay between Google Maps sync UI operations in seconds.",
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_SYNC_DELAY_SECONDS,
+    max_save_retries: Annotated[
+        int,
+        typer.Option(
+            *MAX_SAVE_RETRIES_OPTION_FLAGS,
+            help="Maximum retry attempts for transient Google Maps save failures.",
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_MAX_SAVE_RETRIES,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            *DRY_RUN_OPTION_FLAGS,
+            help="Read and route rows without writing to Google Maps.",
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = False,
+    sandbox: Annotated[
+        bool,
+        typer.Option(
+            *SANDBOX_OPTION_FLAGS,
+            help=(
+                f"Safe live validation mode. Forces list prefix to '{SANDBOX_LIST_NAME_PREFIX}' "
+                "and forces existing-list reuse checks on."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = False,
+    maps_probe_only: Annotated[
+        bool,
+        typer.Option(
+            *MAPS_PROBE_ONLY_OPTION_FLAGS,
+            help=(
+                "Run real Google Maps search/match checks without creating lists "
+                "or saving places."
+            ),
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = False,
+    record_fixtures_dir: Annotated[
+        str,
+        typer.Option(
+            *RECORD_FIXTURES_DIR_OPTION_FLAGS,
+            help=(
+                "Optional directory that receives de-identified fixture HTML + metadata "
+                "for every captured debug sync snapshot."
+            ),
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_RECORD_FIXTURES_DIR,
+    list_name_prefix: Annotated[
+        str,
+        typer.Option(
+            *LIST_NAME_PREFIX_OPTION_FLAGS,
+            help="Prefix prepended to generated list names.",
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_LIST_NAME_PREFIX,
+    list_name_template: Annotated[
+        str,
+        typer.Option(
+            *LIST_NAME_TEMPLATE_OPTION_FLAGS,
+            help=(
+                "List naming template using placeholders: "
+                f"{LIST_NAME_TEMPLATE_PLACEHOLDERS_HELP}. "
+                "Default for My Maps: {prefix}{scope}."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_MY_MAPS_LIST_NAME_TEMPLATE,
+    on_missing_list: Annotated[
+        str,
+        typer.Option(
+            *ON_MISSING_LIST_OPTION_FLAGS,
+            help=(
+                "Failure policy for row sync errors and missing-list events. "
+                "Use 'stop' to fail immediately on first row failure; "
+                "use 'continue' to keep processing rows and aggregate failures. "
+                f"Allowed values: {MISSING_LIST_POLICY_HELP}."
+            ),
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_MISSING_LIST_POLICY,
+    ignore_existing_lists_check: Annotated[
+        bool,
+        typer.Option(
+            *IGNORE_EXISTING_LISTS_CHECK_OPTION_FLAGS,
+            help=(
+                "Skip startup failure when generated Google Maps lists already exist. "
+                "Existing lists are reused."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = False,
+    login_timeout: Annotated[
+        int,
+        typer.Option(
+            *LOGIN_TIMEOUT_OPTION_FLAGS,
+            help=(
+                "Timeout in seconds for prompted interactive login when "
+                "no authenticated session is detected."
+            ),
+            rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
+        ),
+    ] = DEFAULT_LOGIN_TIMEOUT_SECONDS,
+) -> None:
+    command = ScrapeSyncCommand(
+        target="",
+        google_user_data_dir=google_user_data_dir,
+        levels=("imported",),
+        source=SOURCE_MY_MAPS,
+        my_maps_file=my_maps_file,
+        my_maps_list_name=list_name,
+        language=DEFAULT_LANGUAGE,
+        state_dir=state_dir,
+        ignore_checkpoint=ignore_checkpoint,
+        debug_sync_failures=debug_sync_failures,
+        max_rows_per_page=max_rows_per_page,
+        sync_delay_seconds=maps_delay,
+        max_save_retries=max_save_retries,
+        headless=not headed,
+        dry_run=dry_run,
+        sandbox=sandbox,
+        maps_probe_only=maps_probe_only,
+        record_fixtures_dir=record_fixtures_dir,
+        list_name_prefix=list_name_prefix,
+        list_name_template=list_name_template,
+        on_missing_list=on_missing_list,
+        ignore_existing_lists_check=ignore_existing_lists_check,
+    )
+    _run_with_login_prompt(
+        command=command,
+        google_user_data_dir=google_user_data_dir,
+        headed=headed,
+        login_timeout=login_timeout,
+    )

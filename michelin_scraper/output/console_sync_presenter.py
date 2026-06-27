@@ -64,13 +64,11 @@ class ConsoleSyncPresenter:
             "Interrupted by user. Re-run the same command to resume from the latest checkpoint."
         )
         self.warn(
-            
-                "Partial sync totals: "
-                f"scraped={scraped_total}, "
-                f"added(success)={added_total}, "
-                f"failed={failed_total}, "
-                f"skipped={skipped_total}"
-            
+            "Partial sync totals: "
+            f"scraped={scraped_total}, "
+            f"added(success)={added_total}, "
+            f"failed={failed_total}, "
+            f"skipped={skipped_total}"
         )
 
     def show_failure(self, message: str) -> None:
@@ -91,7 +89,7 @@ class ConsoleSyncPresenter:
             self.info("Run completed successfully.")
 
         self._section("Run Summary")
-        self._line(f"Restaurants : {summary.metrics.total_restaurants}")
+        self._line(f"Places      : {summary.metrics.total_restaurants}")
         self._line(f"Pages       : {summary.metrics.processed_pages}")
         self._line(f"Fetch errors: {summary.metrics.fetch_failures}")
         self._line(f"Duration    : {summary.elapsed_seconds:.2f}s")
@@ -104,7 +102,7 @@ class ConsoleSyncPresenter:
                     f"{row.get('Rating', '')} | {row.get('City', '')}"
                 )
 
-        self._section("Level Sync Summary")
+        self._section("Bucket Sync Summary")
         slug_width = max(len(level_slug) for level_slug, _ in summary.output_targets)
         is_resumed = summary.resumed_synced_count > 0
         if is_resumed:

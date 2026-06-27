@@ -236,7 +236,7 @@ class DryRunSyncWriter:
 
 
 class GoogleMapsSyncWriter:
-    """Sync rows to Google Maps lists by Michelin level."""
+    """Sync rows to Google Maps lists by source bucket."""
 
     def __init__(
         self,
@@ -951,6 +951,7 @@ class GoogleMapsSyncWriter:
                 and match_assessment.city_in_candidate_address
                 and candidate.address
                 and not match_assessment.coordinate_like_candidate_name
+                and not match_assessment.address_like_candidate_name
                 and not match_assessment.located_in_match
                 and _has_specific_location_match(match_assessment)
                 and (
@@ -1157,6 +1158,7 @@ def _format_match_assessment_debug(assessment: PlaceMatchAssessment) -> str:
         f"located_in_match={assessment.located_in_match}, "
         f"city_in_address={assessment.city_in_candidate_address}, "
         f"coordinate_like_name={assessment.coordinate_like_candidate_name}, "
+        f"address_like_name={assessment.address_like_candidate_name}, "
         f"house_number_conflict={assessment.house_number_conflict}, "
         f"informative_category={assessment.informative_category}, "
         f"food_service_category={assessment.food_service_category}, "

@@ -104,11 +104,24 @@ class SyncProgressCoordinator:
             if total_rows <= 0:
                 return
 
-            if status != "processing":
-                self._items_synced_total += 1
+            if self._estimated_total_items is None:
+                self._estimated_total_items = total_rows
+
+            if status == "processing":
+                if processed_rows < total_rows:
+                    self._items_synced_total = max(self._items_synced_total, processed_rows)
+            else:
+                self._items_synced_total = max(self._items_synced_total + 1, processed_rows)
+
+            estimated = self._estimated_total_items
+            if estimated is not None and estimated > 0:
+                sync_completion = min(1.0, self._items_synced_total / estimated)
+                self._scrape_sync_completion = max(
+                    self._scrape_sync_completion,
+                    sync_completion,
+                )
 
             page_total = self._current_context.estimated_total_pages or "?"
-            estimated = self._estimated_total_items
             display_item = self._items_synced_total + 1 if status == "processing" else self._items_synced_total
             item_str = (
                 f"{display_item}/{estimated}"
