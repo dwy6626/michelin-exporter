@@ -14,7 +14,12 @@ from ..application.place_matcher import PlaceCandidate, PlaceMatchAssessment, as
 from ..application.place_query_builder import build_place_query_attempts
 from ..application.row_identity import build_row_identity_key
 from ..application.sync_enums import SyncRowStatus
-from ..application.sync_models import SyncBatchResult, SyncItemFailure, SyncRowResult
+from ..application.sync_models import (
+    SyncBatchResult,
+    SyncItemFailure,
+    SyncRejectedCandidate,
+    SyncRowResult,
+)
 from ..catalog import LEVEL_BADGES, LEVEL_LABELS
 from ..config import (
     MISSING_LIST_POLICY_STOP,
@@ -885,6 +890,7 @@ class GoogleMapsSyncWriter:
         )
         saw_candidate = False
         saw_matchable_candidate = False
+        rejected_candidates: list[SyncRejectedCandidate] = []
         _row_name = str(row.get("Name", ""))
         _t_row_start = monotonic()
 
@@ -979,6 +985,13 @@ class GoogleMapsSyncWriter:
                     f"(candidate='{candidate.name}')."
                 )
             if match_strength == "weak":
+                rejected_candidates.append(
+                    _build_rejected_candidate(
+                        query=query,
+                        candidate=candidate,
+                        assessment=match_assessment,
+                    )
+                )
                 self._debug_log(
                     f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=weak_match"
                 )
@@ -1053,6 +1066,7 @@ class GoogleMapsSyncWriter:
                 restaurant_name=_row_name,
                 reason="SaveActionFailed",
                 attempted_queries=attempted_queries,
+                rejected_candidates=tuple(rejected_candidates),
             )
             await self._invoke_row_failure_callback(failure)
             self._debug_log(
@@ -1070,6 +1084,7 @@ class GoogleMapsSyncWriter:
             restaurant_name=_row_name,
             reason=failure_reason,
             attempted_queries=attempted_queries,
+            rejected_candidates=tuple(rejected_candidates),
         )
         await self._invoke_row_failure_callback(failure)
         self._debug_log(
@@ -1143,6 +1158,35 @@ def _format_place_candidate_debug(candidate: PlaceCandidate) -> str:
         f"subtitle={candidate.subtitle!r}, "
         f"located_in={candidate.located_in!r}"
         ")"
+    )
+
+
+def _build_rejected_candidate(
+    *,
+    query: str,
+    candidate: PlaceCandidate,
+    assessment: PlaceMatchAssessment,
+) -> SyncRejectedCandidate:
+    return SyncRejectedCandidate(
+        query=query,
+        name=candidate.name,
+        address=candidate.address,
+        category=candidate.category,
+        subtitle=candidate.subtitle,
+        located_in=candidate.located_in,
+        strength=assessment.strength,
+        name_match=assessment.name_match,
+        located_in_match=assessment.located_in_match,
+        city_in_candidate_address=assessment.city_in_candidate_address,
+        coordinate_like_candidate_name=assessment.coordinate_like_candidate_name,
+        address_like_candidate_name=assessment.address_like_candidate_name,
+        house_number_conflict=assessment.house_number_conflict,
+        informative_category=assessment.informative_category,
+        food_service_category=assessment.food_service_category,
+        location_overlap_tokens=assessment.location_overlap_tokens,
+        street_overlap_tokens=assessment.street_overlap_tokens,
+        postal_code_overlap_tokens=assessment.postal_code_overlap_tokens,
+        cuisine_overlap_tokens=assessment.cuisine_overlap_tokens,
     )
 
 

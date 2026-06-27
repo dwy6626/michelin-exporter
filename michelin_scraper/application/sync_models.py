@@ -80,6 +80,31 @@ class ResumePlan:
 
 
 @dataclass(frozen=True)
+class SyncRejectedCandidate:
+    """One Maps candidate rejected while trying to match a source row."""
+
+    query: str
+    name: str
+    address: str
+    category: str
+    subtitle: str
+    located_in: str
+    strength: str
+    name_match: bool
+    located_in_match: bool
+    city_in_candidate_address: bool
+    coordinate_like_candidate_name: bool
+    address_like_candidate_name: bool
+    house_number_conflict: bool
+    informative_category: bool
+    food_service_category: bool
+    location_overlap_tokens: tuple[str, ...]
+    street_overlap_tokens: tuple[str, ...]
+    postal_code_overlap_tokens: tuple[str, ...]
+    cuisine_overlap_tokens: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class SyncItemFailure:
     """One failed row sync outcome."""
 
@@ -88,6 +113,9 @@ class SyncItemFailure:
     restaurant_name: str
     reason: str
     attempted_queries: tuple[str, ...]
+    rejected_candidates: tuple[SyncRejectedCandidate, ...] = dataclasses.field(
+        default_factory=tuple
+    )
 
 
 @dataclass(frozen=True)

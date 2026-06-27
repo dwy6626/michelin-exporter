@@ -43,6 +43,7 @@ from .sync_models import (
     ScrapeSyncCommand,
     SyncAccumulation,
     SyncItemFailure,
+    SyncRejectedCandidate,
     SyncSummary,
     create_empty_row_counts,
 )
@@ -134,7 +135,7 @@ def _build_missing_list_reports(
     return tuple(reports)
 
 
-def _write_error_report(path: Path, failures: Sequence[dict[str, str]]) -> None:
+def _write_error_report(path: Path, failures: Sequence[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file_handle:
         for failure in failures:
@@ -143,17 +144,79 @@ def _write_error_report(path: Path, failures: Sequence[dict[str, str]]) -> None:
 
 def _serialize_failed_items(
     failed_items: Sequence[SyncItemFailure],
-) -> list[dict[str, str]]:
-    return [
-        {
+) -> list[dict[str, Any]]:
+    serialized_failures: list[dict[str, Any]] = []
+    for failure in failed_items:
+        serialized_failure: dict[str, Any] = {
             "level_slug": failure.level_slug,
             "row_key": failure.row_key,
             "restaurant_name": failure.restaurant_name,
             "reason": failure.reason,
             "attempted_queries": ", ".join(failure.attempted_queries),
+            "attempted_query_list": list(failure.attempted_queries),
         }
-        for failure in failed_items
-    ]
+        rejected_candidates = [
+            _serialize_rejected_candidate(candidate)
+            for candidate in failure.rejected_candidates
+        ]
+        if rejected_candidates:
+            serialized_failure["best_rejected_candidate"] = _select_best_rejected_candidate(
+                rejected_candidates
+            )
+            serialized_failure["rejected_candidates"] = rejected_candidates
+        serialized_failures.append(serialized_failure)
+    return serialized_failures
+
+
+def _serialize_rejected_candidate(candidate: SyncRejectedCandidate) -> dict[str, Any]:
+    return {
+        "query": candidate.query,
+        "name": candidate.name,
+        "address": candidate.address,
+        "category": candidate.category,
+        "subtitle": candidate.subtitle,
+        "located_in": candidate.located_in,
+        "signals": {
+            "strength": candidate.strength,
+            "name_match": candidate.name_match,
+            "located_in_match": candidate.located_in_match,
+            "city_in_candidate_address": candidate.city_in_candidate_address,
+            "coordinate_like_candidate_name": candidate.coordinate_like_candidate_name,
+            "address_like_candidate_name": candidate.address_like_candidate_name,
+            "house_number_conflict": candidate.house_number_conflict,
+            "informative_category": candidate.informative_category,
+            "food_service_category": candidate.food_service_category,
+            "location_overlap_tokens": list(candidate.location_overlap_tokens),
+            "street_overlap_tokens": list(candidate.street_overlap_tokens),
+            "postal_code_overlap_tokens": list(candidate.postal_code_overlap_tokens),
+            "cuisine_overlap_tokens": list(candidate.cuisine_overlap_tokens),
+        },
+    }
+
+
+def _select_best_rejected_candidate(
+    rejected_candidates: Sequence[dict[str, Any]],
+) -> dict[str, Any]:
+    return max(rejected_candidates, key=_rejected_candidate_review_score)
+
+
+def _rejected_candidate_review_score(candidate: dict[str, Any]) -> tuple[int, int]:
+    signals = candidate.get("signals", {})
+    score = 0
+    if signals.get("name_match"):
+        score += 100
+    if not signals.get("house_number_conflict"):
+        score += 50
+    else:
+        score -= 80
+    if signals.get("address_like_candidate_name"):
+        score -= 100
+    else:
+        score += 30
+    if signals.get("food_service_category"):
+        score += 20
+    score += len(signals.get("location_overlap_tokens", []))
+    return score, len(str(candidate.get("name", "")))
 
 
 def _summarize_failure_reasons(failed_items: Sequence[SyncItemFailure]) -> str:

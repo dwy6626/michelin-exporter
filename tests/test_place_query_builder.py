@@ -23,6 +23,7 @@ class PlaceQueryBuilderTests(unittest.TestCase):
             (
                 "Alpha Taipei",
                 "Alpha",
+                "25.033,121.5654",
                 "No. 1 Example Street",
                 "Alpha Taiwanese Taipei",
             ),
@@ -154,6 +155,28 @@ class PlaceQueryBuilderTests(unittest.TestCase):
         attempts = build_place_query_attempts(row)
 
         self.assertEqual(attempts, ("Alpha",))
+
+    def test_build_place_query_attempts_ignores_invalid_coordinates(self) -> None:
+        row = {
+            "Name": "Alpha",
+            "City": "Taipei",
+            "Address": "No. 1 Example Street",
+            "Cuisine": "",
+            "Latitude": "999",
+            "Longitude": "121.5654",
+        }
+
+        attempts = build_place_query_attempts(row)
+
+        self.assertNotIn("999,121.5654", attempts)
+        self.assertEqual(
+            attempts,
+            (
+                "Alpha Taipei",
+                "Alpha",
+                "No. 1 Example Street",
+            ),
+        )
 
 
 if __name__ == "__main__":

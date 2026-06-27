@@ -338,6 +338,12 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result.added_count_by_level["selected"], 0)
             self.assertEqual(len(result.failed_items), 1)
             self.assertEqual(result.failed_items[0].reason, "AmbiguousPlaceMatch")
+            self.assertEqual(len(result.failed_items[0].rejected_candidates), 1)
+            rejected_candidate = result.failed_items[0].rejected_candidates[0]
+            self.assertEqual(rejected_candidate.query, "首烏 New Taipei, 臺灣")
+            self.assertEqual(rejected_candidate.name, "模咒CURSE")
+            self.assertFalse(rejected_candidate.name_match)
+            self.assertTrue(rejected_candidate.house_number_conflict)
             self.assertIn("首烏 New Taipei, 臺灣", fake_driver.queries)
 
     async def test_sync_rows_by_level_rejects_address_only_name_mismatch_and_uses_next_query(self) -> None:

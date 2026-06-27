@@ -492,6 +492,112 @@ class PlaceMatcherTests(unittest.TestCase):
         self.assertTrue(assessment.name_match)
         self.assertNotEqual(assessment.strength, "weak")
 
+    def test_assess_place_match_accepts_taiwanese_name_variants_from_my_maps_log(self) -> None:
+        cases = (
+            (
+                {
+                    "Name": "開禧滷肉專門店",
+                    "City": "台北",
+                    "Address": "110台北市信義區莊敬路441號",
+                    "Cuisine": "",
+                },
+                PlaceCandidate(
+                    name="開囍滷肉專賣店 opensmile",
+                    address="110台灣台北市信義區莊敬路441號",
+                    category="餐廳",
+                ),
+            ),
+            (
+                {
+                    "Name": "紅樹腳香菇肉羹",
+                    "City": "台中",
+                    "Address": "420台中市豐原區復興路37號",
+                    "Cuisine": "",
+                },
+                PlaceCandidate(
+                    name="紅樹脚香菇肉焿",
+                    address="420台灣台中市豐原區復興路37號",
+                    category="熟食店",
+                ),
+            ),
+            (
+                {
+                    "Name": "咖啡序事曲",
+                    "City": "澎湖",
+                    "Address": "880澎湖縣馬公市民福路105號",
+                    "Cuisine": "",
+                },
+                PlaceCandidate(
+                    name="咖啡敘事曲",
+                    address="880台灣澎湖縣馬公市民福路105號",
+                    category="咖啡店",
+                ),
+            ),
+            (
+                {
+                    "Name": "阿戊嫂的店",
+                    "City": "苗栗",
+                    "Address": "367苗栗縣三義鄉勝興村69號",
+                    "Cuisine": "",
+                },
+                PlaceCandidate(
+                    name="阿戊嫂の店（需預約",
+                    address="367台灣苗栗縣三義鄉勝興村69號",
+                    category="餐廳",
+                ),
+            ),
+            (
+                {
+                    "Name": "單子葉家庭料理",
+                    "City": "台南",
+                    "Address": "700台南市中西區中正路8號",
+                    "Cuisine": "",
+                },
+                PlaceCandidate(
+                    name="單子葉（家庭料理）勞闆隨時更換菜單，沒有固定菜單",
+                    address="700台灣台南市中西區中正路8號",
+                    category="餐廳",
+                ),
+            ),
+            (
+                {
+                    "Name": "謙稻sign in",
+                    "City": "宜蘭",
+                    "Address": "260宜蘭縣宜蘭市農權路三段37巷51號",
+                    "Cuisine": "",
+                },
+                PlaceCandidate(
+                    name="謙稻 sign in",
+                    address="260台灣宜蘭縣宜蘭市農權路三段37巷51號",
+                    category="餐廳",
+                ),
+            ),
+        )
+
+        for row, candidate in cases:
+            with self.subTest(row=row["Name"]):
+                assessment = assess_place_match(row, candidate)
+                self.assertTrue(assessment.name_match)
+                self.assertNotEqual(assessment.strength, "weak")
+
+    def test_assess_place_match_keeps_different_food_item_candidate_weak_from_my_maps_log(self) -> None:
+        row = {
+            "Name": "六號碼頭麵店",
+            "City": "苗栗",
+            "Address": "356苗栗縣後龍鎮中山路88之5號",
+            "Cuisine": "",
+        }
+        candidate = PlaceCandidate(
+            name="六號碼頭肉圓店",
+            address="356台灣苗栗縣後龍鎮中山路88之5號",
+            category="餐廳",
+        )
+
+        assessment = assess_place_match(row, candidate)
+
+        self.assertFalse(assessment.name_match)
+        self.assertEqual(assessment.strength, "weak")
+
     def test_assess_place_match_keeps_address_only_building_candidate_weak_from_real_log(self) -> None:
         row = {
             "Name": "大橋頭老牌筒仔米糕",

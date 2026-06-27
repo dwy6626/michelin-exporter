@@ -20,6 +20,25 @@ def _build_text(*parts: str) -> str:
     return " ".join(normalized_parts)
 
 
+def _format_coordinate(value: float) -> str:
+    return f"{value:.7f}".rstrip("0").rstrip(".")
+
+
+def _extract_coordinate_query(row: dict[str, Any]) -> str:
+    raw_latitude = str(row.get("Latitude", "")).strip()
+    raw_longitude = str(row.get("Longitude", "")).strip()
+    if not raw_latitude or not raw_longitude:
+        return ""
+    try:
+        latitude = float(raw_latitude)
+        longitude = float(raw_longitude)
+    except ValueError:
+        return ""
+    if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+        return ""
+    return f"{_format_coordinate(latitude)},{_format_coordinate(longitude)}"
+
+
 def _extract_local_area_hint(address: str) -> str:
     """Extract a district-level Taiwan address hint for narrower Maps searches."""
 
@@ -79,6 +98,7 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
     local_area_hint = _extract_local_area_hint(address)
     street_house_hint = _extract_street_house_hint(address)
     aliases = _extract_aliases(row, excluded_names=(name, name_local))
+    coordinate_query = _extract_coordinate_query(row)
 
     # Build attempts with priority: local name variants, then fallback to English name
     attempts = []
@@ -112,6 +132,7 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
         attempts.append(_build_text(alias, city))
         attempts.append(_build_text(alias))
 
+    attempts.append(coordinate_query)
     attempts.append(_build_text(address))
     if cuisine:
         if local_area_hint:

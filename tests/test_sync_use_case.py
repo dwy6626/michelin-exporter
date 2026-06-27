@@ -18,6 +18,7 @@ from michelin_scraper.application.sync_models import (
     ScrapeSyncCommand,
     SyncBatchResult,
     SyncItemFailure,
+    SyncRejectedCandidate,
     SyncRowResult,
 )
 from michelin_scraper.application.sync_use_case import (
@@ -194,17 +195,43 @@ class _ListExistsWriter(_NoOpWriter):
 
 
 class _FailingWriterWithOneRow(_NoOpWriter):
+    def _failure(self) -> SyncItemFailure:
+        return SyncItemFailure(
+            level_slug="one-star",
+            row_key="one-star::alpha",
+            restaurant_name="Alpha",
+            reason="PlaceNotFound",
+            attempted_queries=("Alpha Tokyo", "Alpha"),
+            rejected_candidates=(
+                SyncRejectedCandidate(
+                    query="Alpha Tokyo",
+                    name="Alpha Hotel",
+                    address="1 Wrong Street, Tokyo",
+                    category="Hotel",
+                    subtitle="",
+                    located_in="",
+                    strength="weak",
+                    name_match=False,
+                    located_in_match=False,
+                    city_in_candidate_address=True,
+                    coordinate_like_candidate_name=False,
+                    address_like_candidate_name=False,
+                    house_number_conflict=True,
+                    informative_category=True,
+                    food_service_category=False,
+                    location_overlap_tokens=("tokyo",),
+                    street_overlap_tokens=(),
+                    postal_code_overlap_tokens=(),
+                    cuisine_overlap_tokens=(),
+                ),
+            ),
+        )
+
     async def sync_row(self, level_slug: str, row: dict[str, Any]) -> SyncRowResult:
         del level_slug, row
         return SyncRowResult(
             status=SyncRowStatus.FAILED,
-            failure=SyncItemFailure(
-                level_slug="one-star",
-                row_key="one-star::alpha",
-                restaurant_name="Alpha",
-                reason="PlaceNotFound",
-                attempted_queries=("Alpha Tokyo", "Alpha"),
-            ),
+            failure=self._failure(),
         )
 
     async def sync_rows_by_level(self, rows_by_level: object) -> SyncBatchResult:
@@ -212,15 +239,7 @@ class _FailingWriterWithOneRow(_NoOpWriter):
         return SyncBatchResult(
             added_count_by_level={"one-star": 0},
             skipped_count_by_level={"one-star": 0},
-            failed_items=(
-                SyncItemFailure(
-                    level_slug="one-star",
-                    row_key="one-star::alpha",
-                    restaurant_name="Alpha",
-                    reason="PlaceNotFound",
-                    attempted_queries=("Alpha Tokyo", "Alpha"),
-                ),
-            ),
+            failed_items=(self._failure(),),
         )
 
 
@@ -576,6 +595,15 @@ class SyncUseCaseTests(unittest.TestCase):
                     for warning in output.warnings
                 )
             )
+            error_report_path = Path(temp_dir) / "tokyo-maps-sync-errors.jsonl"
+            self.assertTrue(error_report_path.exists())
+            report_entry = json.loads(error_report_path.read_text(encoding="utf-8").splitlines()[0])
+            self.assertEqual(report_entry["attempted_query_list"], ["Alpha Tokyo", "Alpha"])
+            self.assertEqual(report_entry["best_rejected_candidate"]["name"], "Alpha Hotel")
+            self.assertTrue(
+                report_entry["best_rejected_candidate"]["signals"]["house_number_conflict"]
+            )
+            self.assertEqual(len(report_entry["rejected_candidates"]), 1)
 
     @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")

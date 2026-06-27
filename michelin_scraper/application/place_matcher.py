@@ -11,7 +11,9 @@ _WORD_OR_NUMBER_PATTERN = re.compile(r"[^\W\d_]+|\d+")
 _ASCII_WORD_OR_NUMBER_PATTERN = re.compile(r"[a-z0-9]+")
 _CJK_CHARACTER_PATTERN = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 _CJK_SEQUENCE_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
+_NAME_COMPACT_TOKEN_PATTERN = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
 _PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
+_PARENTHETICAL_BRACKET_PATTERN = re.compile(r"[（）()]")
 _CJK_HOUSE_NUMBER_PATTERN = re.compile(r"(\d+(?:[-之]\d+)?)\s*號")
 _LATIN_HOUSE_NUMBER_PATTERN = re.compile(r"\bno\.?\s*(\d+(?:-\d+)?)\b", re.IGNORECASE)
 _ADDRESS_LIKE_PLACE_NAME_PATTERN = re.compile(
@@ -100,6 +102,10 @@ _FOOD_SERVICE_CATEGORY_KEYWORDS = (
     "早餐",
     "茶館",
     "燒肉",
+    "熟食",
+    "麵食",
+    "包點",
+    "豆腐",
 )
 _GENERIC_CJK_NAME_TOKENS = {
     "小料理",
@@ -150,6 +156,20 @@ _GREEK_TRANSLITERATION = {
     "ψ": "ps",
     "ω": "o",
 }
+_CJK_NAME_VARIANT_TRANSLATION = str.maketrans(
+    {
+        "の": "的",
+        "囍": "禧",
+        "脚": "腳",
+        "焿": "羹",
+        "敘": "序",
+        "臺": "台",
+    }
+)
+_CJK_NAME_PHRASE_REPLACEMENTS = (
+    ("專賣", "專門"),
+    ("麵攤", "麵店"),
+)
 
 
 @dataclass(frozen=True)
@@ -193,6 +213,13 @@ def _normalize_text(value: str) -> str:
         for character in without_marks
     )
     return " ".join(transliterated.split())
+
+
+def _normalize_name_variants(value: str) -> str:
+    normalized = _normalize_text(value).translate(_CJK_NAME_VARIANT_TRANSLATION)
+    for source, replacement in _CJK_NAME_PHRASE_REPLACEMENTS:
+        normalized = normalized.replace(source, replacement)
+    return normalized
 
 
 def _tokenize(value: str) -> set[str]:
@@ -298,6 +325,8 @@ def _has_confident_name_match(row_name: str, candidate_name: str) -> bool:
         return True
     if _is_confident_compact_cjk_substring_match(row_name, candidate_name):
         return True
+    if _is_confident_compact_mixed_substring_match(row_name, candidate_name):
+        return True
     if _has_confident_cjk_bigram_overlap(row_name, candidate_name):
         return True
     if _has_branch_stripped_cjk_name_match(row_name, candidate_name):
@@ -376,13 +405,32 @@ def _is_confident_cjk_substring_match(row_name: str, candidate_name: str) -> boo
 
 
 def _compact_cjk_name(value: str) -> str:
-    stripped_value = _strip_parenthetical_segments(_normalize_text(value))
-    return "".join(_CJK_SEQUENCE_PATTERN.findall(stripped_value))
+    normalized_value = _PARENTHETICAL_BRACKET_PATTERN.sub(" ", _normalize_name_variants(value))
+    return "".join(_CJK_SEQUENCE_PATTERN.findall(normalized_value))
+
+
+def _compact_mixed_name(value: str) -> str:
+    normalized_value = _PARENTHETICAL_BRACKET_PATTERN.sub(" ", _normalize_name_variants(value))
+    return "".join(_NAME_COMPACT_TOKEN_PATTERN.findall(normalized_value))
 
 
 def _is_confident_compact_cjk_substring_match(row_name: str, candidate_name: str) -> bool:
     row_compact = _compact_cjk_name(row_name)
     candidate_compact = _compact_cjk_name(candidate_name)
+    if not row_compact or not candidate_compact:
+        return False
+
+    shorter_name, longer_name = sorted((row_compact, candidate_compact), key=len)
+    if len(shorter_name) < 4:
+        return False
+    return shorter_name in longer_name
+
+
+def _is_confident_compact_mixed_substring_match(row_name: str, candidate_name: str) -> bool:
+    if not (_contains_cjk_characters(row_name) and _contains_cjk_characters(candidate_name)):
+        return False
+    row_compact = _compact_mixed_name(row_name)
+    candidate_compact = _compact_mixed_name(candidate_name)
     if not row_compact or not candidate_compact:
         return False
 
