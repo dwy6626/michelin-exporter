@@ -102,6 +102,12 @@ class SyncRejectedCandidate:
     street_overlap_tokens: tuple[str, ...]
     postal_code_overlap_tokens: tuple[str, ...]
     cuisine_overlap_tokens: tuple[str, ...]
+    name_score: float = 0.0
+    address_score: float = 0.0
+    match_score: float = 0.0
+    hard_veto: bool = False
+    veto_reasons: tuple[str, ...] = dataclasses.field(default_factory=tuple)
+    name_strategy: str = ""
 
 
 @dataclass(frozen=True)

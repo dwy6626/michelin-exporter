@@ -17,7 +17,7 @@ _KML_SUFFIX = ".kml"
 _KMZ_SUFFIX = ".kmz"
 _ADDRESS_KEYS = frozenset({"address", "addr", "formattedaddress", "formatted_address", "地址"})
 _CITY_KEYS = frozenset({"city", "town", "municipality", "locality", "地區"})
-_NAME_ALIAS_SEPARATOR_PATTERN = re.compile(r"[｜|／/]+")
+_NAME_ALIAS_SEPARATOR_PATTERN = re.compile(r"\s*(?:[｜|／/×])\s*|\s+[xX]\s+")
 _NAME_PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
 
 

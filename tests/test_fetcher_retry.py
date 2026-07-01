@@ -27,6 +27,7 @@ def _make_response(status_code: int, text: str = "<html></html>") -> Mock:
     response = Mock()
     response.status_code = status_code
     response.text = text
+    response.headers = {}
     response.raise_for_status = Mock()
     if status_code >= 400:
         response.raise_for_status.side_effect = requests.exceptions.HTTPError(
@@ -164,6 +165,68 @@ class FetchPageSoupRetryTests(unittest.TestCase):
         self.assertTrue(result.fetch_failed)
         mock_sleep.assert_not_called()
         self.assertEqual(session.get.call_count, 1)
+
+    @patch("michelin_scraper.scraping.fetcher._fetch_html_with_browser")
+    @patch("michelin_scraper.scraping.fetcher.time.sleep")
+    def test_uses_browser_fallback_for_michelin_waf_challenge(
+        self,
+        mock_sleep: Mock,
+        mock_fetch_html_with_browser: Mock,
+    ) -> None:
+        session = MagicMock()
+        response = _make_response(202, "")
+        response.headers = {"x-amzn-waf-action": "challenge", "Content-Length": "0"}
+        session.get.return_value = response
+        mock_fetch_html_with_browser.return_value = (
+            '<html><body><div class="card__menu">Alpha</div></body></html>'
+        )
+        reporter = _NoOpReporter()
+
+        result = fetch_page_soup(
+            session=session,
+            url="https://guide.michelin.com/en/tw/taipei-region/taipei/restaurants",
+            headers={},
+            tls_verify=True,
+            progress_reporter=reporter,
+            page_type="listing",
+        )
+
+        self.assertFalse(result.fetch_failed)
+        self.assertIsNotNone(result.soup)
+        assert result.soup is not None
+        self.assertEqual(result.soup.select_one(".card__menu").get_text(strip=True), "Alpha")
+        mock_fetch_html_with_browser.assert_called_once()
+        mock_sleep.assert_not_called()
+        self.assertTrue(any("browser-rendered fetch" in message for message in reporter.logged))
+
+    @patch("michelin_scraper.scraping.fetcher._fetch_html_with_browser")
+    @patch("michelin_scraper.scraping.fetcher.time.sleep")
+    def test_waf_challenge_fails_when_browser_fallback_returns_empty_html(
+        self,
+        mock_sleep: Mock,
+        mock_fetch_html_with_browser: Mock,
+    ) -> None:
+        session = MagicMock()
+        response = _make_response(202, "")
+        response.headers = {"x-amzn-waf-action": "challenge", "Content-Length": "0"}
+        session.get.return_value = response
+        mock_fetch_html_with_browser.return_value = ""
+        reporter = _NoOpReporter()
+
+        result = fetch_page_soup(
+            session=session,
+            url="https://guide.michelin.com/en/tw/taipei-region/taipei/restaurants",
+            headers={},
+            tls_verify=True,
+            progress_reporter=reporter,
+            page_type="listing",
+        )
+
+        self.assertTrue(result.fetch_failed)
+        self.assertIsNone(result.soup)
+        mock_fetch_html_with_browser.assert_called_once()
+        mock_sleep.assert_not_called()
+        self.assertTrue(any("browser-rendered fetch returned empty HTML" in message for message in reporter.logged))
 
 
 if __name__ == "__main__":

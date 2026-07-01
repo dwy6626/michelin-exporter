@@ -190,6 +190,12 @@ def _serialize_rejected_candidate(candidate: SyncRejectedCandidate) -> dict[str,
             "street_overlap_tokens": list(candidate.street_overlap_tokens),
             "postal_code_overlap_tokens": list(candidate.postal_code_overlap_tokens),
             "cuisine_overlap_tokens": list(candidate.cuisine_overlap_tokens),
+            "name_score": candidate.name_score,
+            "address_score": candidate.address_score,
+            "match_score": candidate.match_score,
+            "hard_veto": candidate.hard_veto,
+            "veto_reasons": list(candidate.veto_reasons),
+            "name_strategy": candidate.name_strategy,
         },
     }
 
@@ -202,9 +208,11 @@ def _select_best_rejected_candidate(
 
 def _rejected_candidate_review_score(candidate: dict[str, Any]) -> tuple[int, int]:
     signals = candidate.get("signals", {})
-    score = 0
+    score = int(float(signals.get("match_score") or 0.0))
     if signals.get("name_match"):
         score += 100
+    if signals.get("hard_veto"):
+        score -= 60
     if not signals.get("house_number_conflict"):
         score += 50
     else:

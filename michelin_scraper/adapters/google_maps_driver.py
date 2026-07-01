@@ -89,6 +89,13 @@ class GoogleMapsDriverPort(Protocol):
     async def create_list(self, list_name: str) -> None: ...
     async def open_list(self, list_name: str) -> bool: ...
     async def search_and_open_first_result(self, query: str) -> PlaceCandidate | None: ...
+    async def search_and_open_first_acceptable_result(
+        self,
+        query: str,
+        accept_candidate: Callable[[PlaceCandidate], bool],
+        *,
+        max_candidates: int = 5,
+    ) -> PlaceCandidate | None: ...
     async def save_current_place_to_list(self, list_name: str, note_text: str = "") -> bool: ...
     async def close(self, *, force: bool = False) -> None: ...
     async def dump_page_html(self, path: Path) -> bool: ...
@@ -137,6 +144,7 @@ class GoogleMapsDriver:
     _INLINE_LIST_NAME_INPUT_SELECTORS = selectors.INLINE_LIST_NAME_INPUT_SELECTORS
     _LIST_NAME_INPUT_EXCLUSION_PHRASES = selectors.LIST_NAME_INPUT_EXCLUSION_PHRASES
     _FIRST_RESULT_SELECTORS = selectors.FIRST_RESULT_SELECTORS
+    _SEARCH_RESULT_CANDIDATE_SELECTORS = selectors.SEARCH_RESULT_CANDIDATE_SELECTORS
     _PLACE_TITLE_SELECTORS = selectors.PLACE_TITLE_SELECTORS
     _PLACE_SUBTITLE_SELECTORS = selectors.PLACE_SUBTITLE_SELECTORS
     _PLACE_ADDRESS_SELECTORS = selectors.PLACE_ADDRESS_SELECTORS
@@ -506,10 +514,103 @@ class GoogleMapsDriver:
 
     async def search_and_open_first_result(self, query: str) -> PlaceCandidate | None:
         """Search Google Maps and open the best first result candidate."""
+        return await self.search_and_open_first_acceptable_result(
+            query,
+            lambda _candidate: True,
+            max_candidates=1,
+        )
+
+    async def search_and_open_first_acceptable_result(
+        self,
+        query: str,
+        accept_candidate: Callable[[PlaceCandidate], bool],
+        *,
+        max_candidates: int = 5,
+    ) -> PlaceCandidate | None:
+        """Search Google Maps and leave the first acceptable result candidate open."""
         import logging as _logging
         _log = _logging.getLogger(__name__)
 
         page = await self._require_page()
+        _t0 = monotonic()
+        max_candidates = max(1, max_candidates)
+        retried_after_stale_search_timeout = False
+        for result_index in range(max_candidates):
+            try:
+                search_outcome = await self._submit_maps_search_query(
+                    page=page,
+                    query=query,
+                    result_index=result_index,
+                )
+            except GoogleMapsTransientError:
+                if result_index != 0 or retried_after_stale_search_timeout:
+                    raise
+                retried_after_stale_search_timeout = True
+                await self.open_maps_home()
+                page = await self._require_page()
+                search_outcome = await self._submit_maps_search_query(
+                    page=page,
+                    query=query,
+                    result_index=result_index,
+                )
+
+            if search_outcome == self._SEARCH_OUTCOME_NO_RESULTS:
+                await self._cache_page_html_snapshot(page)
+                return None
+
+            opened_result = await self._try_open_result_by_index(
+                page=page,
+                query=query,
+                result_index=result_index,
+            )
+            _t_open = monotonic()
+            _log.debug(
+                f"[timing] try_open_result_index: {(_t_open-_t0)*1000:.0f}ms  "
+                f"query={query!r}  index={result_index}  opened={opened_result!r}"
+            )
+            if not opened_result and result_index > 0:
+                return None
+
+            if await self._is_add_place_input_visible(page):
+                await self._cache_page_html_snapshot(page)
+                return None
+
+            candidate = await self._extract_current_place_candidate(page)
+            if candidate is None:
+                await self._cache_page_html_snapshot(page)
+                if result_index == 0:
+                    return None
+                continue
+
+            _t_candidate = monotonic()
+            _log.debug(
+                f"[timing] extract_place_metadata: {(_t_candidate-_t_open)*1000:.0f}ms  "
+                f"title={candidate.name!r}  subtitle={candidate.subtitle!r}  index={result_index}"
+            )
+            await self._cache_page_html_snapshot(page)
+            if accept_candidate(candidate):
+                _log.debug(
+                    f"[timing] TOTAL search_and_open_first_acceptable_result: "
+                    f"{(_t_candidate-_t0)*1000:.0f}ms  query={query!r}  accepted_index={result_index}"
+                )
+                return candidate
+
+        _log.debug(
+            f"[timing] TOTAL search_and_open_first_acceptable_result: "
+            f"{(monotonic()-_t0)*1000:.0f}ms  query={query!r}  accepted_index=<none>"
+        )
+        return None
+
+    async def _submit_maps_search_query(
+        self,
+        *,
+        page: Any,
+        query: str,
+        result_index: int,
+    ) -> str:
+        import logging as _logging
+        _log = _logging.getLogger(__name__)
+
         _t0 = monotonic()
         search_box = await self._resolve_search_box_locator(page)
         if search_box is None:
@@ -526,7 +627,10 @@ class GoogleMapsDriver:
             )
 
         _t1 = monotonic()
-        _log.debug(f"[timing] resolve_search_box: {(_t1-_t0)*1000:.0f}ms  query={query!r}")
+        _log.debug(
+            f"[timing] resolve_search_box: {(_t1-_t0)*1000:.0f}ms  "
+            f"query={query!r}  result_index={result_index}"
+        )
 
         await self._wait_for_search_input_ready(page, search_box)
         _t2 = monotonic()
@@ -560,24 +664,13 @@ class GoogleMapsDriver:
         )
         _t5 = monotonic()
         _log.debug(f"[timing] wait_for_search_outcome: {(_t5-_t4)*1000:.0f}ms  outcome={search_outcome!r}")
+        return str(search_outcome)
 
-        if search_outcome == self._SEARCH_OUTCOME_NO_RESULTS:
-            await self._cache_page_html_snapshot(page)
-            return None
-
-        await self._try_open_first_result(page=page, query=query)
-        _t6 = monotonic()
-        _log.debug(f"[timing] try_open_first_result: {(_t6-_t5)*1000:.0f}ms")
-
-        if await self._is_add_place_input_visible(page):
-            await self._cache_page_html_snapshot(page)
-            return None
-
+    async def _extract_current_place_candidate(self, page: Any) -> PlaceCandidate | None:
         title_text = await self._extract_text(page, self._PLACE_TITLE_SELECTORS)
         if not title_text or title_text.lower() in ("results", "結果", "検索結果"):
             title_text = await self._extract_title_from_page_title(page)
         if not title_text:
-            await self._cache_page_html_snapshot(page)
             return None
         address_text = await self._extract_text(page, self._PLACE_ADDRESS_SELECTORS)
         if not address_text:
@@ -585,10 +678,6 @@ class GoogleMapsDriver:
         category_text = await self._extract_text(page, self._PLACE_CATEGORY_SELECTORS)
         subtitle_text = await self._extract_text(page, self._PLACE_SUBTITLE_SELECTORS)
         located_in_text = await self._extract_text(page, self._PLACE_LOCATED_IN_SELECTORS)
-        _t7 = monotonic()
-        _log.debug(f"[timing] extract_place_metadata: {(_t7-_t6)*1000:.0f}ms  title={title_text!r}  subtitle={subtitle_text!r}")
-        _log.debug(f"[timing] TOTAL search_and_open_first_result: {(_t7-_t0)*1000:.0f}ms")
-        await self._cache_page_html_snapshot(page)
         return PlaceCandidate(
             name=title_text,
             address=address_text,
@@ -1052,6 +1141,18 @@ class GoogleMapsDriver:
                 return locator.first
         return None
 
+    async def _matching_locator_at(
+        self,
+        page: Any,
+        selectors: tuple[str, ...],
+        index: int,
+    ) -> Any | None:
+        for selector in selectors:
+            locator = page.locator(selector)
+            if await locator.count() > index:
+                return locator.nth(index)
+        return None
+
     async def _first_visible_locator(self, page: Any, selectors: tuple[str, ...]) -> Any | None:
         for selector in selectors:
             locator = page.locator(selector)
@@ -1159,8 +1260,23 @@ class GoogleMapsDriver:
         return any(token in normalized_error for token in retryable_tokens)
 
     async def _try_open_first_result(self, *, page: Any, query: str) -> bool:
+        return await self._try_open_result_by_index(page=page, query=query, result_index=0)
+
+    async def _try_open_result_by_index(
+        self,
+        *,
+        page: Any,
+        query: str,
+        result_index: int,
+    ) -> bool:
         for attempt in range(1, self._SEARCH_RESULT_CLICK_MAX_ATTEMPTS + 1):
-            first_result_locator = await self._first_matching_locator(page, self._FIRST_RESULT_SELECTORS)
+            first_result_locator = await self._matching_locator_at(
+                page,
+                self._SEARCH_RESULT_CANDIDATE_SELECTORS,
+                result_index,
+            )
+            if first_result_locator is None and result_index == 0:
+                first_result_locator = await self._first_matching_locator(page, self._FIRST_RESULT_SELECTORS)
             if first_result_locator is None:
                 return False
             try:
@@ -1173,7 +1289,7 @@ class GoogleMapsDriver:
                 await self._click_locator(
                     page=page,
                     locator=first_result_locator,
-                    step=f"search.open_first_result({query})",
+                    step=f"search.open_result({query}, index={result_index})",
                     timeout_ms=self._SEARCH_RESULT_CLICK_TIMEOUT_MS,
                     error_type=GoogleMapsTransientError,
                     allow_force_click=True,
@@ -1181,7 +1297,7 @@ class GoogleMapsDriver:
                 await self._wait_for_timeout(
                     page,
                     int(self._config.sync_delay_seconds * 1000),
-                    step=f"search.wait_after_open_first_result({query})",
+                    step=f"search.wait_after_open_result({query}, index={result_index})",
                 )
                 if self._supports_dom_waits(page):
                     async def _save_btn_pred() -> bool:
@@ -1201,7 +1317,7 @@ class GoogleMapsDriver:
                 await self._wait_for_timeout(
                     page,
                     self._UI_ACTION_POLL_INTERVAL_MS,
-                    step=f"search.retry_open_first_result({query})",
+                    step=f"search.retry_open_result({query}, index={result_index})",
                 )
         return False
 
@@ -2681,43 +2797,13 @@ class GoogleMapsDriver:
             url_changed = bool(
                 current_state.page_url and current_state.page_url != previous_state.page_url
             )
-
-            has_fresh_result_list = bool(
-                current_state.first_result_signature
-                and (
-                    current_state.first_result_signature != previous_state.first_result_signature
-                    or (url_changed and elapsed_ms >= settle_delay_ms)
-                )
-            )
-            if has_fresh_result_list:
-                return self._SEARCH_OUTCOME_RESULT_READY
-            has_stable_result_list_after_settle = bool(
-                current_state.first_result_signature
-                and current_state.first_result_signature == previous_state.first_result_signature
-                and observed_post_submit_loading
-                and elapsed_ms >= settle_delay_ms
-                and not current_state.no_results_visible
-            )
-            if has_stable_result_list_after_settle:
-                return self._SEARCH_OUTCOME_RESULT_READY
-
-            has_fresh_place_details = bool(
-                current_state.title_text
-                and (
-                    current_state.title_text != previous_state.title_text
-                    or (url_changed and elapsed_ms >= settle_delay_ms)
-                )
-            )
-            if has_fresh_place_details:
-                return self._SEARCH_OUTCOME_RESULT_READY
-            has_stable_place_details_after_settle = bool(
-                current_state.title_text
-                and current_state.title_text == previous_state.title_text
-                and observed_post_submit_loading
-                and elapsed_ms >= settle_delay_ms
-                and not current_state.no_results_visible
-            )
-            if has_stable_place_details_after_settle:
+            if self._is_fresh_search_state(
+                previous_state=previous_state,
+                current_state=current_state,
+                elapsed_ms=elapsed_ms,
+                settle_delay_ms=settle_delay_ms,
+                observed_post_submit_loading=observed_post_submit_loading,
+            ):
                 return self._SEARCH_OUTCOME_RESULT_READY
 
             # Single-result searches: Google Maps navigates directly to the place
@@ -2791,6 +2877,43 @@ class GoogleMapsDriver:
             ),
             self._SEARCH_OUTCOME_MAX_TIMEOUT_MS,
         )
+
+    @staticmethod
+    def _is_fresh_search_state(
+        *,
+        previous_state: _SearchPanelState,
+        current_state: _SearchPanelState,
+        elapsed_ms: int,
+        settle_delay_ms: int,
+        observed_post_submit_loading: bool,
+    ) -> bool:
+        if current_state.no_results_visible:
+            return False
+        if current_state.loading_visible and elapsed_ms < settle_delay_ms:
+            return False
+
+        url_changed = bool(
+            current_state.page_url and current_state.page_url != previous_state.page_url
+        )
+        result_signature_changed = bool(
+            current_state.first_result_signature
+            and current_state.first_result_signature != previous_state.first_result_signature
+        )
+        title_changed = bool(
+            current_state.title_text and current_state.title_text != previous_state.title_text
+        )
+        if result_signature_changed or title_changed:
+            return True
+        if url_changed and elapsed_ms >= settle_delay_ms:
+            return True
+        if not observed_post_submit_loading or elapsed_ms < settle_delay_ms:
+            return False
+
+        result_signature_appeared = bool(
+            current_state.first_result_signature and not previous_state.first_result_signature
+        )
+        title_appeared = bool(current_state.title_text and not previous_state.title_text)
+        return result_signature_appeared or title_appeared
 
     def _read_page_url(self, page: Any) -> str:
         raw_url = getattr(page, "url", "")

@@ -11,8 +11,12 @@ from michelin_scraper.scraping import crawl
 
 LISTING_PAGE_1_URL = "https://guide.michelin.com/us/en/restaurants"
 LISTING_PAGE_2_URL = "https://guide.michelin.com/us/en/restaurants?page=2"
+MODERN_LISTING_PAGE_1_URL = "https://guide.michelin.com/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/1"
+MODERN_LISTING_PAGE_2_URL = "https://guide.michelin.com/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/2"
 RESTAURANT_1_URL = "https://guide.michelin.com/restaurant-1"
 RESTAURANT_2_URL = "https://guide.michelin.com/restaurant-2"
+MODERN_RESTAURANT_1_URL = "https://guide.michelin.com/en/tw/taipei-region/taipei/restaurant/restaurant-1"
+MODERN_RESTAURANT_2_URL = "https://guide.michelin.com/en/tw/taipei-region/taipei/restaurant/restaurant-2"
 
 LISTING_PAGE_1_HTML = """
 <html>
@@ -52,6 +56,55 @@ LISTING_PAGE_2_HTML = """
     <ul class="pagination">
       <li><a href="?page=1">1</a></li>
       <li><a href="?page=2">2</a></li>
+    </ul>
+  </body>
+</html>
+""".strip()
+
+MODERN_LISTING_PAGE_1_HTML = """
+<html>
+  <body>
+    <h1>Taipei City and surroundings: 1-48 of 52 restaurants</h1>
+    <div class="card__menu">
+      <a href="/en/tw/taipei-region/taipei/restaurant/restaurant-1">
+        <h3 class="card__menu-content--title">Alpha</h3>
+      </a>
+      <div class="card__menu-footer--score">Taipei</div>
+      <div class="card__menu-footer--score">$$ · Taiwanese</div>
+      <span class="distinction-icon">
+        <img class="michelin-award" src="/assets/bib-gourmand.png" />
+      </span>
+    </div>
+    <ul class="pagination">
+      <li><a class="btn active" aria-current="page" href="/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/1">1</a></li>
+      <li><a class="btn" href="/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/2">2</a></li>
+      <li>
+        <a class="btn" href="/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/2">
+          <img class="icon" src="/assets/images/icons/icons8-arrow-right-30.png" />
+        </a>
+      </li>
+    </ul>
+  </body>
+</html>
+""".strip()
+
+MODERN_LISTING_PAGE_2_HTML = """
+<html>
+  <body>
+    <h1>Taipei City and surroundings: 49-52 of 52 restaurants</h1>
+    <div class="card__menu">
+      <a href="/en/tw/taipei-region/taipei/restaurant/restaurant-2">
+        <h3 class="card__menu-content--title">Beta</h3>
+      </a>
+      <div class="card__menu-footer--score">Taipei</div>
+      <div class="card__menu-footer--score">$ · Noodles</div>
+      <span class="distinction-icon">
+        <img class="michelin-award" src="/assets/bib-gourmand.png" />
+      </span>
+    </div>
+    <ul class="pagination">
+      <li><a class="btn" href="/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/1">1</a></li>
+      <li><a class="btn active" aria-current="page" href="/en/tw/taipei-region/taipei/restaurants/bib-gourmand/page/2">2</a></li>
     </ul>
   </body>
 </html>
@@ -186,6 +239,55 @@ class ScraperOfflineTests(unittest.TestCase):
         self.assertEqual(all_rows[1]["Price Range"], "$")
         self.assertEqual(all_rows[1]["Cuisine"], "Noodles")
         self.assertEqual(all_rows[1]["GuideYear"], "2025")
+
+    @patch("michelin_scraper.scraping.fetcher.requests.Session.get")
+    def test_crawl_follows_modern_path_based_pagination(self, mock_get: Any) -> None:
+        html_by_url = {
+            MODERN_LISTING_PAGE_1_URL: MODERN_LISTING_PAGE_1_HTML,
+            MODERN_LISTING_PAGE_2_URL: MODERN_LISTING_PAGE_2_HTML,
+            MODERN_RESTAURANT_1_URL: RESTAURANT_1_HTML,
+            MODERN_RESTAURANT_2_URL: RESTAURANT_2_HTML,
+        }
+
+        def fake_get(*args: Any, **kwargs: Any) -> _FakeResponse:
+            if args and isinstance(args[0], str):
+                url = args[0]
+            elif len(args) > 1 and isinstance(args[1], str):
+                url = args[1]
+            else:
+                url = kwargs.get("url")
+            if not isinstance(url, str):
+                raise AssertionError("Unable to resolve URL from mocked requests call.")
+            if url not in html_by_url:
+                raise requests.exceptions.RequestException(f"Unexpected URL {url}")
+            return _FakeResponse(text=html_by_url[url])
+
+        mock_get.side_effect = fake_get
+
+        pages_seen: list[tuple[int, str, str | None]] = []
+
+        def on_page(
+            page_number: int,
+            page_url: str,
+            _restaurants_on_page: list[dict[str, Any]],
+            next_url: str | None,
+            _next_page_number: int,
+            _estimated_total_pages: int | None,
+            _total_restaurants: int,
+        ) -> None:
+            pages_seen.append((page_number, page_url, next_url))
+
+        metrics = crawl(
+            start_url=MODERN_LISTING_PAGE_1_URL,
+            on_page=on_page,
+            sleep_seconds=0,
+            progress_reporter=_NoOpReporter(),
+        )
+
+        self.assertEqual(metrics.total_restaurants, 2)
+        self.assertEqual(metrics.processed_pages, 2)
+        self.assertEqual(pages_seen[0], (1, MODERN_LISTING_PAGE_1_URL, MODERN_LISTING_PAGE_2_URL))
+        self.assertEqual(pages_seen[1], (2, MODERN_LISTING_PAGE_2_URL, None))
 
     @patch("michelin_scraper.scraping.fetcher.requests.Session.get")
     def test_crawl_stops_when_max_pages_limit_is_reached(self, mock_get: Any) -> None:

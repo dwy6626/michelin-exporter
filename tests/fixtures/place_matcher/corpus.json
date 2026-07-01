@@ -1,0 +1,4309 @@
+{
+  "version": 1,
+  "minimums": {
+    "total": 200,
+    "known_good_michelin_japan": 2,
+    "known_good_michelin_taiwan": 123,
+    "known_rejects": 60,
+    "my_maps_unresolved": 20,
+    "confirmed_my_maps_positive": 3
+  },
+  "cases": [
+    {
+      "id": "japan-existing-alpha-exact",
+      "group": "known_good_michelin_japan",
+      "expected": "match",
+      "expected_strength_min": "strong",
+      "source": "existing-test",
+      "row": {
+        "Name": "Alpha",
+        "City": "Tokyo",
+        "Address": "1-2-3 Minato, Tokyo, Japan",
+        "Cuisine": "French"
+      },
+      "candidate": {
+        "name": "Alpha",
+        "address": "1-2-3 Minato City, Tokyo, Japan",
+        "category": "French restaurant",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Existing Tokyo matcher positive coverage."
+    },
+    {
+      "id": "japan-existing-biriyani-osawa-local-script",
+      "group": "known_good_michelin_japan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "existing-test",
+      "row": {
+        "Name": "Biriyani Osawa",
+        "City": "Tokyo",
+        "Address": "B1F, 1-15-12 Uchikanda, Chiyoda-ku, Tokyo, Japan",
+        "Cuisine": "Indian"
+      },
+      "candidate": {
+        "name": "ビリヤニ大澤",
+        "address": "Japan, Tokyo, Chiyoda City, Uchikanda, 1 Chome-15-12",
+        "category": "Indian restaurant",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Existing Japan local-script positive with address and cuisine evidence."
+    },
+    {
+      "id": "taiwan-accepted-001-許仔豬腳麵線",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "許仔豬腳麵線",
+        "City": "台北",
+        "Address": "103臺北市大同區保安街49巷17號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "許仔豬腳麵線",
+        "address": "No. 17號, Lane 49, Bao'an St, Yanping Village, Datong District, Taipei City, 103",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-002-上全肉羹",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "上全肉羹",
+        "City": "台北",
+        "Address": "112臺北市北投區光明路新生巷6號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "上全肉羹",
+        "address": "112, Taipei City, Beitou District, Zhongyang Village, 光明路新生巷6號",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-003-林家乾麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "林家乾麵",
+        "City": "台北",
+        "Address": "100臺北市中正區泉州街11號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "林家乾麵",
+        "address": "No. 11號, Quanzhou St, Longguang Village, Zhongzheng District, Taipei City, 100",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-004-萍姊酸菜麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "萍姊酸菜麵",
+        "City": "台北",
+        "Address": "108臺北市萬華區漢口街二段80號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "萍姊酸菜麵",
+        "address": "No. 80號, Section 2, Hankou St, Wanshou Village, Wanhua District, Taipei City, 108",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-005-朱記花枝羹",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "朱記花枝羹",
+        "City": "新北",
+        "Address": "241新北市三重區正義北路51號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "朱記花枝羹",
+        "address": "241, New Taipei City, Sanchong District, Wenhua Village, Zhengyi N Rd, 51號右走廊",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-006-北苗二家合",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "北苗二家合",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市中華路45號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "北苗二家合",
+        "address": "No. 45, Zhonghua Rd, Beimiao Village, Miaoli City, Miaoli County, 360",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-007-日棧飯糰",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "日棧飯糰",
+        "City": "台中",
+        "Address": "403臺中市西區自治街31-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "日棧飯糰",
+        "address": "Zizhi St, Pinghe Village, West District, Taichung City, 403",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-008-合作街大麵羹",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "合作街大麵羹",
+        "City": "台中",
+        "Address": "402臺中市南區合作街103號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "合作街大麵羹",
+        "address": "No. 103號, Hezuo St, Guoguang Village, South District, Taichung City, 402",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-009-阿吉鱔魚麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿吉鱔魚麵",
+        "City": "嘉義",
+        "Address": "600嘉義市東區蘭井街113號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿吉鱔魚麵",
+        "address": "No. 113號, Lanjing St, Guogou Village, East District, Chiayi City, 600",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-010-長腳麵食",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "長腳麵食",
+        "City": "基隆",
+        "Address": "200基隆市仁愛區孝三路99巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "長腳麵食",
+        "address": "No. 1號, Lane 99, Xiao 3rd Rd, Wenchang Village, Ren’ai District, Keelung City, 200",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-011-凃大的吉古拉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "凃大的吉古拉",
+        "City": "基隆",
+        "Address": "202基隆市中正區正濱路27號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "凃大的吉古拉",
+        "address": "No. 27, Zhengbin Rd, Zhengbin Village, Zhongzheng District, Keelung City, 202",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-012-24小吃店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "24小吃店",
+        "City": "台北",
+        "Address": "112臺北市北投區光明路213號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "24小吃店",
+        "address": "No. 213號, Guangming Rd, Chang'an Village, Beitou District, Taipei City, 112",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-013-一幻拉麵-台北信義店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "一幻拉麵 台北信義店",
+        "City": "台北",
+        "Address": "110臺北市信義區松壽路30號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Ichigen ramen",
+        "address": "110, Taipei City, Xinyi District, 信義區 Songshou Rd, 30號1樓",
+        "category": "拉麵店",
+        "subtitle": "一幻拉麵 台北信義店",
+        "located_in": "Located in: A19"
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-014-一甲子餐飲",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "一甲子餐飲",
+        "City": "台北",
+        "Address": "108臺北市萬華區康定路79號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "一甲子餐飲",
+        "address": "No. 79號, Kangding Rd, Xinqi Village, Wanhua District, Taipei City, 108",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-015-三姐鵝肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "三姐鵝肉",
+        "City": "台北",
+        "Address": "108臺北市萬華區大理街170巷1弄7號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "三姐鵝肉",
+        "address": "108, Taipei City, Wanhua District, Tangbu Village, 大理街170巷1弄7號",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-016-大佳牛雜湯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "大佳牛雜湯",
+        "City": "台北",
+        "Address": "114臺北市內湖區康寧路一段108號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "大佳牛雜湯",
+        "address": "No. 108號, Section 1, Kangning Rd, Zixing Village, Neihu District, Taipei City, 114",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-017-大樹下古早麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "大樹下古早麵",
+        "City": "台北",
+        "Address": "111臺北市士林區通河街325巷44號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "大樹下古早麵",
+        "address": "No. 44號, Ln 325 Tonghe St, Fuhua Village, Shilin District, Taipei City, 111",
+        "category": "小吃店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-018-大膽牛腩麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "大膽牛腩麵",
+        "City": "台北",
+        "Address": "10478臺北市中山區遼寧街222號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Guts Beef Noodles",
+        "address": "No. 222號, Liaoning St, Zhufu Village, Zhongshan District, Taipei City, 10478",
+        "category": "麵店",
+        "subtitle": "大膽牛腩麵",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-019-小王煮瓜",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "小王煮瓜",
+        "City": "台北",
+        "Address": "108臺北市萬華區華西街17之4號攤位153號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Wang’s Broth",
+        "address": "108, Taipei City, Wanhua District, Huaxi St, 17之4號攤位153號",
+        "category": "台灣餐廳",
+        "subtitle": "小王煮瓜",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-020-小林麵館",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "小林麵館",
+        "City": "台北",
+        "Address": "100臺北市中正區金門街10號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "小林麵館",
+        "address": "No. 10號, Kinmen St, Dingdong Village, Zhongzheng District, Taipei City, 100",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-021-公園餡餅粥",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "公園餡餅粥",
+        "City": "台北",
+        "Address": "110臺北市信義區虎林街164巷19號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "公園餡餅粥",
+        "address": "No. 19號, Lane 164, Hulin St, Ankang Village, Xinyi District, Taipei City, 110",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-022-天母豆漿",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "天母豆漿",
+        "City": "台北",
+        "Address": "111臺北市士林區德行東路264-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Tianmu Soy Milk",
+        "address": "No. 264-1, Dexing E Rd, Zhishan Village, Shilin District, Taipei City, 111",
+        "category": "早餐店",
+        "subtitle": "天母豆漿",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-023-古亭三六九包子",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "古亭三六九包子",
+        "City": "台北",
+        "Address": "100臺北市中正區同安街49號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "369 Bao",
+        "address": "100, Taipei City, Zhongzheng District, Dingdong Village, Tong'an St, 49號1樓",
+        "category": "中式包點店",
+        "subtitle": "古亭三六九包子",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-024-正記麻油料理",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "正記麻油料理",
+        "City": "台北",
+        "Address": "104臺北市中山區遼寧街朱崙街（遼寧街夜市內）",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "正記麻油料理",
+        "address": "104, Taipei City, Zhongshan District, Liaoning St, 朱崙街",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": "Located in: Liaoning Street Night Market"
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-025-名家魯肉飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "名家魯肉飯",
+        "City": "台北",
+        "Address": "104臺北市中山區民生東路一段50號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "名家魯肉飯",
+        "address": "No. 50號, Section 1, Minsheng E Rd, Zhongshan Village, Zhongshan District, Taipei City, 104",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-026-好時光披薩",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "好時光披薩",
+        "City": "台北",
+        "Address": "105臺北市松山區新中街35-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Aura Pizzeria",
+        "address": "No. 35-1號, Xinzhong St, Dongrong Village, Songshan District, Taipei City, 105",
+        "category": "薄餅餐廳",
+        "subtitle": "好時光披薩",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-027-江家原汁排骨湯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "江家原汁排骨湯",
+        "City": "台北",
+        "Address": "103臺北市大同區保安街49巷",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "江家原汁排骨湯",
+        "address": "Lane 49, Bao'an St, Yanping Village, Datong District, Taipei City, 103",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-028-老木小店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老木小店",
+        "City": "台北",
+        "Address": "105臺北市松山區新中街2巷23-3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老木小店",
+        "address": "No. 23-3號, Lane 2, Xinzhong St, 松山區 Songshan District, Taipei City, 105",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-029-老麵店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區迪化街二段215-8號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老麵店",
+        "address": "No. 215-8號, Section 2, Dihua St, Linjiang Village, Datong District, Taipei City, 103",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-030-周家豆腐捲",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "周家豆腐捲",
+        "City": "台北",
+        "Address": "110臺北市信義區光復南路419巷106號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "周家豆腐捲",
+        "address": "No. 106, Lane 419, Guangfu S Rd, Zhenghe Village, Xinyi District, Taipei City, 110",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-031-周記肉粥店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "周記肉粥店",
+        "City": "台北",
+        "Address": "108臺北市萬華區廣州街104號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Zhouji Meat Porridge",
+        "address": "No. 104號, Guangzhou St, Fuyin Village, Wanhua District, Taipei City, 108",
+        "category": "粥餐廳",
+        "subtitle": "周記肉粥店",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-032-昆陽牛肉麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "昆陽牛肉麵",
+        "City": "台北",
+        "Address": "115臺北市南港區昆陽街140巷5號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "昆陽牛肉麵",
+        "address": "No. 5號, Lane 140, Kunyang St, Xinguang Village, Nangang District, Taipei City, 115",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-033-東加炸雞",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "東加炸雞",
+        "City": "台北",
+        "Address": "110臺北市信義區虎林街108巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "東加炸雞",
+        "address": "No. 1, Lane 108, Hulin St, Changchun Village, Xinyi District, Taipei City, 110",
+        "category": "炸物串與串炸餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-034-阿仁炒飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿仁炒飯",
+        "City": "台北",
+        "Address": "103臺北市大同區哈密街45巷",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Ah-ren Fried Rice",
+        "address": "No. 2之4號, Lane 45, Hami St, Bao'an Village, Datong District, Taipei City, 103",
+        "category": "餐廳",
+        "subtitle": "阿仁炒飯",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-035-阿枝米粉湯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿枝米粉湯",
+        "City": "台北",
+        "Address": "116臺北市文山區景美街113號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿枝米粉湯",
+        "address": "No. 113號, Jingmei St, Jingxing Village, Wenshan District, Taipei City, 116",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-036-阿德鵝肉店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿德鵝肉店",
+        "City": "台北",
+        "Address": "112臺北市北投區大興街68號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿德鵝肉店",
+        "address": "No. 68, Daxing St, Zhongyang Village, Beitou District, Taipei City, 112",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-037-紅昌吉豬血湯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "紅昌吉豬血湯",
+        "City": "台北",
+        "Address": "103臺北市大同區昌吉街46號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "紅昌吉豬血湯",
+        "address": "No. 46號, Changji St, Penglai Village, Datong District, Taipei City, 103",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-038-香滿園",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "香滿園",
+        "City": "台北",
+        "Address": "103臺北市大同區萬全街8巷",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "香滿園",
+        "address": "Lane 8, Wanquan St, Shuanglian Village, Datong District, Taipei City, 103",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-039-郭家炒牛肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "郭家炒牛肉",
+        "City": "台北",
+        "Address": "108臺北市萬華區華西街攤位146號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "郭家炒牛肉",
+        "address": "No. 攤位146號, Huaxi St, Qingshan Village, Wanhua District, Taipei City, 108",
+        "category": "小吃攤",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-040-曾記便當",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "曾記便當",
+        "City": "台北",
+        "Address": "105臺北市松山區民生東路五段138巷6號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記便當",
+        "address": "No. 6號, Lane 138, Section 5, Minsheng E Rd, Jieshou Village, Songshan District, Taipei City, 105",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-041-無店名魷魚羹",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "無店名魷魚羹",
+        "City": "台北",
+        "Address": "111臺北市士林區大南路7號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "無店名魷魚羹",
+        "address": "No. 7號, Danan Rd, Renyong Village, Shilin District, Taipei City, 111",
+        "category": "小食/零食吧",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-042-黃家香腸",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "黃家香腸",
+        "City": "台北",
+        "Address": "100臺北市中正區泉州街32之3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "黃家香腸",
+        "address": "No. 32之3號, Quanzhou St, Yonggong Village, Zhongzheng District, Taipei City, 100",
+        "category": "燒烤",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-043-感謝您鹽酥雞",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "感謝您鹽酥雞",
+        "City": "台北",
+        "Address": "106臺北市大安區信義路四段60-78號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "感謝您鹽酥雞",
+        "address": "No. 60-78, Section 4, Xinyi Rd, Zhu'an Village, Da’an District, Taipei City, 106",
+        "category": "炸物串與串炸餐廳",
+        "subtitle": "",
+        "located_in": "Floor 1 · Xin Wei Market"
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-044-源芳刈包",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "源芳刈包",
+        "City": "台北",
+        "Address": "108臺北市萬華區華西街17-2號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Yuan Fang Gua Bao",
+        "address": "No. 17-2, Huaxi St, Qingshan Village, Wanhua District, Taipei City, 108",
+        "category": "台灣餐廳",
+        "subtitle": "源芳刈包",
+        "located_in": "Located in: Huaxi Street Night Market"
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-045-矮仔財滷肉飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "矮仔財滷肉飯",
+        "City": "台北",
+        "Address": "112臺北市北投區磺港路33號D419",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "矮仔財滷肉飯",
+        "address": "112, Taipei City, Beitou District, Qingjiang Village, Huanggang Rd, 33號D419",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": "Located in: Beitou Temporary Market Building D"
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-046-寧夏夜市-知高飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "寧夏夜市-知高飯",
+        "City": "台北",
+        "Address": "103臺北市大同區寧夏路034攤位號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "寧夏夜市-知高飯",
+        "address": "No. 034攤位, Ningxia Rd, Xingming Village, Datong District, Taipei City, 103",
+        "category": "小吃攤",
+        "subtitle": "",
+        "located_in": "Located in: Ningxia Night Market"
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-047-彰化肉圓",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "彰化肉圓",
+        "City": "台北",
+        "Address": "106臺北市大安區安東街35巷4之1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "彰化肉圓",
+        "address": "No. 4之1號, Lane 35, Andong St, Cheng'an Village, Da’an District, Taipei City, 106",
+        "category": "小吃攤",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-048-艋舺大豐魚丸店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "艋舺大豐魚丸店",
+        "City": "台北",
+        "Address": "108臺北市萬華區三水街62號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "艋舺大豐魚丸店",
+        "address": "No. 62號, Sanshui St, Fuyin Village, Wanhua District, Taipei City, 108",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-049-廟口鵝肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "廟口鵝肉",
+        "City": "台北",
+        "Address": "106臺北市大安區安東街36號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "廟口鵝肉",
+        "address": "No. 36號, Andong St, Cheng'an Village, Da’an District, Taipei City, 106",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-050-賣麵炎仔",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "賣麵炎仔",
+        "City": "台北",
+        "Address": "103臺北市大同區安西街106號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Mai Mien Yen Tsai",
+        "address": "No. 106號, Anxi St, Nanfang Village, Datong District, Taipei City, 103",
+        "category": "麵店",
+        "subtitle": "賣麵炎仔",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-051-魷魚標",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "魷魚標",
+        "City": "台北",
+        "Address": "103臺北市大同區保安街49巷17號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "魷魚標",
+        "address": "No. 17, Lane 49, Bao'an St, Yanping Village, Datong District, Taipei City, 103",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-052-鮮魚店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "鮮魚店",
+        "City": "台北",
+        "Address": "105臺北市松山區北寧路24號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "鮮魚店 THE CATCH",
+        "address": "No. 24號, Beining Rd, Meiren Village, Songshan District, Taipei City, 105",
+        "category": "海鮮餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-053-疆美味",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "疆美味",
+        "City": "台北",
+        "Address": "111臺北市士林區菁山路8號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "疆美味 新疆手工涼皮 手工拉麵",
+        "address": "No. 8號, Jingshan Rd, Yangming Village, Shilin District, Taipei City, 111",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-054-三峽鍋貼王子",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "三峽鍋貼王子",
+        "City": "新北",
+        "Address": "237新北市三峽區大同路93號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "三峽鍋貼王子",
+        "address": "No. 93號, Datong Rd, Zhongzheng Village, Sanxia District, New Taipei City, 237",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-055-大碗公當歸羊肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "大碗公當歸羊肉",
+        "City": "新北",
+        "Address": "220新北市板橋區四維路112巷2號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "大碗公當歸羊肉",
+        "address": "No. 2號, Lane 112, Siwei Rd, Banqiao District, New Taipei City, 220",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-056-可獅切仔麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "可獅切仔麵",
+        "City": "新北",
+        "Address": "241新北市三重區仁愛街530號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "可獅切仔麵",
+        "address": "No. 530, Ren'ai St, Cihui Village, Sanchong District, New Taipei City, 241",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-057-永和佳香豆漿",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "永和佳香豆漿",
+        "City": "新北",
+        "Address": "234新北市永和區民治街57號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "永和佳香豆漿",
+        "address": "No. 57號, Minzhi St, Minzu Village, Yonghe District, New Taipei City, 234",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-058-光興腿庫",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "光興腿庫",
+        "City": "新北",
+        "Address": "241新北市三重區仁愛街124號1F",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "光興腿庫",
+        "address": "241, New Taipei City, Sanchong District, Shangde Village, Ren'ai St, 124號1F",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-059-得勝街米苔目",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "得勝街米苔目",
+        "City": "新北",
+        "Address": "247新北市蘆洲區得勝街111號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "得勝街米苔目",
+        "address": "No. 111號, Desheng St, Renfu Village, Luzhou District, New Taipei City, 247",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-060-喙蘴號",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "喙蘴號",
+        "City": "新北",
+        "Address": "237新北市三峽區光明路100之4號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "喙蘴號",
+        "address": "No. 100之4號, Guangming Rd, Zhongzheng Village, Sanxia District, New Taipei City, 237",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-061-曾記花枝羹",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "曾記花枝羹",
+        "City": "新北",
+        "Address": "241新北市三重區文化北路150號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記花枝羹",
+        "address": "No. 150號, Wenhua N Rd, Zhongyang Village, Sanchong District, New Taipei City, 241",
+        "category": "小食/零食吧",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-062-樂華小吃",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "樂華小吃",
+        "City": "新北",
+        "Address": "234新北市永和區永平路37號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "樂華小吃",
+        "address": "No. 37號, Yongping Rd, Xiehe Village, Yonghe District, New Taipei City, 234",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-063-賴岡山羊肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "賴岡山羊肉",
+        "City": "新北",
+        "Address": "231新北市新店區中正路244-4號1 樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "賴岡山羊肉",
+        "address": "231, New Taipei City, Xindian District, Jianguo Village, Zhongzheng Rd, 244-4號1 樓",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-064-老巷小館",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老巷小館",
+        "City": "桃園",
+        "Address": "320桃園市中壢區中正路243號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老巷小館",
+        "address": "No. 243號, Zhongzheng Rd, Zhongrong Village, Zhongli District, Taoyuan City, 320",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-065-阿秀米干",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿秀米干",
+        "City": "桃園",
+        "Address": "320桃園市中壢區龍平路209號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "A Xiu Mi Gan",
+        "address": "320, Taoyuan City, Zhongli District, Longping Village, 龍平路209號",
+        "category": "中式麵食店",
+        "subtitle": "阿秀米干",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-066-井家",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "井家",
+        "City": "新竹",
+        "Address": "300新竹市東區文化街82號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "井家",
+        "address": "No. 82號, Wenhua St, Qinren Village, East District, Hsinchu City, 300",
+        "category": "早午餐餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-067-北門炸粿",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "北門炸粿",
+        "City": "新竹",
+        "Address": "300新竹市北區城北街15號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "北門炸粿",
+        "address": "No. 15, Chengbei St, Changhe Village, North District, Hsinchu City, 300",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-068-石家魚丸",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "石家魚丸",
+        "City": "新竹",
+        "Address": "300新竹市興學街27號29號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "石家魚丸",
+        "address": "300, Hsinchu City, East District, Xingxue St, 27號2９號",
+        "category": "Deli",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-069-竹樂食堂",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "竹樂食堂",
+        "City": "新竹",
+        "Address": "300新竹市北區西大路690號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "竹樂食堂",
+        "address": "No. 690號, Xida Rd, Minfu Village, North District, Hsinchu City, 300",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-070-芎林榕樹下麵館",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "芎林榕樹下麵館",
+        "City": "新竹",
+        "Address": "307新竹縣芎林鄉文昌街123號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "芎林榕樹下麵館",
+        "address": "No. 123, Wenchang St, Qionglin Village, Qionglin, Hsinchu County, 307",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-071-籽田野菜屋",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "籽田野菜屋",
+        "City": "新竹",
+        "Address": "300新竹市東區世界街93號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "籽田野菜屋",
+        "address": "No. 93號, Shijie St, Qinren Village, East District, Hsinchu City, 300",
+        "category": "素食餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-072-唐辰小籠包",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "唐辰小籠包",
+        "City": "新竹",
+        "Address": "310新竹縣竹東鎮長春路二段100號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "唐辰小籠包",
+        "address": "No. 100號, Section 2, Zhangchun Rd, 竹東鎮 Zhudong Township, Hsinchu County, 310",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-073-善菓堂",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "善菓堂",
+        "City": "新竹",
+        "Address": "302新竹縣竹北市莊敬南路188號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "SHAN GUO TANG",
+        "address": "1樓, No. 188號, Zhuangjing S Rd, Luchang Village, Zhubei City, Hsinchu County, 302",
+        "category": "素食餐廳",
+        "subtitle": "善菓堂",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-074-彭記客家米食",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "彭記客家米食",
+        "City": "新竹",
+        "Address": "310新竹縣竹東鎮仁愛路312號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "彭記客家米食",
+        "address": "No. 312, Ren'ai Rd, Rongle Village, Zhudong Township, Hsinchu County, 310",
+        "category": "小吃攤",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-075-無名麵店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "無名麵店",
+        "City": "新竹",
+        "Address": "306新竹縣關西鎮正義路與大同路口(市場裡)",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "關西無名麵攤",
+        "address": "No. 一號, Huiai Rd, Guanxi Township, Hsinchu County, 306",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-076-咕麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "ㄤ咕麵",
+        "City": "新竹",
+        "Address": "306新竹縣關西鎮光復路35號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Ang Gu Noodles",
+        "address": "No. 35號, Guangfu Rd, Beidou Village, Guanxi Township, Hsinchu County, 306",
+        "category": "中式麵食店",
+        "subtitle": "ㄤ咕麵",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-077-双冬蚵仔煎",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "双冬蚵仔煎",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市中正路114號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "双冬蚵仔煎",
+        "address": "No. 114號, Zhongzheng Rd, Shangmiao Village, Miaoli City, Miaoli County, 360",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-078-水上人家",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "水上人家",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市天雲街3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "水上人家",
+        "address": "No. 3號, Tianyun St, Xinmiao Village, Miaoli City, Miaoli County, 360",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-079-松興飲食店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "松興飲食店",
+        "City": "苗栗",
+        "Address": "351苗栗縣頭份市民族路88號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "松興飲食店",
+        "address": "No. 88號, Minzu Rd, Minzu Village, Toufen City, Miaoli County, 351",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-080-阿蘭姊小吃店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿蘭姊小吃店",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市新苗街61巷49號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿蘭姊小吃店",
+        "address": "No. 49號, Lane 61, Xinmiao St, 苗栗市 Miaoli City, Miaoli County, 360",
+        "category": "早午餐餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-081-曾記餡餅",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "曾記餡餅",
+        "City": "苗栗",
+        "Address": "351苗栗縣頭份市八德一路254號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記餡餅",
+        "address": "No. 254號, Bade 1st Rd, Hexing Village, Toufen City, Miaoli County, 351",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-082-源味達快餐亭",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "源味達快餐亭",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市自治路86號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "源味達快餐亭",
+        "address": "No. 86, Zizhi Rd, Beimiao Village, Miaoli City, Miaoli County, 360",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-083-三鮮湯包",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "三鮮湯包",
+        "City": "台中",
+        "Address": "404臺中市北區健行路753號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "三鮮湯包",
+        "address": "No. 753號, Jianxing Rd, Yude Village, North District, Taichung City, 404",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-084-大雅炸雞",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "大雅炸雞",
+        "City": "台中",
+        "Address": "428臺中市大雅區學府路278-289號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "大雅炸雞",
+        "address": "No. 278-289號, Xuefu Rd, Daya Village, Daya District, Taichung City, 428",
+        "category": "炸雞外帶",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-085-五市肉包",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "五市肉包",
+        "City": "台中",
+        "Address": "403臺中市西區林森路135號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "五市肉包",
+        "address": "No. 135號, Linsen Rd, Dongsheng Village, West District, Taichung City, 403",
+        "category": "中式包點店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-086-水湳臭豆腐",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "水湳臭豆腐",
+        "City": "台中",
+        "Address": "403臺中市西區五權五街126號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "水湳臭豆腐",
+        "address": "No. 126, Wuquan 5th St, Tuku Village, West District, Taichung City, 403",
+        "category": "豆腐餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-087-旱溪肉圓",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "旱溪肉圓",
+        "City": "台中",
+        "Address": "401臺中市東區東光園路592號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "旱溪肉圓",
+        "address": "No. 592, Dongguangyuan Rd, Hanxi Village, East District, Taichung City, 401",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-088-北屯佳賓黑白切",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "北屯佳賓黑白切",
+        "City": "台中",
+        "Address": "406臺中市北屯區北華街一號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "佳賓 黑白切",
+        "address": "No. 1號, Beihua St, Beijing Village, Beitun District, Taichung City, 406",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-089-東勢牛稼莊",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "東勢牛稼莊",
+        "City": "台中",
+        "Address": "423臺中市東勢區新豐街19號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "東勢牛稼莊",
+        "address": "No. 19號, Xinfeng St, Yuening Village, Dongshi District, Taichung City, 423",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-090-珍品小吃",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "珍品小吃",
+        "City": "台中",
+        "Address": "403臺中市西區模範街20-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "珍品小吃",
+        "address": "No. 20-1號, Mofan St, Shuanglong Village, West District, Taichung City, 403",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-091-風飛沙小吃店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "風飛沙小吃店",
+        "City": "台中",
+        "Address": "429臺中市神岡區大圳路86號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "風飛沙小吃店",
+        "address": "No. 86, Dazhen Rd, Zhuanghou Village, Shengang District, Taichung City, 429",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-092-鹿港扁食",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "鹿港扁食",
+        "City": "台中",
+        "Address": "400臺中市中區臺灣大道一段395號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "鹿港扁食",
+        "address": "No. 395號, Section 1, Taiwan Blvd, Dadun Village, Central District, Taichung City, 400",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-093-曉明湯包",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "曉明湯包",
+        "City": "台中",
+        "Address": "407臺中市西屯區漢口路二段235號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曉明湯包",
+        "address": "No. 235號, Section 2, Hankou Rd, Heyuan Village, Xitun District, Taichung City, 407",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-094-翰德正老牌蚵仔粥",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "翰德正老牌蚵仔粥",
+        "City": "台中",
+        "Address": "403臺中市西區樂群街80號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Oyster porridge",
+        "address": "No. 80, Lequn St, Pinghe Village, West District, Taichung City, 403",
+        "category": "粥餐廳",
+        "subtitle": "翰德正老牌蚵仔粥",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-095-阿嬌麵店",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿嬌麵店",
+        "City": "南投",
+        "Address": "556南投縣信義鄉明德街1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿嬌麵攤",
+        "address": "No. 1號, Mingde St, Mingde Village, Xinyi Township, Nantou County, 556",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-096-五信豬腳麵線",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "五信豬腳麵線",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市長安街63號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "五信豬腳麵線",
+        "address": "No. 63號, Chang'an St, Changle Village, Changhua City, Changhua County, 500",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-097-手心蔥油餅",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "手心蔥油餅",
+        "City": "彰化",
+        "Address": "530彰化縣二水鄉光文路61號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "手心蔥油餅",
+        "address": "No. 61號, Guangwen Rd, Wenhua Village, Ershui Township, Changhua County, 530",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-098-老馬師肉包",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老馬師肉包",
+        "City": "彰化",
+        "Address": "505彰化縣鹿港鎮親民路129號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老馬師肉包",
+        "address": "No. 129, Qinmin Rd, Shunxing Village, Lukang Township, Changhua County, 505",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-099-吳頂釣魚場",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "吳頂釣魚場",
+        "City": "彰化",
+        "Address": "505彰化縣鹿港鎮山崙里山寮巷87號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "吳頂釣魚場",
+        "address": "505, Changhua County, Lukang Township, Shanlun Village, 山寮巷87號",
+        "category": "釣魚池",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-100-阿亮四神湯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿亮四神湯",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市旭光路42號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿亮四神湯",
+        "address": "No. 42號, Xuguang Rd, Dongxing Village, Changhua City, Changhua County, 500",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-101-阿洲蛤仔麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿洲蛤仔麵",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市線東路",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿洲蛤仔麵",
+        "address": "500, Changhua County, Changhua City, Dazhu Village, 線東路",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-102-阿美燒烤",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿美燒烤",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市永興街50號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿美燒烤",
+        "address": "No. 50, Yongxing St, Zhongyang Village, Changhua City, Changhua County, 500",
+        "category": "燒烤",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-103-阿樹擔仔麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿樹擔仔麵",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市永興街55號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Changhua Ashu noodle",
+        "address": "No. 55號, Yongxing St, Wanshou Village, Changhua City, Changhua County, 500",
+        "category": "熟食店",
+        "subtitle": "阿樹擔仔麵一甲子的古早好味道",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-104-巷仔內蚵仔炸",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "巷仔內蚵仔炸",
+        "City": "彰化",
+        "Address": "528彰化縣芳苑鄉仁愛巷3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "巷仔內蚵仔炸",
+        "address": "528, Changhua County, Fangyuan Township, Bo'ai Village, 仁愛巷3號",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-105-酒室宋宅",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "酒室宋宅",
+        "City": "彰化",
+        "Address": "510彰化縣員林市光明南街136號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "酒室宋宅",
+        "address": "No. 136號, Guangming S St, 員林市 Yuanlin City, Changhua County, 510",
+        "category": "酒吧",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-106-魚市爌肉飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "魚市爌肉飯",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市華山路246號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "魚市爌肉飯",
+        "address": "No. 246號, Huashan Rd, Fugui Village, Changhua City, Changhua County, 500",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-107-進發早點",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "進發早點",
+        "City": "彰化",
+        "Address": "503彰化縣花壇鄉花壇街237號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "進發早點",
+        "address": "No. 237, Huatan St, Huatan Village, Huatan Township, Changhua County, 503",
+        "category": "早餐店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-108-趙記素食",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "趙記素食",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市永樂街165號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "趙記素食",
+        "address": "No. 165, Yongle St, Minquan Village, Changhua City, Changhua County, 500",
+        "category": "素食餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-109-番薯仔炊飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "番薯仔炊飯",
+        "City": "雲林",
+        "Address": "640雲林縣斗六市中正路89號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "番薯仔炊飯",
+        "address": "No. 89號, Zhongzheng Rd, Ren'ai Village, Douliu City, Yunlin County, 640",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-110-一統土產羊肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "一統土產羊肉",
+        "City": "嘉義",
+        "Address": "600嘉義市西區友愛路276號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "一統土產羊肉",
+        "address": "No. 276號, You'ai Rd, Zhuwei Village, West District, Chiayi City, 600",
+        "category": "火鍋餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-111-延平國華米糕",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "延平國華米糕",
+        "City": "嘉義",
+        "Address": "600嘉義市西區國華街96號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "延平國華米糕",
+        "address": "No. 96, Guohua St, Wenhua Village, West District, Chiayi City, 600",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-112-阿伯烤玉米",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿伯烤玉米",
+        "City": "嘉義",
+        "Address": "600嘉義市西區中山路532巷53號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "UNCLE Grilled Corn",
+        "address": "600, Chiayi City, West District, Shuyuan Village, 中山路532巷53號",
+        "category": "熟食店",
+        "subtitle": "阿伯烤玉米",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-113-阿宏米苔目",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿宏米苔目",
+        "City": "嘉義",
+        "Address": "600嘉義市西區國華街78號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿宏炒米苔目&泰式麻辣乾拌麵",
+        "address": "No. 78號, Guohua St, Wenhua Village, West District, Chiayi City, 600",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-114-阿忠燒餅",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿忠燒餅",
+        "City": "嘉義",
+        "Address": "600嘉義市東區共和路52號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "A-Zhong Clay Oven Roll",
+        "address": "No. 52號, Gonghe Rd, Zhaoyang Village, East District, Chiayi City, 600",
+        "category": "餐廳",
+        "subtitle": "阿忠燒餅",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-115-阿榮火雞肉飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "阿榮火雞肉飯",
+        "City": "嘉義",
+        "Address": "613嘉義縣朴子市文明路105號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿榮火雞肉飯",
+        "address": "No. 105號, Wenming Rd, Neicuo Village, Puzi City, Chiayi County, 613",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-116-洪牛土產牛肉湯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "洪牛土產牛肉湯",
+        "City": "嘉義",
+        "Address": "600嘉義市西區民族路585號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "洪牛土產牛肉湯",
+        "address": "No. 585, Minzu Rd, Xirong Village, West District, Chiayi City, 600",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-117-崇文錦魯麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "崇文錦魯麵",
+        "City": "嘉義",
+        "Address": "600嘉義市東區崇文街107號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "崇文錦魯麵",
+        "address": "No. 107號, Chongwen St, Fengnian Village, East District, Chiayi City, 600",
+        "category": "冷麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-118-羅山生炒鱔魚麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "羅山生炒鱔魚麵",
+        "City": "嘉義",
+        "Address": "600嘉義市東區延平街270-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "羅山生炒鱔魚麵",
+        "address": "No. 270-1, Yanping St, Wenhua Village, East District, Chiayi City, 600",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-119-尺二鱔魚意麵",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "尺二鱔魚意麵",
+        "City": "台南",
+        "Address": "710臺南市永康區忠勇街5號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "尺二鱔魚意麵",
+        "address": "No. 5號, Zhongyong St, Zhonghua Village, Yongkang District, Tainan City, 710",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "taiwan-accepted-120-包成羊肉",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "包成羊肉",
+        "City": "台南",
+        "Address": "700臺南市中西區西門路二段7號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "包成羊肉",
+        "address": "No. 7號, Section 2, Ximen Rd, Fuqian Village, West Central District, Tainan City, 700",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed accepted Taiwan probe candidate joined to its original imported row."
+    },
+    {
+      "id": "reject-probe-001-蒸餃阿姨",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "蒸餃阿姨",
+        "City": "宜蘭",
+        "Address": "261宜蘭縣頭城鎮南門路12號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Steamed dumplings",
+        "address": "No. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+        "category": "餐廳",
+        "subtitle": "蒸餃阿姨",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-002-吉家槓子頭",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "吉家槓子頭",
+        "City": "台北",
+        "Address": "100臺北市中正區南昌路二段112號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "1",
+        "address": "",
+        "category": "中式包點店",
+        "subtitle": "吉家槓子頭",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-003-老麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區迪化街二段215-8號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老麵店 臺北市大同區",
+        "address": "",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-004-東加炸雞",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "東加炸雞",
+        "City": "台北",
+        "Address": "110臺北市信義區虎林街108巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "易易海南雞飯",
+        "address": "No. 89之9號, Danan Rd, Yixin Village, Shilin District, Taipei City, 111",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-005-博多幸龍總本店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "博多幸龍總本店",
+        "City": "台北",
+        "Address": "105臺北市松山區八德路二段366巷16號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "頂級甜不辣-台北美食 台北小吃 萬華美食 台北甜不辣 台北宵夜 龍山寺美食 附近餐廳 台北美食推薦",
+        "address": "108, Taipei City, Wanhua District, Guangzhou St, 梧州街口",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-006-福州麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "福州麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區重慶北路三段236巷44弄2號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Maryjane Pizza",
+        "address": "No. 89號, Wenzhou St, Daxue Village, Da’an District, Taipei City, 106",
+        "category": "薄餅餐廳",
+        "subtitle": "瑪莉珍比薩 台大店",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-007-福州麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "福州麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區重慶北路三段236巷44弄2號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "小福州麵館",
+        "address": "No. 142號, Zhangshu 1st Rd, Zhongxiao Village, Xizhi District, New Taipei City, 221",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-008-樂華小吃",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "樂華小吃",
+        "City": "新北",
+        "Address": "234新北市永和區永平路37號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Bear’s Breakfast",
+        "address": "",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-009-魏家婆菜",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "魏家婆菜",
+        "City": "新竹",
+        "Address": "310新竹縣竹東鎮仁愛路310巷29號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Happy Hwa",
+        "address": "No. 150號, Jiaxing Rd, Zhongxing Village, Zhubei City, Hsinchu County, 302",
+        "category": "小食/零食吧",
+        "subtitle": "黑皮驊魯肉飯HAPPY-HWA",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-010-魏家婆菜",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "魏家婆菜",
+        "City": "新竹",
+        "Address": "310新竹縣竹東鎮仁愛路310巷29號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "魏家婆菜 新竹",
+        "address": "",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-011-魏家婆菜",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "魏家婆菜",
+        "City": "新竹",
+        "Address": "310新竹縣竹東鎮仁愛路310巷29號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Zhongyang Market",
+        "address": "No. 360號, Ren'ai Rd, Rongle Village, Zhudong Township, Hsinchu County, 310",
+        "category": "Traditional market",
+        "subtitle": "竹東 中央公有零售市場",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-012-正老店阿美高麗菜飯",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "正老店阿美高麗菜飯",
+        "City": "彰化",
+        "Address": "521彰化縣北斗鎮斗苑路一段121號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "521, Changhua County, Beidou Township, Wuquan Village, 斗苑路一段121號",
+        "address": "521, Changhua County, Beidou Township, Wuquan Village, 斗苑路一段121號",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-013-關帝廟口無名發財車",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "關帝廟口無名發財車",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市民族路467號關帝廟口",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "上帝廟口小吃",
+        "address": "No. 113, Yanping Rd, 興安里 Xinying District, Tainan City, 730",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-014-叁號川味小館創始總店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "叁號川味小館創始總店",
+        "City": "台南",
+        "Address": "702臺南市南區鹽埕路291巷27弄3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "叁號川味小館創始總店 臺南市南區",
+        "address": "",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "taiwan-accepted-extra-君腳庫飯",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "君腳庫飯",
+        "City": "高雄",
+        "Address": "807高雄市三民區漢口街103號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "君腿庫飯",
+        "address": "No. 103號, Hankou St, Shimei Village, Sanmin District, Kaohsiung City, 807",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate reclassified as positive because the name is a close CJK variant at the same address."
+    },
+    {
+      "id": "taiwan-accepted-extra-彭蔥油餅",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "彭蔥油餅",
+        "City": "宜蘭",
+        "Address": "260宜蘭縣宜蘭市聖後街",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "彭記蔥油餅",
+        "address": "Shenghou St, Yilan City, Yilan County, 260",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate reclassified as positive because the name is a close CJK variant at the same street."
+    },
+    {
+      "id": "reject-probe-017-彭蔥油餅",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "彭蔥油餅",
+        "City": "宜蘭",
+        "Address": "260宜蘭縣宜蘭市聖後街",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Shenghou St, Yilan City",
+        "address": "Yilan City, Yilan County, 260",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-018-福德小館",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "福德小館",
+        "City": "馬祖",
+        "Address": "209連江縣南竿鄉介壽村107-3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "福德小館",
+        "address": "209, Lienchiang County, Nangan Township, Jieshou Village, 207之3號號",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-019-福德小館",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "福德小館",
+        "City": "馬祖",
+        "Address": "209連江縣南竿鄉介壽村107-3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "福得小館",
+        "address": "No. 20號, Nanhai St, Guangyao Village, Sinsing District, Kaohsiung City, 800",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-020-大橋頭老牌筒仔米糕",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "大橋頭老牌筒仔米糕",
+        "City": "台北",
+        "Address": "103臺北市大同區延平北路三段41號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 41-45, Section 3, Yanping N Rd, Longhe Village, Datong District",
+        "address": "No. 41-45, Section 3, Yanping N Rd, Longhe Village, Datong District, Taipei City, 103",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-021-無名羊肉湯大菜市",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "無名羊肉湯大菜市",
+        "City": "台南",
+        "Address": "700臺南市中西區府前路二段144號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 142-144, Section 2, Fuqian Rd, Fuqian Village, West Central District",
+        "address": "No. 142-144, Section 2, Fuqian Rd, Fuqian Village, West Central District, Tainan City, 700",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-022-好食陳",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "好食陳",
+        "City": "基隆",
+        "Address": "202基隆市中正區義二路52號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Moiz Ali",
+        "address": "No. 25號, Xin 3rd Rd, Gangtong Village, Zhongzheng District, Keelung City, 202",
+        "category": "巴基斯坦餐廳",
+        "subtitle": "巴基斯坦廚房(真愛咖哩)",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-023-禾甲蒸臭豆腐",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "禾甲蒸臭豆腐",
+        "City": "台北",
+        "Address": "100臺北市中正區中華路二段313巷18號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 18號, Lane 313, Section 2, Zhonghua Rd, Zhongqin Village, Zhongzheng District",
+        "address": "No. 18號, Lane 313, Section 2, Zhonghua Rd, Zhongqin Village, Zhongzheng District, Taipei City, 100",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-024-合府小籠湯包",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "合府小籠湯包",
+        "City": "台北",
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 18號, Lane 313, Section 2, Zhonghua Rd, Zhongqin Village, Zhongzheng District",
+        "address": "No. 18號, Lane 313, Section 2, Zhonghua Rd, Zhongqin Village, Zhongzheng District, Taipei City, 100",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-025-好時光披薩",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "好時光披薩",
+        "City": "台北",
+        "Address": "105臺北市松山區新中街35-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "好時光披薩 北市松山區",
+        "address": "",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-026-好時光披薩",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "好時光披薩",
+        "City": "台北",
+        "Address": "105臺北市松山區新中街35-1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "好時光披薩本店-民生店",
+        "address": "105台北市松山區東榮里民生東路五段69巷7號1樓",
+        "category": "Restaurant",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-027-老麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區迪化街二段215-8號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老濟安Healing Herbar",
+        "address": "No. 84, Xichang St, Caiyuan Village, Wanhua District, Taipei City, 108",
+        "category": "草本植物店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-028-老麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "老麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區迪化街二段215-8號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "老麵蔥抓餅",
+        "address": "No. 14號, Lane 119, Zhangshuyi Rd, Zhongxiao Village, Xizhi District, New Taipei City, 221",
+        "category": "小吃店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-029-呂巷仔口麵食館",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "呂巷仔口麵食館",
+        "City": "台北",
+        "Address": "106臺北市大安區和平東路二段76巷2之1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 2之1號, Lane 76, Section 2, Heping E Rd, Longmen Village, Da’an District",
+        "address": "No. 2之1號, Lane 76, Section 2, Heping E Rd, Longmen Village, Da’an District, Taipei City, 106",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-030-太順油飯",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "太順油飯",
+        "City": "新北",
+        "Address": "241新北市三重區中央北路27巷1號口",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "太順油飯 三陽店（金魚概念店）",
+        "address": "No. 107號, Sanyang Rd, 三重區 Sanchong District, New Taipei City, 241",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-031-熊記燒餅油條專賣店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "熊記燒餅油條專賣店",
+        "City": "新北",
+        "Address": "242新北市新莊區新莊路291號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "​源慶鮮蚵(YuanQingOyster)—鮮蚵/小卷/藥膳滷味｜台灣500碗推薦 | 板橋60年老店",
+        "address": "220, New Taipei City, Banqiao District, Nanxing Village, Lane 29, Nanya E Rd, 2弄1號",
+        "category": "中式麵食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-032-無名麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "無名麵店",
+        "City": "新竹",
+        "Address": "306新竹縣關西鎮正義路與大同路口(市場裡)",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "無名麵店",
+        "address": "No. 24號, Xinyuan St, Fenggong Village, East District, Hsinchu City, 300",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-033-廟口肉圓",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "熊老大碳烤",
+        "address": "No. 57號, Yuanxing Rd, Zhongxing Village, Xizhi District, New Taipei City, 221",
+        "category": "燒烤餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "taiwan-accepted-extra-鄭記上海蟹殼黃小酥餅",
+      "group": "known_good_michelin_taiwan",
+      "expected": "match",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "鄭記上海蟹殼黃小酥餅",
+        "City": "台中",
+        "Address": "40357臺中市西區樂群街30號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "台中-鄭記上海蟹殼黃碳烤小酥餅｜傳統手工｜老麵發酵｜台中必吃｜美食伴手禮",
+        "address": "No. 30號, Lequn St, Guangmin Village, West District, Taichung City, 40357",
+        "category": "中式糕餅店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate reclassified as positive because name and address identify the same place.",
+      "expected_strength_min": "medium"
+    },
+    {
+      "id": "reject-probe-035-朝清麵店-現做春捲",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "朝清麵店•現做春捲",
+        "City": "台南",
+        "Address": "730臺南市新營區三民路36號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "圍讀珈琲",
+        "address": "No. 201-3號, Yule St, 東區 East District, Tainan City, 701",
+        "category": "Cafe",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-036-春水堂人文茶館-中正店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "春水堂人文茶館（中正店）",
+        "City": "台北",
+        "Address": "100臺北市中正區中山南路21之1號",
+        "Cuisine": "",
+        "Aliases": [
+          "春水堂人文茶館"
+        ]
+      },
+      "candidate": {
+        "name": "No. 21之1號, Zhongshan S Rd, Dongmen Village, Zhongzheng District",
+        "address": "No. 21之1號, Zhongshan S Rd, Dongmen Village, Zhongzheng District, Taipei City, 100",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-probe-037-無名麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "deidentified-maps-probe-log-plus-kml-row",
+      "row": {
+        "Name": "無名麵店",
+        "City": "新竹",
+        "Address": "306新竹縣關西鎮正義路與大同路口(市場裡)",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "無店名炒飯炒麵",
+        "address": "221, New Taipei City, Xizhi District, Jinlong Village, Kangning St, 495號之 1",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed weak probe candidate rejected before the run tried another query."
+    },
+    {
+      "id": "reject-jsonl-038-蒸餃阿姨",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "蒸餃阿姨",
+        "City": "宜蘭",
+        "Address": "261宜蘭縣頭城鎮南門路12號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 12號, Nanmen Rd, Chengnan Village, Toucheng Township",
+        "address": "No. 12號, Nanmen Rd, Chengnan Village, Toucheng Township, Yilan County, 261",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-039-六號碼頭麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "六號碼頭麵店",
+        "City": "基隆",
+        "Address": "203基隆市中山區中山二路47號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "小馬納蒂 Manatee To Go (可內用)",
+        "address": "No. 98號, Zhengbin Rd, Zhengbin Village, Zhongzheng District, Keelung City, 202",
+        "category": "美式餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-040-六號碼頭麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "六號碼頭麵店",
+        "City": "基隆",
+        "Address": "203基隆市中山區中山二路47號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "六號碼頭肉圓店",
+        "address": "No. 47號, Zhongshan 2nd Rd, Zhongxing Village, Zhongshan District, Keelung City, 203",
+        "category": "小食/零食吧",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-041-六號碼頭麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "六號碼頭麵店",
+        "City": "基隆",
+        "Address": "203基隆市中山區中山二路47號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 47, Zhongshan 2nd Rd, Zhongxing Village, Zhongshan District",
+        "address": "No. 47, Zhongshan 2nd Rd, Zhongxing Village, Zhongshan District, Keelung City, 203",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-042-合府小籠湯包",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "合府小籠湯包",
+        "City": "台北",
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Ho Jia Steamed Tofu",
+        "address": "No. 18號, Lane 313, Section 2, Zhonghua Rd, Zhongqin Village, Zhongzheng District, Taipei City, 100",
+        "category": "豆腐店",
+        "subtitle": "禾甲現蒸臭豆腐｜6/25、6/26休｜",
+        "located_in": "Located in: Nanjichang Night Market"
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-043-合府小籠湯包",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "合府小籠湯包",
+        "City": "台北",
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "合府小籠湯包（光復店）",
+        "address": "106, Taipei City, Da’an District, Zhengsheng Village, Guangfu S Rd, 262-1號1樓",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-044-合府小籠湯包",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "合府小籠湯包",
+        "City": "台北",
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "1",
+        "address": "1, No. 13, Lane 180, Guangfu S Rd, Huasheng Village, Da’an District, Taipei City, 106",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-045-福州麵店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "福州麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區重慶北路三段236巷44弄2號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 2號, Alley 44, Lane 236, Section 3, Chongqing N Rd, Linjiang Village, Datong District",
+        "address": "No. 2號, Alley 44, Lane 236, Section 3, Chongqing N Rd, Linjiang Village, Datong District, Taipei City, 103",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-046-豬大郎豬血糕",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "豬大郎豬血糕",
+        "City": "台北",
+        "Address": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "廟口鵝肉",
+        "address": "No. 36號, Andong St, Cheng'an Village, Da’an District, Taipei City, 106",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-047-豬大郎豬血糕",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "豬大郎豬血糕",
+        "City": "台北",
+        "Address": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "豬大郎豬血糕",
+        "address": "No. 37號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-048-無名米粉湯",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "無名米粉湯",
+        "City": "新北",
+        "Address": "241新北市三重區中央北路15巷11號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記花枝羹",
+        "address": "No. 150號, Wenhua N Rd, Zhongyang Village, Sanchong District, New Taipei City, 241",
+        "category": "小食/零食吧",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-049-無名米粉湯",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "無名米粉湯",
+        "City": "新北",
+        "Address": "241新北市三重區中央北路15巷11號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "無名米粉湯",
+        "address": "Nangang District, Taipei City, 221",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "mymaps-safe-match-飯聚-x-貓之回憶",
+      "group": "my_maps_unresolved",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "飯聚 x 貓之回憶",
+        "City": "新北",
+        "Address": "244新北市林口區民族路142號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "飯聚 ( 港式。海南雞飯 )",
+        "address": "No. 142號, Minzu Rd, Nanshi, Linkou District, New Taipei City, 244",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed unresolved candidate reclassified as safe match because one co-brand side and address match."
+    },
+    {
+      "id": "reject-jsonl-051-飯聚-x-貓之回憶",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "飯聚 x 貓之回憶",
+        "City": "新北",
+        "Address": "244新北市林口區民族路142號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 142, Minzu Rd, Nanshi, Linkou District",
+        "address": "No. 142, Minzu Rd, Nanshi, Linkou District, New Taipei City, 244",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-052-寶島甜不辣",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "寶島甜不辣",
+        "City": "桃園",
+        "Address": "333桃園市龜山區文化一路10巷32號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "御柒香（饗饗滷味）",
+        "address": "No. 79之2號, Nanxiang Rd, Nanmei Village, Guishan District, Taoyuan City, 333",
+        "category": "小吃店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-053-寶島甜不辣",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "寶島甜不辣",
+        "City": "桃園",
+        "Address": "333桃園市龜山區文化一路10巷32號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "寶島甜不辣麵線（莊敬店）",
+        "address": "No. 65號, Zhuangjing 5th St, Shixing Village, Zhubei City, Hsinchu County, 302",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-054-寶島甜不辣",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "寶島甜不辣",
+        "City": "桃園",
+        "Address": "333桃園市龜山區文化一路10巷32號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 32, Lane 10, Wenhua 1st Rd, Wenhua Village, Guishan District",
+        "address": "No. 32, Lane 10, Wenhua 1st Rd, Wenhua Village, Guishan District, Taoyuan City, 333",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-055-紫園無招牌客家米食",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "紫園無招牌客家米食",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記餡餅",
+        "address": "No. 254號, Bade 1st Rd, Hexing Village, Toufen City, Miaoli County, 351",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-056-紫園無招牌客家米食",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "紫園無招牌客家米食",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "瑞盛客家米食| 苗栗伴手禮 頭份美食 頭份名產 頭份甜點 苗栗麻糬苗栗客家米食 附近美食 苗栗美食推薦",
+        "address": "No. 598號, Zhongyang Rd, Hexing Village, Toufen City, Miaoli County, 351",
+        "category": "甜品店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-057-紫園無招牌客家米食",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "紫園無招牌客家米食",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "芋頭糕",
+        "address": "No. 69號, Ziyuan St, Qinghua Village, Miaoli City, Miaoli County, 360",
+        "category": "愛心食堂",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-058-廟口肉圓",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "廟口肉圓",
+        "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-059-廟口肉圓",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "華姐麵店（樟樹店）",
+        "address": "No. 280-1號, Zhangshu 2nd Rd, Houde Village, Xizhi District, New Taipei City, 221",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-060-廟口肉圓",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 120, Sanmin Rd, Zhonglong Village, Houlong Township",
+        "address": "No. 120, Sanmin Rd, Zhonglong Village, Houlong Township, Miaoli County, 356",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "mymaps-unresolved-001-蒸餃阿姨",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "蒸餃阿姨",
+        "City": "宜蘭",
+        "Address": "261宜蘭縣頭城鎮南門路12號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Steamed dumplings",
+        "address": "No. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+        "category": "餐廳",
+        "subtitle": "蒸餃阿姨",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case remains manual because the candidate subtitle matches but the house number conflicts."
+    },
+    {
+      "id": "mymaps-unresolved-002-六號碼頭麵店",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "六號碼頭麵店",
+        "City": "基隆",
+        "Address": "203基隆市中山區中山二路47號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "六號碼頭肉圓店",
+        "address": "No. 47號, Zhongshan 2nd Rd, Zhongxing Village, Zhongshan District, Keelung City, 203",
+        "category": "小食/零食吧",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case remains manual because the address aligns but the food descriptor names conflict."
+    },
+    {
+      "id": "mymaps-unresolved-003-合府小籠湯包",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "合府小籠湯包",
+        "City": "台北",
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "1",
+        "address": "1, No. 13, Lane 180, Guangfu S Rd, Huasheng Village, Da’an District, Taipei City, 106",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case remains manual because the candidate name is an address-like floor label, not a place title."
+    },
+    {
+      "id": "mymaps-unresolved-004-福州麵店",
+      "group": "my_maps_unresolved",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "福州麵店",
+        "City": "台北",
+        "Address": "103臺北市大同區重慶北路三段236巷44弄2號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Maryjane Pizza",
+        "address": "No. 89號, Wenzhou St, Daxue Village, Da’an District, Taipei City, 106",
+        "category": "薄餅餐廳",
+        "subtitle": "瑪莉珍比薩 台大店",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case is a wrong place and must stay rejected."
+    },
+    {
+      "id": "mymaps-unresolved-005-豬大郎豬血糕",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "豬大郎豬血糕",
+        "City": "台北",
+        "Address": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "豬大郎豬血糕",
+        "address": "No. 37號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-006-無名米粉湯",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "無名米粉湯",
+        "City": "新北",
+        "Address": "241新北市三重區中央北路15巷11號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "無名米粉湯",
+        "address": "Nangang District, Taipei City, 221",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-007-飯聚-x-貓之回憶",
+      "group": "my_maps_unresolved",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "飯聚 x 貓之回憶",
+        "City": "新北",
+        "Address": "244新北市林口區民族路142號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "飯聚 ( 港式。海南雞飯 )",
+        "address": "No. 142號, Minzu Rd, Nanshi, Linkou District, New Taipei City, 244",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case expected to match after co-brand alias and address evidence."
+    },
+    {
+      "id": "mymaps-unresolved-008-寶島甜不辣",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "寶島甜不辣",
+        "City": "桃園",
+        "Address": "333桃園市龜山區文化一路10巷32號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "寶島甜不辣麵線（莊敬店）",
+        "address": "No. 65號, Zhuangjing 5th St, Shixing Village, Zhubei City, Hsinchu County, 302",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-009-魏家婆菜",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "魏家婆菜",
+        "City": "新竹",
+        "Address": "310新竹縣竹東鎮仁愛路310巷29號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "魏家婆菜 新竹",
+        "address": "",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-010-紫園無招牌客家米食",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "紫園無招牌客家米食",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記餡餅",
+        "address": "No. 254號, Bade 1st Rd, Hexing Village, Toufen City, Miaoli County, 351",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-011-廟口肉圓",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "廟口肉圓",
+        "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "my-maps-confirmed-houli-fried-kueh",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
+      "source": "user-confirmed-screenshot-2026-06-28",
+      "row": {
+        "Name": "炸粿生 三代老店",
+        "City": "台中",
+        "Address": "421台中市后里區四村路121號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "后里炸粿生",
+        "address": "斜對面, No. 36號, Daxing Rd, Dunbei Village, Houli District, Taichung City, 421",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "User confirmed this is the intended Maps result; matching must be general and not case-specific.",
+      "expected_strength_min": "medium"
+    },
+    {
+      "id": "mymaps-unresolved-013-正老牌豐原肉丸",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "正老牌豐原肉丸",
+        "City": "台中",
+        "Address": "403臺中市西區中興街173號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "正老牌豐原肉丸",
+        "address": "號, No. 2-7, Lane 167, Zhongzheng Rd, Zhongshan Village, Fengyuan District, Taichung City, 420",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": "Located in: Fengyuan Miaodong Night Market"
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "my-maps-confirmed-erlin-bamboo-shoot-congee",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
+      "source": "user-confirmed-run-report-2026-06-28",
+      "row": {
+        "Name": "二林竹筍粥",
+        "City": "彰化",
+        "Address": "526彰化縣二林鎮新生路108號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿才竹筍粥",
+        "address": "No. 108號, Xinsheng Rd, Beiping Village, Erlin Township, Changhua County, 526",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "User confirmed this is the same place; this must be solved by general score calibration, not a name-specific rule.",
+      "expected_strength_min": "medium"
+    },
+    {
+      "id": "mymaps-unresolved-015-正老店阿美高麗菜飯",
+      "group": "my_maps_unresolved",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "正老店阿美高麗菜飯",
+        "City": "彰化",
+        "Address": "521彰化縣北斗鎮斗苑路一段121號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "阿美香菇高麗菜飯",
+        "address": "521, Changhua County, Beidou Township, Wuquan Village, 斗苑路一段121號",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case expected to match because the named shop and address align."
+    },
+    {
+      "id": "mymaps-unresolved-016-關帝廟口無名發財車",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "關帝廟口無名發財車",
+        "City": "彰化",
+        "Address": "500彰化縣彰化市民族路467號關帝廟口",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Changhua Guandi Temple",
+        "address": "No. 467, Minzu Rd, Minquan Village, Changhua City, Changhua County, 500",
+        "category": "宗教場所",
+        "subtitle": "彰邑關帝廟",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-017-七美麵店",
+      "group": "my_maps_unresolved",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "七美麵店",
+        "City": "高雄",
+        "Address": "807高雄市三民區大豐一路93號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "七美麵、飲、滷味",
+        "address": "No. 93, Dafeng 1st Rd, Benguan Village, Sanmin District, Kaohsiung City, 807",
+        "category": "麵店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case expected to match because the short business name and address align."
+    },
+    {
+      "id": "mymaps-unresolved-018-君腳庫飯",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "君腳庫飯",
+        "City": "高雄",
+        "Address": "807高雄市三民區漢口街103號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "Lao Chai milkfish porridge",
+        "address": "No. 103號, Hankou St, Shimei Village, Sanmin District, Kaohsiung City, 807",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-019-東麥局",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "東麥局",
+        "City": "宜蘭",
+        "Address": "262宜蘭縣礁溪鄉德陽路43號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "礁溪美食東麥局燒番麥 烤玉米",
+        "address": "262, Yilan County, Jiaoxi Township, Deyang Village, Section 5, Jiaoxi Rd, 148號金格飯店旁邊",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "mymaps-unresolved-020-彭蔥油餅",
+      "group": "my_maps_unresolved",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "彭蔥油餅",
+        "City": "宜蘭",
+        "Address": "260宜蘭縣宜蘭市聖後街",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "彭記蔥油餅",
+        "address": "Shenghou St, Yilan City, Yilan County, 260",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case expected to match because the name is a close CJK variant on the same street."
+    },
+    {
+      "id": "mymaps-unresolved-021-福德小館",
+      "group": "my_maps_unresolved",
+      "expected": "manual",
+      "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
+      "row": {
+        "Name": "福德小館",
+        "City": "馬祖",
+        "Address": "209連江縣南竿鄉介壽村107-3號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "華記麻辣火鍋",
+        "address": "209, Lienchiang County, Nangan Township, Jieshou Village, 107-5號1F",
+        "category": "火鍋餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+    },
+    {
+      "id": "reject-jsonl-extra-炸粿生-三代老店",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "炸粿生 三代老店",
+        "City": "台中",
+        "Address": "421台中市后里區四村路121號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "No. 121號, Sicun Rd, Dunbei Village, Houli District",
+        "address": "No. 121號, Sicun Rd, Dunbei Village, Houli District, Taichung City, 421",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-extra-寶島甜不辣-wrong-city",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "寶島甜不辣",
+        "City": "桃園",
+        "Address": "333桃園市龜山區文化一路10巷32號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "寶島甜不辣麵線（莊敬店）",
+        "address": "No. 65號, Zhuangjing 5th St, Shixing Village, Zhubei City, Hsinchu County, 302",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed wrong-city candidate from unresolved JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-extra-紫園無招牌客家米食-wrong-name",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "紫園無招牌客家米食",
+        "City": "苗栗",
+        "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "曾記餡餅",
+        "address": "No. 254號, Bade 1st Rd, Hexing Village, Toufen City, Miaoli County, 351",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed wrong-name candidate from unresolved JSONL diagnostics."
+    },
+    {
+      "id": "reject-jsonl-extra-廟口肉圓-wrong-address",
+      "group": "known_rejects",
+      "expected": "reject",
+      "source": "my-maps-500-2026-jsonl-rejected-candidate",
+      "row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "廟口肉圓",
+        "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "Observed same-name but wrong-address candidate from unresolved JSONL diagnostics."
+    },
+    {
+      "id": "my-maps-confirmed-juzi-wouli-889",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
+      "expected_strength_min": "medium",
+      "source": "user-confirmed-run-report-2026-06-28",
+      "row": {
+        "Name": "菊子 Wouli 889（菊子窩裡）",
+        "City": "屏東",
+        "Address": "900屏東縣屏東市北區市場57號",
+        "Cuisine": ""
+      },
+      "candidate": {
+        "name": "菊子窩裡二號店（大陳手作料理）",
+        "address": "900, Pingtung County, Pingtung City, 北區57號攤市場",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "notes": "User confirmed this is the same place; expected match relies on address-confirmed local alias evidence."
+    }
+  ]
+}

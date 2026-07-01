@@ -253,17 +253,8 @@ def _resolve_city_path(city_slug: str, language: str) -> str:
     site_code, url_language = localized_site
     path_segments = CITY_PATHS[city_slug].split("/")
     suffix_segments = path_segments[1:] if path_segments[0] == DEFAULT_LANGUAGE else path_segments
-    city_country_code = suffix_segments[0] if suffix_segments else ""
     if suffix_segments and suffix_segments[0] in COUNTRY_CODES.values():
         suffix_segments = suffix_segments[1:]
-    if (
-        city_country_code == site_code
-        and len(suffix_segments) == 3
-        and suffix_segments[0] == f"{city_slug}-region"
-        and suffix_segments[1] == city_slug
-        and suffix_segments[2] == "restaurants"
-    ):
-        suffix_segments = (suffix_segments[0], suffix_segments[2])
     return "/".join((site_code, url_language, *suffix_segments))
 
 

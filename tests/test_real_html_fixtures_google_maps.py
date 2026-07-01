@@ -113,6 +113,18 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         _assert_any_selector_matches(soup, selectors.PLACE_CATEGORY_SELECTORS)
         _assert_any_selector_matches(soup, save_flow.SAVE_BUTTON_SELECTORS)
 
+    def test_search_result_fixture_exposes_multiple_place_candidates(self) -> None:
+        soup = BeautifulSoup(_read_fixture_text("save-list-edit-surface-patio.html"), "html.parser")
+
+        candidate_hrefs: set[str] = set()
+        for selector in selectors.SEARCH_RESULT_CANDIDATE_SELECTORS:
+            for match in _find_matches_with_playwright_like_has_text(soup, selector):
+                href = str(match.get("href", ""))
+                if "/maps/place/" in href:
+                    candidate_hrefs.add(href)
+
+        self.assertGreaterEqual(len(candidate_hrefs), 2)
+
     def test_nested_business_false_positive_fixture_exposes_located_in_signal(self) -> None:
         soup = BeautifulSoup(
             _read_fixture_text("nested-business-false-positive-yangming.html"),

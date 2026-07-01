@@ -18,6 +18,7 @@ from michelin_scraper.adapters.google_maps_driver import (
     _sandbox_candidates_for_channel,
     _SearchPanelState,
 )
+from michelin_scraper.application.place_matcher import PlaceCandidate
 from tests.fakes import FakeContext, FakePage
 
 
@@ -131,14 +132,14 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         previous_state = _SearchPanelState(
             page_url="https://www.google.com/maps/search/foo",
             title_text="",
-            first_result_signature="same-result",
+            first_result_signature="",
             no_results_visible=False,
             loading_visible=False,
         )
         loading_state = _SearchPanelState(
             page_url="https://www.google.com/maps/search/foo",
             title_text="",
-            first_result_signature="same-result",
+            first_result_signature="",
             no_results_visible=False,
             loading_visible=True,
         )
@@ -164,6 +165,88 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(outcome, driver._SEARCH_OUTCOME_RESULT_READY)
         wait_for_timeout.assert_called_once()
+
+    async def test_wait_for_search_outcome_accepts_changed_result_while_loading_remains(self) -> None:
+        driver = GoogleMapsDriver(
+            GoogleMapsDriverConfig(
+                user_data_dir=Path("/tmp/michelin-driver-contract-loading-result"),
+                headless=True,
+                sync_delay_seconds=0.0,
+            )
+        )
+        cast(Any, driver)._SEARCH_OUTCOME_MIN_SETTLE_MS = 0
+        previous_state = _SearchPanelState(
+            page_url="https://www.google.com/maps/search/foo",
+            title_text="",
+            first_result_signature="old-result",
+            no_results_visible=False,
+            loading_visible=False,
+        )
+        changed_loading_state = _SearchPanelState(
+            page_url="https://www.google.com/maps/search/foo",
+            title_text="",
+            first_result_signature="new-result",
+            no_results_visible=False,
+            loading_visible=True,
+        )
+
+        with patch.object(
+            driver,
+            "_capture_search_panel_state",
+            return_value=changed_loading_state,
+        ):
+            with patch.object(driver, "_wait_for_timeout") as wait_for_timeout:
+                outcome = await driver._wait_for_search_outcome(
+                    page=object(),
+                    query="foo",
+                    previous_state=previous_state,
+                )
+
+        self.assertEqual(outcome, driver._SEARCH_OUTCOME_RESULT_READY)
+        wait_for_timeout.assert_not_called()
+
+    async def test_search_reopens_home_and_retries_once_after_stale_search_timeout(self) -> None:
+        driver = self._build_driver()
+        initial_page = object()
+        retried_page = object()
+
+        with patch.object(
+            driver,
+            "_require_page",
+            side_effect=[initial_page, retried_page],
+        ) as require_page:
+            with patch.object(driver, "open_maps_home") as open_home:
+                with patch.object(
+                    driver,
+                    "_submit_maps_search_query",
+                    side_effect=[
+                        GoogleMapsTransientError("Timed out waiting for Google Maps search outcome"),
+                        driver._SEARCH_OUTCOME_RESULT_READY,
+                    ],
+                ) as submit_search:
+                    with patch.object(driver, "_try_open_result_by_index", return_value=True):
+                        with patch.object(driver, "_is_add_place_input_visible", return_value=False):
+                            with patch.object(
+                                driver,
+                                "_extract_current_place_candidate",
+                                return_value=PlaceCandidate(
+                                    name="New Place",
+                                    address="Taipei",
+                                    category="Restaurant",
+                                ),
+                            ):
+                                candidate = await driver.search_and_open_first_acceptable_result(
+                                    "new query",
+                                    lambda _candidate: True,
+                                    max_candidates=1,
+                                )
+
+        self.assertIsNotNone(candidate)
+        self.assertEqual(require_page.call_count, 2)
+        open_home.assert_called_once()
+        self.assertEqual(submit_search.call_count, 2)
+        self.assertIs(submit_search.call_args_list[0].kwargs["page"], initial_page)
+        self.assertIs(submit_search.call_args_list[1].kwargs["page"], retried_page)
 
     async def test_wait_for_search_outcome_does_not_accept_stale_previous_place_details(self) -> None:
         driver = GoogleMapsDriver(

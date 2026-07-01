@@ -1,5 +1,6 @@
 """Shared test doubles for Google Maps adapter and sync-writer tests."""
 
+from collections.abc import Callable
 from pathlib import Path
 
 from michelin_scraper.adapters.google_maps_driver import GoogleMapsDriverPort
@@ -14,6 +15,7 @@ class FakeDriver:
         self.openable_lists: set[str] = set()
         self.created_lists: list[str] = []
         self.candidates_by_query: dict[str, PlaceCandidate | None] = {}
+        self.candidate_results_by_query: dict[str, list[PlaceCandidate]] = {}
         self.queries: list[str] = []
         self.save_calls: list[tuple[str, str]] = []
         self.save_error: Exception | None = None
@@ -45,6 +47,31 @@ class FakeDriver:
     async def search_and_open_first_result(self, query: str) -> PlaceCandidate | None:
         self.queries.append(query)
         return self.candidates_by_query.get(query)
+
+    async def search_and_open_first_acceptable_result(
+        self,
+        query: str,
+        accept_candidate: Callable[[PlaceCandidate], bool],
+        *,
+        max_candidates: int = 5,
+    ) -> PlaceCandidate | None:
+        del max_candidates
+        legacy_override = self.__dict__.get("search_and_open_first_result")
+        if legacy_override is not None:
+            candidate = await legacy_override(query)
+            if candidate is not None and accept_candidate(candidate):
+                return candidate
+            return None
+
+        self.queries.append(query)
+        candidates = self.candidate_results_by_query.get(query)
+        if candidates is None:
+            candidate = self.candidates_by_query.get(query)
+            candidates = [] if candidate is None else [candidate]
+        for candidate in candidates:
+            if accept_candidate(candidate):
+                return candidate
+        return None
 
     async def save_current_place_to_list(self, list_name: str, note_text: str = "") -> bool:
         self.save_calls.append((list_name, note_text))

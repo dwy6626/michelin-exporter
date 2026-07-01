@@ -894,126 +894,146 @@ class GoogleMapsSyncWriter:
         _row_name = str(row.get("Name", ""))
         _t_row_start = monotonic()
 
-        _previous_candidate_signature: str | None = None
         for query in attempted_queries:
             self._debug_log(
                 f"Search query for row '{_row_name}': {query}"
             )
             _tq0 = monotonic()
-            candidate = await self._driver.search_and_open_first_result(query)
+            query_saw_candidate = False
+            query_saw_list_candidate = False
+            accepted_match_strength = ""
+            accepted_assessment: PlaceMatchAssessment | None = None
+
+            def accept_candidate(candidate: PlaceCandidate, query_for_candidate: str = query) -> bool:
+                nonlocal accepted_assessment
+                nonlocal accepted_match_strength
+                nonlocal query_saw_candidate
+                nonlocal query_saw_list_candidate
+                nonlocal saw_candidate
+                nonlocal saw_matchable_candidate
+
+                if _is_saved_list_landing_candidate(candidate=candidate, list_name=list_name):
+                    query_saw_list_candidate = True
+                    self._debug_log(
+                        f"Search candidate for row '{_row_name}' matched list '{list_name}' instead of a place. "
+                        "Trying the next candidate result."
+                    )
+                    return False
+
+                saw_candidate = True
+                query_saw_candidate = True
+                match_assessment = assess_place_match(row, candidate)
+                match_strength = match_assessment.strength
+                if (
+                    match_strength == "weak"
+                    and _is_coordinate_query(query_for_candidate)
+                    and not match_assessment.coordinate_like_candidate_name
+                ):
+                    # Coordinate lookup is a high-signal fallback when Maps returns local-script names.
+                    match_strength = "medium"
+                if (
+                    match_strength == "weak"
+                    and match_assessment.city_in_candidate_address
+                    and candidate.address
+                    and not match_assessment.coordinate_like_candidate_name
+                    and not match_assessment.address_like_candidate_name
+                    and not match_assessment.located_in_match
+                    and _has_specific_location_match(match_assessment)
+                    and (
+                        not match_assessment.informative_category
+                        or match_assessment.food_service_category
+                    )
+                ):
+                    # Cross-script fallback: trust the search engine's name matching only
+                    # when the candidate also has a concrete non-city location anchor.
+                    # City-only restaurant matches are too broad and can save unrelated
+                    # businesses in the same city.
+                    match_strength = "medium"
+                    self._debug_log(
+                        f"Cross-script city fallback: upgraded '{_row_name}' from weak to medium "
+                        f"(city_in_address=True, candidate='{candidate.name}')."
+                    )
+                if _is_address_only_query(query=query_for_candidate, row=row) and not match_assessment.name_match:
+                    # Address-only fallback queries are too risky to accept when
+                    # the candidate title itself does not match the Michelin row.
+                    # Otherwise any restaurant at the same address can be saved,
+                    # including a neighboring venue surfaced for the address pin.
+                    match_strength = "weak"
+                    self._debug_log(
+                        f"Address-only fallback rejected name-mismatched candidate for row '{_row_name}' "
+                        f"(candidate='{candidate.name}')."
+                    )
+                if match_strength == "weak":
+                    rejected_candidates.append(
+                        _build_rejected_candidate(
+                            query=query_for_candidate,
+                            candidate=candidate,
+                            assessment=match_assessment,
+                        )
+                    )
+                    self._debug_log(
+                        f"Weak place match for row '{_row_name}' on query '{query_for_candidate}'. "
+                        "Trying next candidate result. "
+                        f"{_format_place_candidate_debug(candidate)}. "
+                        f"{_format_match_assessment_debug(match_assessment)}."
+                    )
+                    return False
+
+                saw_matchable_candidate = True
+                accepted_assessment = match_assessment
+                accepted_match_strength = match_strength
+                return True
+
+            candidate = await self._driver.search_and_open_first_acceptable_result(
+                query,
+                accept_candidate,
+            )
             _tq1 = monotonic()
 
-            # Stale candidate detection: when consecutive searches return
-            # the exact same place, the browser page did not actually update.
-            # Navigate to Maps home to force a fresh search on the next query.
-            if candidate is not None:
-                _candidate_signature = f"{candidate.name}|{candidate.address}"
-                if _candidate_signature == _previous_candidate_signature:
+            if candidate is None:
+                if query_saw_list_candidate:
                     self._debug_log(
-                        f"Stale candidate detected for row '{_row_name}' on query '{query}' "
-                        f"(same as previous: '{candidate.name}'). "
+                        f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=list_candidate"
+                    )
+                    self._debug_log(
+                        f"Search candidate for row '{_row_name}' matched list '{list_name}' instead of a place. "
                         "Navigating to maps home before next query."
                     )
                     await self._driver.open_maps_home()
                     continue
-                _previous_candidate_signature = _candidate_signature
-
-            if candidate is None:
-                self._debug_log(
-                    f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=no_candidate"
-                )
-                self._debug_log(
-                    f"No Maps candidate for query: {query}"
-                )
+                if not query_saw_candidate:
+                    self._debug_log(
+                        f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=no_candidate"
+                    )
+                    self._debug_log(
+                        f"No Maps candidate for query: {query}"
+                    )
+                else:
+                    self._debug_log(
+                        f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=weak_match"
+                    )
                 await self._capture_debug_snapshot(
                     context="search-no-result",
                     row_name=_row_name,
                 )
                 continue
 
-            if _is_saved_list_landing_candidate(candidate=candidate, list_name=list_name):
+            if accepted_assessment is None:
                 self._debug_log(
-                    f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=list_candidate"
-                )
-                self._debug_log(
-                    f"Search candidate for row '{_row_name}' matched list '{list_name}' instead of a place. "
-                    "Navigating to maps home before next query."
-                )
-                await self._driver.open_maps_home()
-                continue
-
-            saw_candidate = True
-            match_assessment = assess_place_match(row, candidate)
-            match_strength = match_assessment.strength
-            if (
-                match_strength == "weak"
-                and _is_coordinate_query(query)
-                and not match_assessment.coordinate_like_candidate_name
-            ):
-                # Coordinate lookup is a high-signal fallback when Maps returns local-script names.
-                match_strength = "medium"
-            if (
-                match_strength == "weak"
-                and match_assessment.city_in_candidate_address
-                and candidate.address
-                and not match_assessment.coordinate_like_candidate_name
-                and not match_assessment.address_like_candidate_name
-                and not match_assessment.located_in_match
-                and _has_specific_location_match(match_assessment)
-                and (
-                    not match_assessment.informative_category
-                    or match_assessment.food_service_category
-                )
-            ):
-                # Cross-script fallback: trust the search engine's name matching only
-                # when the candidate also has a concrete non-city location anchor.
-                # City-only restaurant matches are too broad and can save unrelated
-                # businesses in the same city.
-                match_strength = "medium"
-                self._debug_log(
-                    f"Cross-script city fallback: upgraded '{_row_name}' from weak to medium "
-                    f"(city_in_address=True, candidate='{candidate.name}')."
-                )
-            if _is_address_only_query(query=query, row=row) and not match_assessment.name_match:
-                # Address-only fallback queries are too risky to accept when
-                # the candidate title itself does not match the Michelin row.
-                # Otherwise any restaurant at the same address can be saved,
-                # including a neighboring venue surfaced for the address pin.
-                match_strength = "weak"
-                self._debug_log(
-                    f"Address-only fallback rejected name-mismatched candidate for row '{_row_name}' "
-                    f"(candidate='{candidate.name}')."
-                )
-            if match_strength == "weak":
-                rejected_candidates.append(
-                    _build_rejected_candidate(
-                        query=query,
-                        candidate=candidate,
-                        assessment=match_assessment,
-                    )
-                )
-                self._debug_log(
-                    f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=weak_match"
-                )
-                self._debug_log(
-                    f"Weak place match for row '{_row_name}' on query '{query}'. "
-                    "Trying next query. "
-                    f"{_format_place_candidate_debug(candidate)}. "
-                    f"{_format_match_assessment_debug(match_assessment)}."
+                    f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result=no_candidate"
                 )
                 await self._capture_debug_snapshot(
-                    context="search-weak-match",
+                    context="search-no-result",
                     row_name=_row_name,
                 )
                 continue
-            saw_matchable_candidate = True
             self._debug_log(
-                f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result={match_strength}_match"
+                f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  query={query!r}  result={accepted_match_strength}_match"
             )
             self._debug_log(
                 f"Accepted Maps candidate for row '{_row_name}' on query '{query}'. "
                 f"{_format_place_candidate_debug(candidate)}. "
-                f"{_format_match_assessment_debug(match_assessment)}."
+                f"{_format_match_assessment_debug(accepted_assessment)}."
             )
 
             if probe_only:
@@ -1187,6 +1207,12 @@ def _build_rejected_candidate(
         street_overlap_tokens=assessment.street_overlap_tokens,
         postal_code_overlap_tokens=assessment.postal_code_overlap_tokens,
         cuisine_overlap_tokens=assessment.cuisine_overlap_tokens,
+        name_score=assessment.name_score,
+        address_score=assessment.address_score,
+        match_score=assessment.match_score,
+        hard_veto=assessment.hard_veto,
+        veto_reasons=assessment.veto_reasons,
+        name_strategy=assessment.name_strategy,
     )
 
 
@@ -1198,6 +1224,12 @@ def _format_match_assessment_debug(assessment: PlaceMatchAssessment) -> str:
     return (
         "Signals("
         f"strength={assessment.strength}, "
+        f"name_score={assessment.name_score:.1f}, "
+        f"address_score={assessment.address_score:.1f}, "
+        f"match_score={assessment.match_score:.1f}, "
+        f"name_strategy={assessment.name_strategy or '<none>'}, "
+        f"hard_veto={assessment.hard_veto}, "
+        f"veto_reasons={','.join(assessment.veto_reasons) or '<none>'}, "
         f"name_match={assessment.name_match}, "
         f"located_in_match={assessment.located_in_match}, "
         f"city_in_address={assessment.city_in_candidate_address}, "

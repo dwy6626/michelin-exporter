@@ -1,8 +1,14 @@
 """Pagination helpers for Michelin listing pages."""
 
+import re
+from collections.abc import Sequence
+from typing import Any
 from urllib.parse import parse_qs, urljoin, urlparse
 
 from bs4 import BeautifulSoup
+
+_PAGE_PATH_PATTERN = re.compile(r"(?:^|/)page/(\d+)(?:/)?$")
+_ARROW_RIGHT_IMAGE_PATTERN = re.compile(r"arrow[-_]?right|right[-_]?arrow", re.IGNORECASE)
 
 
 def extract_total_pages(soup: BeautifulSoup) -> int | None:
@@ -55,6 +61,9 @@ def extract_page_number(url: str, fallback: int) -> int:
         candidate = query_page[0].strip()
         if candidate.isdigit():
             return int(candidate)
+    path_match = _PAGE_PATH_PATTERN.search(parsed.path)
+    if path_match:
+        return int(path_match.group(1))
     return fallback
 
 
@@ -67,14 +76,68 @@ def extract_next_page_url(soup: BeautifulSoup, current_url: str) -> str | None:
         if not link.select_one("i.fa-angle-right"):
             continue
 
-        href_value = link.get("href")
-        relative_link = href_value if isinstance(href_value, str) else None
-        if not relative_link or relative_link == "#":
-            return None
+        if next_url := _resolve_link_url(link, current_url):
+            return next_url
 
-        new_full_url = urljoin(current_url, relative_link)
-        if new_full_url == current_url:
-            return None
-        return new_full_url
+    current_page_number = _extract_active_page_number(pagination_links, current_url)
+    if current_page_number is not None:
+        target_page_number = current_page_number + 1
+        for link in pagination_links:
+            if _extract_link_page_number(link, current_url) != target_page_number:
+                continue
+            if next_url := _resolve_link_url(link, current_url):
+                return next_url
+
+    for link in pagination_links:
+        if not _is_right_arrow_link(link):
+            continue
+
+        if next_url := _resolve_link_url(link, current_url):
+            return next_url
 
     return None
+
+
+def _resolve_link_url(link: Any, current_url: str) -> str | None:
+    href_value = link.get("href") if hasattr(link, "get") else None
+    relative_link = href_value if isinstance(href_value, str) else None
+    if not relative_link or relative_link == "#":
+        return None
+
+    new_full_url = urljoin(current_url, relative_link)
+    if new_full_url == current_url:
+        return None
+    return new_full_url
+
+
+def _extract_active_page_number(links: Sequence[Any], current_url: str) -> int | None:
+    for link in links:
+        class_values = link.get("class", []) if hasattr(link, "get") else []
+        classes = set(class_values if isinstance(class_values, list) else [])
+        if link.get("aria-current") == "page" or "active" in classes:
+            return _extract_link_page_number(link, current_url)
+    return extract_page_number(current_url, 0) or None
+
+
+def _extract_link_page_number(link: Any, current_url: str) -> int | None:
+    text = link.get_text(strip=True) if hasattr(link, "get_text") else ""
+    if text.isdigit():
+        return int(text)
+    href_value = link.get("href") if hasattr(link, "get") else None
+    if isinstance(href_value, str):
+        page_number = extract_page_number(urljoin(current_url, href_value), 0)
+        if page_number:
+            return page_number
+    return None
+
+
+def _is_right_arrow_link(link: Any) -> bool:
+    image = link.select_one("img") if hasattr(link, "select_one") else None
+    if image is None:
+        return False
+    image_source = image.get("src", "")
+    image_alt = image.get("alt", "")
+    return any(
+        _ARROW_RIGHT_IMAGE_PATTERN.search(value)
+        for value in (str(image_source), str(image_alt))
+    )

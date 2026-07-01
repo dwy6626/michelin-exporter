@@ -2,8 +2,23 @@
 
 import re
 import unicodedata
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
+
+from .place_matcher_strategies import (
+    NameEvidence,
+    NameInputs,
+    WeightedEvidenceConfig,
+    WeightedEvidenceStrategy,
+    build_name_inputs,
+    evaluate_name_evidence,
+    extract_place_match_features,
+    has_cjk_proper_prefix_conflict,
+)
+from .place_matcher_strategies import (
+    has_house_number_conflict as _strategy_has_house_number_conflict,
+)
 
 MatchStrength = Literal["strong", "medium", "weak"]
 _POSTAL_CODE_PATTERN = re.compile(r"\b\d{3}-\d{4}\b|\b\d{7}\b")
@@ -14,8 +29,6 @@ _CJK_SEQUENCE_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+"
 _NAME_COMPACT_TOKEN_PATTERN = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
 _PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
 _PARENTHETICAL_BRACKET_PATTERN = re.compile(r"[（）()]")
-_CJK_HOUSE_NUMBER_PATTERN = re.compile(r"(\d+(?:[-之]\d+)?)\s*號")
-_LATIN_HOUSE_NUMBER_PATTERN = re.compile(r"\bno\.?\s*(\d+(?:-\d+)?)\b", re.IGNORECASE)
 _ADDRESS_LIKE_PLACE_NAME_PATTERN = re.compile(
     r"^\s*(?:no\.?\s*\d|\d+\s*(?:f|floor|樓)\s*$)",
     re.IGNORECASE,
@@ -72,6 +85,7 @@ _FOOD_SERVICE_CATEGORY_KEYWORDS = (
     "steak",
     "seafood",
     "breakfast",
+    "deli",
     "thai",
     "japanese",
     "chinese",
@@ -102,10 +116,23 @@ _FOOD_SERVICE_CATEGORY_KEYWORDS = (
     "早餐",
     "茶館",
     "燒肉",
+    "披薩",
+    "薄餅",
+    "扒房",
     "熟食",
     "麵食",
+    "餃子",
+    "湯包",
     "包點",
+    "包子",
+    "糕餅",
+    "糕",
+    "餅",
     "豆腐",
+    "小食",
+    "零食",
+    "甜點",
+    "甜品",
 )
 _GENERIC_CJK_NAME_TOKENS = {
     "小料理",
@@ -170,6 +197,23 @@ _CJK_NAME_PHRASE_REPLACEMENTS = (
     ("專賣", "專門"),
     ("麵攤", "麵店"),
 )
+PRODUCTION_MATCHER_STRATEGY_ID = "weighted_evidence_v1"
+PRODUCTION_MATCHER_CONFIG = WeightedEvidenceConfig(
+    name_weight=0.26,
+    address_weight=0.18,
+    city_weight=0.14,
+    house_weight=0.08,
+    category_weight=0.08,
+    located_in_weight=0.04,
+    subtitle_weight=0.04,
+    text_ngram_weight=0.16,
+    local_embedding_weight=0.00,
+    medium_threshold=35.0,
+    strong_threshold=66.0,
+    risk_multiplier=0.50,
+    disqualifier_multiplier=1.00,
+)
+PRODUCTION_DISQUALIFIER_THRESHOLD = 100.0
 
 
 @dataclass(frozen=True)
@@ -200,6 +244,12 @@ class PlaceMatchAssessment:
     located_in_match: bool
     informative_category: bool
     food_service_category: bool
+    name_score: float = 0.0
+    address_score: float = 0.0
+    match_score: float = 0.0
+    hard_veto: bool = False
+    veto_reasons: tuple[str, ...] = ()
+    name_strategy: str = ""
 
 
 def _normalize_text(value: str) -> str:
@@ -519,47 +569,15 @@ def _has_house_number_anchor(
     return False
 
 
-def _extract_house_number_tokens(value: str) -> set[str]:
-    normalized_value = _normalize_text(value).replace("之", "-")
-    return {
-        match.group(1).replace("之", "-")
-        for pattern in (_CJK_HOUSE_NUMBER_PATTERN, _LATIN_HOUSE_NUMBER_PATTERN)
-        for match in pattern.finditer(normalized_value)
-    }
-
-
-def _house_number_root(value: str) -> int | None:
-    root = value.split("-", 1)[0]
-    if not root.isdigit():
-        return None
-    return int(root)
-
-
 def _has_house_number_conflict(row_address: str, candidate_address: str) -> bool:
-    row_house_numbers = _extract_house_number_tokens(row_address)
-    candidate_house_numbers = _extract_house_number_tokens(candidate_address)
-    if not row_house_numbers or not candidate_house_numbers:
-        return False
-    if row_house_numbers.intersection(candidate_house_numbers):
-        return False
-
-    row_roots = [
-        root for token in row_house_numbers if (root := _house_number_root(token)) is not None
-    ]
-    candidate_roots = [
-        root
-        for token in candidate_house_numbers
-        if (root := _house_number_root(token)) is not None
-    ]
-    if not row_roots or not candidate_roots:
-        return True
-
-    return all(abs(row_root - candidate_root) > 1 for row_root in row_roots for candidate_root in candidate_roots)
+    return _strategy_has_house_number_conflict(row_address, candidate_address)
 
 
 def assess_place_match(
     row: dict[str, Any],
     candidate: PlaceCandidate,
+    *,
+    name_evaluator: Callable[[NameInputs], NameEvidence] = evaluate_name_evidence,
 ) -> PlaceMatchAssessment:
     """Assess candidate confidence and return signals for debugging."""
 
@@ -605,11 +623,10 @@ def assess_place_match(
     candidate_names = [candidate_name]
     if candidate_subtitle:
         candidate_names.append(candidate_subtitle)
-    name_match = any(
-        _has_confident_name_match(row_name_candidate, candidate_name_candidate)
-        for row_name_candidate in row_names
-        for candidate_name_candidate in candidate_names
+    name_evidence = name_evaluator(
+        build_name_inputs(row_names=row_names, candidate_names=candidate_names)
     )
+    name_match = name_evidence.matched
     located_in_match = bool(candidate_located_in) and any(
         _has_confident_name_match(row_name_candidate, candidate_located_in)
         for row_name_candidate in row_names
@@ -643,48 +660,45 @@ def assess_place_match(
     candidate_postal_codes = _extract_postal_code_tokens(candidate_address)
     postal_code_overlap_tokens = tuple(sorted(row_postal_codes.intersection(candidate_postal_codes)))
 
-    if coordinate_like_candidate_name or address_like_candidate_name:
-        strength: MatchStrength = "weak"
-    elif name_match and house_number_conflict:
-        # Chain restaurants and branch-labeled rows can share a name and city
-        # while pointing to the wrong storefront. A clear house-number conflict
-        # is stronger negative evidence than a city-only name match.
-        strength = "weak"
-    elif name_match:
-        has_street_signal = bool(significant_street_overlap) or has_house_number_anchor
-        if city_in_candidate_address and (has_street_signal or postal_code_overlap_tokens):
-            strength = "strong"
-        elif city_in_candidate_address or postal_code_overlap_tokens or has_street_signal:
-            strength = "medium"
-        elif cuisine_overlap_tokens:
-            strength = "medium"
-        else:
-            strength = "weak"
-    else:
-        if located_in_match:
-            # Reject child businesses that are explicitly "located in" the
-            # Michelin venue when the actual place title did not match.
-            strength = "weak"
-        elif informative_category and not food_service_category:
-            # Shared address is not enough to accept a non-food business such
-            # as a store or retail counter that lives inside the same venue.
-            strength = "weak"
-        elif postal_code_overlap_tokens and (
-            cuisine_overlap_tokens or city_in_candidate_address or significant_location_overlap
-        ):
-            strength = "medium"
-        elif city_in_candidate_address and has_house_number_anchor:
-            # Accept translated/localized names when city + house-number anchors match.
-            strength = "medium"
-        elif cuisine_overlap_tokens and (
-            len(significant_location_overlap) >= 2
-            or (significant_location_overlap and city_in_candidate_address)
-        ):
-            strength = "medium"
-        elif _has_location_anchor(significant_location_overlap):
-            strength = "medium"
-        else:
-            strength = "weak"
+    address_score = 0.0
+    if city_in_candidate_address:
+        address_score += 20.0
+    if has_house_number_anchor:
+        address_score += 40.0
+    if significant_street_overlap:
+        address_score += min(30.0, 8.0 * len(significant_street_overlap))
+    elif significant_location_overlap:
+        address_score += min(20.0, 5.0 * len(significant_location_overlap))
+    if cuisine_overlap_tokens:
+        address_score += 10.0
+    if food_service_category:
+        address_score += 5.0
+
+    veto_reasons: list[str] = []
+    if coordinate_like_candidate_name:
+        veto_reasons.append("coordinate_like_candidate_name")
+    if address_like_candidate_name:
+        veto_reasons.append("address_like_candidate_name")
+    if house_number_conflict and (name_match or address_score >= 30.0):
+        veto_reasons.append("house_number_conflict")
+    if located_in_match and not name_match:
+        veto_reasons.append("located_in_without_title_name")
+    if informative_category and not food_service_category and (not name_match or name_evidence.score < 95.0):
+        veto_reasons.append("non_food_category")
+    if "food_descriptor_conflict" in name_evidence.reasons:
+        veto_reasons.append("food_descriptor_conflict")
+    if name_match and has_cjk_proper_prefix_conflict(name_evidence.row_name, name_evidence.candidate_name):
+        veto_reasons.append("cjk_proper_prefix_conflict")
+
+    features = extract_place_match_features(row, candidate)
+    decision = _get_production_matcher_strategy().decide(features)
+    strength: MatchStrength = decision.strength
+    name_score = max(features.name_similarity, features.alias_similarity)
+    name_match = name_score >= 70.0
+    address_score = features.address_similarity
+    match_score = decision.score
+    hard_veto = features.disqualifier_score >= PRODUCTION_DISQUALIFIER_THRESHOLD
+    veto_reasons = list(features.risk_labels)
 
     return PlaceMatchAssessment(
         strength=strength,
@@ -700,6 +714,12 @@ def assess_place_match(
         located_in_match=located_in_match,
         informative_category=informative_category,
         food_service_category=food_service_category,
+        name_score=name_score,
+        address_score=address_score,
+        match_score=match_score,
+        hard_veto=hard_veto,
+        veto_reasons=tuple(veto_reasons),
+        name_strategy=decision.strategy_id,
     )
 
 
@@ -709,3 +729,9 @@ def classify_place_match(
 ) -> MatchStrength:
     """Classify candidate confidence for one Michelin row."""
     return assess_place_match(row, candidate).strength
+
+
+def _get_production_matcher_strategy() -> WeightedEvidenceStrategy:
+    if PRODUCTION_MATCHER_STRATEGY_ID != WeightedEvidenceStrategy.strategy_id:
+        raise ValueError(f"Unknown production matcher strategy: {PRODUCTION_MATCHER_STRATEGY_ID}")
+    return WeightedEvidenceStrategy(PRODUCTION_MATCHER_CONFIG)

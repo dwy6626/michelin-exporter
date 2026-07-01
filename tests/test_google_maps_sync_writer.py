@@ -216,6 +216,94 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result.added_count_by_level["one-star"], 1)
             self.assertEqual(fake_driver.queries, ["Alpha Taipei", "Alpha"])
 
+    async def test_sync_rows_by_level_checks_later_search_result_candidates_before_next_query(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("imported")
+            writer = self._build_writer(
+                temp_dir,
+                list_name_template="{level}",
+                ignore_existing_lists_check=True,
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="My Maps", level_slugs=("imported",))
+            fake_driver.candidate_results_by_query = {
+                "Alpha Taipei": [
+                    PlaceCandidate(
+                        name="Alpha Hotel",
+                        address="No. 99 Wrong Rd, Taipei City",
+                        category="Hotel",
+                    ),
+                    PlaceCandidate(
+                        name="Alpha",
+                        address="No. 1 Example Street, Taipei City",
+                        category="Taiwanese restaurant",
+                    ),
+                ]
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "imported": [
+                        {
+                            "Name": "Alpha",
+                            "City": "Taipei",
+                            "Address": "No. 1 Example Street",
+                            "Cuisine": "Taiwanese",
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["imported"], 1)
+            self.assertEqual(result.failed_items, ())
+            self.assertEqual(fake_driver.queries, ["Alpha Taipei"])
+            self.assertEqual(len(fake_driver.save_calls), 1)
+
+    async def test_sync_rows_by_level_reports_all_rejected_search_result_candidates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            writer = self._build_writer(
+                temp_dir,
+                list_name_template="{level}",
+                ignore_existing_lists_check=True,
+                on_missing_list="continue",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="My Maps", level_slugs=("imported",))
+            fake_driver.candidate_results_by_query = {
+                "Alpha Bistro Taipei": [
+                    PlaceCandidate(
+                        name="Wrong Alpha",
+                        address="No. 99 Wrong Rd",
+                        category="Restaurant",
+                    ),
+                    PlaceCandidate(
+                        name="Beta Hotel",
+                        address="",
+                        category="Hotel",
+                    ),
+                ]
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "imported": [
+                        {
+                            "Name": "Alpha Bistro",
+                            "City": "Taipei",
+                            "Address": "No. 1 Example Street",
+                            "Cuisine": "Taiwanese",
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["imported"], 0)
+            self.assertEqual(len(result.failed_items), 1)
+            rejected = result.failed_items[0].rejected_candidates
+            self.assertEqual([candidate.name for candidate in rejected], ["Wrong Alpha", "Beta Hotel"])
+
     async def test_sync_rows_by_level_skips_nested_false_positive_and_uses_next_query(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()

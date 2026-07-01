@@ -123,11 +123,18 @@ class TargetResolverTests(unittest.TestCase):
             "https://guide.michelin.com/tw/zh_TW/attica/athens/restaurants",
         )
 
+    def test_resolve_target_taipei_with_traditional_chinese_language_keeps_city_segment(self) -> None:
+        resolved = resolve_target("taipei", language="zh-tw")
+        self.assertEqual(
+            resolved.start_url,
+            "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurants",
+        )
+
     def test_resolve_target_tainan_with_traditional_chinese_language(self) -> None:
         resolved = resolve_target("tainan", language="zh-tw")
         self.assertEqual(
             resolved.start_url,
-            "https://guide.michelin.com/tw/zh_TW/tainan-region/restaurants",
+            "https://guide.michelin.com/tw/zh_TW/tainan-region/tainan/restaurants",
         )
         self.assertEqual(resolved.scope_name, "\u81fa\u5357")
 

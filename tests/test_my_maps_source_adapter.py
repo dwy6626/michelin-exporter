@@ -159,6 +159,29 @@ class MyMapsSourceAdapterTests(unittest.TestCase):
 
         self.assertEqual(result.rows[0]["Aliases"], ("饅頭達人 金獅湖肉包", "金獅湖肉包"))
 
+    def test_parse_kml_adds_spaced_x_separator_aliases_without_splitting_words(self) -> None:
+        kml_text = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Alias Map</name>
+    <Placemark>
+      <name>飯聚 x 貓之回憶</name>
+      <address>806高雄市前鎮區測試路1號</address>
+    </Placemark>
+    <Placemark>
+      <name>Pixie Cafe</name>
+      <address>100臺北市中正區測試路1號</address>
+    </Placemark>
+  </Document>
+</kml>
+"""
+
+        result = parse_my_maps_kml_text(kml_text)
+
+        self.assertEqual(result.rows[0]["Aliases"], ("飯聚 貓之回憶", "貓之回憶"))
+        self.assertNotIn("Aliases", result.rows[1])
+
     def test_parse_kmz_prefers_doc_kml(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             kmz_path = Path(temp_dir) / "map.kmz"

@@ -273,7 +273,7 @@ class RealHtmlMichelinFixtureTests(unittest.TestCase):
 
     def test_target_resolution_keeps_language_specific_path(self) -> None:
         resolved = resolve_target(normalize_target("taipei"), language="zh-tw")
-        self.assertIn("/tw/zh_TW/taipei-region/restaurants", resolved.start_url)
+        self.assertIn("/tw/zh_TW/taipei-region/taipei/restaurants", resolved.start_url)
         self.assertEqual(resolved.scope_name, "臺北")
 
     def test_metadata_language_matches_fixture_variant(self) -> None:

@@ -38,6 +38,12 @@ FIRST_RESULT_SELECTORS = (
     "div[role='feed'] a",
     "div[role='article'] button",
 )
+SEARCH_RESULT_CANDIDATE_SELECTORS = (
+    "div[role='feed'] div[role='article'] a[href*='/maps/place/']",
+    "div[role='feed'] a[href*='/maps/place/']",
+    "div[role='article'] a[href*='/maps/place/']",
+    "a[href*='/maps/place/']",
+)
 PLACE_TITLE_SELECTORS = (
     "h1",
     "h1.fontHeadlineLarge",
