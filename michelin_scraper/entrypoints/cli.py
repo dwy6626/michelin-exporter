@@ -59,6 +59,8 @@ from ..config import (
     MAX_SAVE_RETRIES_OPTION_FLAGS,
     MISSING_LIST_POLICY_CHOICES,
     MY_MAPS_FILE_OPTION_FLAGS,
+    NOTE_FORMAT_OPTION_FLAGS,
+    NOTE_TEMPLATE_OPTION_FLAGS,
     ON_MISSING_LIST_OPTION_FLAGS,
     RECORD_FIXTURES_DIR_OPTION_FLAGS,
     SANDBOX_DEFAULT_MAX_PAGES,
@@ -68,6 +70,7 @@ from ..config import (
     TARGET_OPTION_FLAGS,
 )
 from ..output import ConsoleSyncPresenter
+from ..sources.my_maps_note_formatter import MY_MAPS_NOTE_FORMAT_CHOICES
 
 MISSING_LIST_POLICY_HELP = ", ".join(MISSING_LIST_POLICY_CHOICES)
 LIST_NAME_TEMPLATE_PLACEHOLDERS_HELP = ", ".join(LIST_NAME_TEMPLATE_PLACEHOLDERS)
@@ -608,6 +611,29 @@ def sync_my_maps(
             rich_help_panel=DEVELOPER_DEBUG_OPTIONS_HELP_PANEL,
         ),
     ] = False,
+    note_format: Annotated[
+        str,
+        typer.Option(
+            *NOTE_FORMAT_OPTION_FLAGS,
+            help=(
+                "My Maps note formatting mode. "
+                f"Allowed values: {', '.join(MY_MAPS_NOTE_FORMAT_CHOICES)}. "
+                "Default: raw."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = "raw",
+    note_template: Annotated[
+        str,
+        typer.Option(
+            *NOTE_TEMPLATE_OPTION_FLAGS,
+            help=(
+                "Template used when --note-format=template. "
+                "Use KML description field names in braces, for example: {得獎菜色} | {地區}."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = "",
     record_fixtures_dir: Annotated[
         str,
         typer.Option(
@@ -675,6 +701,16 @@ def sync_my_maps(
         ),
     ] = DEFAULT_LOGIN_TIMEOUT_SECONDS,
 ) -> None:
+    normalized_note_format = note_format.strip().lower()
+    if normalized_note_format not in MY_MAPS_NOTE_FORMAT_CHOICES:
+        allowed = ", ".join(MY_MAPS_NOTE_FORMAT_CHOICES)
+        raise typer.BadParameter(
+            f"Unsupported note format for sync-my-maps: {note_format!r}. "
+            f"Allowed values: {allowed}."
+        )
+    if normalized_note_format == "template" and not note_template.strip():
+        raise typer.BadParameter("--note-template is required when --note-format=template.")
+
     command = ScrapeSyncCommand(
         target="",
         google_user_data_dir=google_user_data_dir,
@@ -682,6 +718,8 @@ def sync_my_maps(
         source=SOURCE_MY_MAPS,
         my_maps_file=my_maps_file,
         my_maps_list_name=list_name,
+        note_format=normalized_note_format,
+        note_template=note_template,
         language=DEFAULT_LANGUAGE,
         state_dir=state_dir,
         ignore_checkpoint=ignore_checkpoint,

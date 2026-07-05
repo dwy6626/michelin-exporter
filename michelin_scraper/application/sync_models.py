@@ -34,6 +34,8 @@ class ScrapeSyncCommand:
     source: str = SOURCE_MICHELIN
     my_maps_file: str = ""
     my_maps_list_name: str = ""
+    note_format: str = "raw"
+    note_template: str = ""
     language: str = DEFAULT_LANGUAGE
     state_dir: str = ""
     ignore_checkpoint: bool = False
@@ -122,6 +124,7 @@ class SyncItemFailure:
     rejected_candidates: tuple[SyncRejectedCandidate, ...] = dataclasses.field(
         default_factory=tuple
     )
+    note_text: str = ""
 
 
 @dataclass(frozen=True)

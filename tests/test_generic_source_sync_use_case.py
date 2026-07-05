@@ -120,6 +120,18 @@ class _FakeSourceAdapter:
 
 
 class GenericSourceSyncUseCaseTests(unittest.TestCase):
+    def test_scrape_sync_command_defaults_note_format_to_raw(self) -> None:
+        command = ScrapeSyncCommand(
+            target="",
+            google_user_data_dir="/tmp/profile",
+            levels=("imported",),
+            source="my-maps",
+            my_maps_file="/tmp/map.kml",
+        )
+
+        self.assertEqual(command.note_format, "raw")
+        self.assertEqual(command.note_template, "")
+
     @patch("michelin_scraper.application.sync_use_case._create_source_adapter")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_sync_core_runs_from_generic_source_adapter(
@@ -233,6 +245,51 @@ class GenericSourceSyncUseCaseTests(unittest.TestCase):
         self.assertEqual(writer.synced_rows[0][1]["Address"], "100臺北市中正區測試路1號")
         self.assertEqual(writer.synced_rows[0][1]["City"], "台北")
         self.assertNotIn("Latitude", writer.synced_rows[0][1])
+
+    @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
+    def test_sync_my_maps_command_propagates_note_format_options(
+        self,
+        mock_create_sync_writer: Mock,
+    ) -> None:
+        writer = _RecordingWriter()
+        mock_create_sync_writer.return_value = writer
+        output = _FakeOutput()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            kml_path = Path(temp_dir) / "map.kml"
+            kml_path.write_text(
+                """\
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Imported Map</name>
+    <Placemark>
+      <name>Alpha</name>
+      <address>100臺北市中正區測試路1號</address>
+      <description>得獎菜色: 春捲</description>
+    </Placemark>
+  </Document>
+</kml>
+""",
+                encoding="utf-8",
+            )
+            command = ScrapeSyncCommand(
+                target="",
+                google_user_data_dir="/tmp/profile",
+                levels=("imported",),
+                source="my-maps",
+                my_maps_file=str(kml_path),
+                note_format="template",
+                note_template="{得獎菜色}",
+                dry_run=False,
+            )
+
+            sync_use_case.run_scrape_sync(command, output)
+
+        called_command = mock_create_sync_writer.call_args.args[0]
+        self.assertEqual(called_command.source, "my-maps")
+        self.assertEqual(called_command.note_format, "template")
+        self.assertEqual(called_command.note_template, "{得獎菜色}")
+        self.assertEqual(writer.synced_rows[0][0], "imported")
 
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")
     def test_my_maps_source_prepare_failure_is_reported_without_maps_writer(

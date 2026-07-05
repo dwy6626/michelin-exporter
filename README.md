@@ -174,6 +174,43 @@ ExtendedData address/city keys, including `address`, `formatted_address`,
 `地址`, `city`, and `地區`. Unnamed placemarks and placemarks without address or
 coordinates are skipped and reported in run warnings.
 
+### My Maps note formatting
+
+`sync-my-maps` does not add Michelin sync metadata such as `updated <date>` to
+saved-place notes. By default it writes parsed KML placemark description fields
+as a single `key: value | key: value` note. If a description has no parseable
+fields, it falls back to the plain description text. My Maps notes are formatted
+as a single line because Google Maps saved-place notes are easier to scan that
+way:
+
+```bash
+uv run python -m michelin_scraper sync-my-maps \
+  --my-maps-file /path/to/my-map.kml \
+  --note-format raw
+```
+
+For 500 Bowls-style maps whose descriptions contain fields such as `總得碗數`,
+`得獎菜色`, `地區`, `菜系`, `推薦評審`, `地址`, `營業時間`, and `電話`, use:
+
+```bash
+uv run python -m michelin_scraper sync-my-maps \
+  --my-maps-file /path/to/500-bowls.kml \
+  --note-format 500bowls
+```
+
+For custom maps, use a template. Template placeholders refer to parsed
+description field names and output values only. Add labels directly in the
+template when needed:
+
+```bash
+uv run python -m michelin_scraper sync-my-maps \
+  --my-maps-file /path/to/my-map.kml \
+  --note-format template \
+  --note-template "{總得碗數}碗 | {得獎菜色} | 菜系: {菜系} | 地址: {地址} | 電話: {電話}"
+```
+
+Missing values are removed and common extra separators are cleaned up.
+
 ## Run State
 
 State files are stored in `--state-dir` (or current directory when omitted):

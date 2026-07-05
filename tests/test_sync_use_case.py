@@ -23,6 +23,7 @@ from michelin_scraper.application.sync_models import (
 )
 from michelin_scraper.application.sync_use_case import (
     AUTH_REQUIRED_EXIT_CODE,
+    _serialize_failed_items,
     run_scrape_sync,
 )
 from michelin_scraper.config import (
@@ -368,6 +369,7 @@ class _FailFastWriterWithDebugHtml(_NoOpWriter):
             restaurant_name="Alpha",
             reason="NoteWriteFailed: unable to verify note",
             attempted_queries=("Alpha Tokyo", "Alpha"),
+            note_text="1碗 | 春捲 | 台式 | 蔣勳",
         )
         raise GoogleMapsRowSyncFailFastError(
             failure=failure,
@@ -383,6 +385,7 @@ class _FailFastWriterWithDebugHtml(_NoOpWriter):
             restaurant_name="Alpha",
             reason="NoteWriteFailed: unable to verify note",
             attempted_queries=("Alpha Tokyo", "Alpha"),
+            note_text="1碗 | 春捲 | 台式 | 蔣勳",
         )
         raise GoogleMapsRowSyncFailFastError(
             failure=failure,
@@ -661,6 +664,22 @@ class SyncUseCaseTests(unittest.TestCase):
             error_report_text = error_report_path.read_text(encoding="utf-8")
             self.assertIn("NoteWriteFailed", error_report_text)
             self.assertIn("one-star::alpha", error_report_text)
+            report_entry = json.loads(error_report_text.splitlines()[0])
+            self.assertEqual(report_entry["note_text"], "1碗 | 春捲 | 台式 | 蔣勳")
+            self.assertIn('"note_text": "1碗 | 春捲 | 台式 | 蔣勳"', error_report_text)
+            self.assertNotIn("\\u6625\\u6372", error_report_text)
+
+            failure = SyncItemFailure(
+                level_slug="imported",
+                row_key="imported::quoted",
+                restaurant_name="Quoted",
+                reason="PlaceNotFound",
+                attempted_queries=("Quoted",),
+                note_text='店名 "Alpha" | 路徑 C:\\temp',
+            )
+            payload = _serialize_failed_items((failure,))[0]
+            encoded = json.dumps(payload, ensure_ascii=False)
+            self.assertEqual(json.loads(encoded)["note_text"], '店名 "Alpha" | 路徑 C:\\temp')
 
     @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")

@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
 
+from bs4 import BeautifulSoup
+
 from ..application.source_models import SourceBucket, SourcePlan, SourceRunHandlers, SourceRunResult
 from ..application.sync_models import ScrapeSyncCommand
 from ..application.sync_ports import SyncOutputPort
@@ -155,9 +157,14 @@ def parse_my_maps_kml_text(kml_text: str) -> MyMapsParseResult:
             unsupported_rows += 1 if point is None else 0
             skipped_rows += 1 if point is not None else 0
             continue
+        description_html = _element_raw_text(_find_direct_child(placemark, "description"))
+        description_text = _strip_html(description_html)
+        description_fields = _extract_description_fields(description_html)
         row: dict[str, Any] = {
             "Name": name,
-            "Description": _strip_html(_element_text(_find_direct_child(placemark, "description"))),
+            "Description": description_text,
+            "DescriptionRawHtml": description_html,
+            "DescriptionFields": description_fields,
             "Address": address,
             "City": city,
         }
@@ -293,6 +300,12 @@ def _element_text(element: ElementTree.Element | None) -> str:
     return " ".join(element.text.split()).strip()
 
 
+def _element_raw_text(element: ElementTree.Element | None) -> str:
+    if element is None or element.text is None:
+        return ""
+    return element.text.strip()
+
+
 def _parse_point_coordinates(coordinates_text: str) -> tuple[float, float] | None:
     first_tuple = coordinates_text.strip().split()[0] if coordinates_text.strip() else ""
     coordinate_parts = first_tuple.split(",")
@@ -350,6 +363,34 @@ def _strip_html(value: str) -> str:
     unescaped = html.unescape(value)
     without_tags = re.sub(r"<[^>]+>", " ", unescaped)
     return " ".join(without_tags.split()).strip()
+
+
+def _extract_description_fields(value: str) -> dict[str, str]:
+    if not value:
+        return {}
+    soup = BeautifulSoup(value, "html.parser")
+    lines: list[str] = []
+    for element in soup.find_all(["div", "p", "li", "tr"]):
+        text = " ".join(element.get_text(" ", strip=True).split())
+        if text:
+            lines.append(text)
+    if not lines:
+        lines = [
+            " ".join(line.split())
+            for line in soup.get_text("\n", strip=True).splitlines()
+            if line.strip()
+        ]
+
+    fields: dict[str, str] = {}
+    for line in lines:
+        key, separator, raw_value = line.partition(":")
+        if not separator:
+            key, separator, raw_value = line.partition("：")
+        normalized_key = " ".join(key.split()).strip()
+        normalized_value = " ".join(raw_value.split()).strip()
+        if normalized_key and normalized_value:
+            fields[normalized_key] = normalized_value
+    return fields
 
 
 def _format_coordinate_query(*, latitude: float, longitude: float) -> str:

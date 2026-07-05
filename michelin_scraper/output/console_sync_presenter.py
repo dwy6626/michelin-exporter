@@ -150,6 +150,8 @@ class ConsoleSyncPresenter:
                     f"{failure.level_slug} | {failure.restaurant_name} | "
                     f"{failure.reason} | {failure.row_key[:12]}"
                 )
+                if failure.note_text:
+                    self._line(f"  Note: {failure.note_text}")
             if len(summary.failed_items) > 20:
                 remaining = len(summary.failed_items) - 20
                 self._line(f"... {remaining} more failures omitted")

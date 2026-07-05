@@ -26,6 +26,8 @@ from michelin_scraper.config import (
     MAX_PAGES_OPTION_FLAGS,
     MAX_ROWS_PER_PAGE_OPTION_FLAGS,
     MY_MAPS_FILE_OPTION_FLAGS,
+    NOTE_FORMAT_OPTION_FLAGS,
+    NOTE_TEMPLATE_OPTION_FLAGS,
     RECORD_FIXTURES_DIR_OPTION_FLAGS,
     SANDBOX_OPTION_FLAGS,
     TARGET_OPTION_FLAGS,
@@ -80,6 +82,16 @@ class MapsCliHelpTests(unittest.TestCase):
         self.assertNotIn(LEVELS_OPTION_FLAGS[0], result.stdout)
         self.assertNotIn(CRAWL_DELAY_OPTION_FLAGS[0], result.stdout)
         self.assertNotIn(MAX_PAGES_OPTION_FLAGS[0], result.stdout)
+
+    def test_sync_my_maps_help_includes_note_format_options(self) -> None:
+        result = self.runner.invoke(app, ["sync-my-maps", "--help"])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn(NOTE_FORMAT_OPTION_FLAGS[0], result.stdout)
+        self.assertIn(NOTE_TEMPLATE_OPTION_FLAGS[0], result.stdout)
+        self.assertIn("raw", result.stdout)
+        self.assertIn("500bowls", result.stdout)
+        self.assertIn("template", result.stdout)
 
     @patch("michelin_scraper.entrypoints.cli.run_scrape_sync")
     def test_sync_michelin_passes_ignore_checkpoint_and_existing_list_flags(
@@ -287,6 +299,10 @@ class MapsCliHelpTests(unittest.TestCase):
                 "/tmp/export.kml",
                 LIST_NAME_OPTION_FLAGS[0],
                 "Taipei Food",
+                NOTE_FORMAT_OPTION_FLAGS[0],
+                "template",
+                NOTE_TEMPLATE_OPTION_FLAGS[0],
+                "{得獎菜色}",
                 MAPS_DELAY_OPTION_FLAGS[0],
                 "0.75",
                 MAPS_PROBE_ONLY_OPTION_FLAGS[0],
@@ -301,9 +317,26 @@ class MapsCliHelpTests(unittest.TestCase):
         self.assertEqual(called_command.levels, ("imported",))
         self.assertEqual(called_command.my_maps_file, "/tmp/export.kml")
         self.assertEqual(called_command.my_maps_list_name, "Taipei Food")
+        self.assertEqual(called_command.note_format, "template")
+        self.assertEqual(called_command.note_template, "{得獎菜色}")
         self.assertEqual(called_command.list_name_template, DEFAULT_MY_MAPS_LIST_NAME_TEMPLATE)
         self.assertEqual(called_command.sync_delay_seconds, 0.75)
         self.assertTrue(called_command.maps_probe_only)
+
+    def test_sync_my_maps_rejects_template_format_without_template(self) -> None:
+        result = self.runner.invoke(
+            app,
+            [
+                "sync-my-maps",
+                MY_MAPS_FILE_OPTION_FLAGS[0],
+                "/tmp/missing.kml",
+                NOTE_FORMAT_OPTION_FLAGS[0],
+                "template",
+            ],
+        )
+
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("--note-template is required", result.output)
 
     @patch("michelin_scraper.entrypoints.cli.run_maps_login")
     @patch("michelin_scraper.entrypoints.cli.run_scrape_sync")

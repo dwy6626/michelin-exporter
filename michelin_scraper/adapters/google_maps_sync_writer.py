@@ -15,6 +15,8 @@ from ..application.place_query_builder import build_place_query_attempts
 from ..application.row_identity import build_row_identity_key
 from ..application.sync_enums import SyncRowStatus
 from ..application.sync_models import (
+    SOURCE_MICHELIN,
+    SOURCE_MY_MAPS,
     SyncBatchResult,
     SyncItemFailure,
     SyncRejectedCandidate,
@@ -24,6 +26,7 @@ from ..catalog import LEVEL_BADGES, LEVEL_LABELS
 from ..config import (
     MISSING_LIST_POLICY_STOP,
 )
+from ..sources.my_maps_note_formatter import build_my_maps_note_text
 from .google_maps_driver import (
     GoogleMapsAuthRequiredError,
     GoogleMapsDriver,
@@ -257,6 +260,9 @@ class GoogleMapsSyncWriter:
         on_row_synced: RowSyncedCallback | None = None,
         initial_synced_row_keys: frozenset[str] = frozenset(),
         probe_only: bool = False,
+        source: str = SOURCE_MICHELIN,
+        note_format: str = "raw",
+        note_template: str = "",
         language: str = "en",
         updated_on: str | None = None,
         state_dir: str = "",
@@ -275,6 +281,9 @@ class GoogleMapsSyncWriter:
         self._on_missing_list = on_missing_list
         self._ignore_existing_lists_check = ignore_existing_lists_check
         self._probe_only = probe_only
+        self._source = source
+        self._note_format = note_format
+        self._note_template = note_template
         self._language = language
         self._updated_on = updated_on or date.today().isoformat()
         self._on_row_synced = on_row_synced
@@ -687,6 +696,20 @@ class GoogleMapsSyncWriter:
         if self._on_row_synced is not None:
             self._on_row_synced(row_key, level_slug, list_name)
 
+    def _build_note_text(self, row: dict[str, Any], *, level_slug: str) -> str:
+        if self._source == SOURCE_MY_MAPS:
+            return build_my_maps_note_text(
+                row,
+                note_format=self._note_format,
+                note_template=self._note_template,
+            )
+        return _build_place_note_text(
+            row,
+            level_slug=level_slug,
+            language=self._language,
+            updated_on=self._updated_on,
+        )
+
     async def _sync_one_row(
         self,
         *,
@@ -702,6 +725,7 @@ class GoogleMapsSyncWriter:
             )
             return _RowSyncOutcome(status=_ROW_STATUS_SKIPPED, failure=None)
 
+        note_text = self._build_note_text(row, level_slug=level_slug)
         attempted_queries: tuple[str, ...] = ()
         last_transient_error: str | None = None
         place_saved_in_prior_attempt = False
@@ -719,6 +743,7 @@ class GoogleMapsSyncWriter:
                     row=row,
                     row_key=row_key,
                     probe_only=probe_only,
+                    note_text=note_text,
                 )
             except GoogleMapsListMissingDuringRunError:
                 if self._on_missing_list == MISSING_LIST_POLICY_STOP:
@@ -763,6 +788,7 @@ class GoogleMapsSyncWriter:
                     restaurant_name=str(row.get("Name", "")),
                     reason=f"SelectorRuntimeFailure: {exc}",
                     attempted_queries=attempted_queries,
+                    note_text=note_text,
                 )
                 await self._invoke_row_failure_callback(failure)
                 return _RowSyncOutcome(
@@ -811,6 +837,7 @@ class GoogleMapsSyncWriter:
                     restaurant_name=str(row.get("Name", "")),
                     reason=f"NoteWriteFailed: {exc}",
                     attempted_queries=attempted_queries,
+                    note_text=note_text,
                 )
                 await self._invoke_row_failure_callback(failure)
                 return _RowSyncOutcome(
@@ -865,6 +892,7 @@ class GoogleMapsSyncWriter:
             restaurant_name=str(row.get("Name", "")),
             reason=f"TransientNavigationError: {last_transient_error or 'retry budget exhausted'}",
             attempted_queries=attempted_queries,
+            note_text=note_text,
         )
         await self._invoke_row_failure_callback(failure)
         return _RowSyncOutcome(
@@ -880,14 +908,9 @@ class GoogleMapsSyncWriter:
         row: dict[str, Any],
         row_key: str,
         probe_only: bool,
+        note_text: str,
     ) -> _RowSyncOutcome:
         attempted_queries = build_place_query_attempts(row)
-        note_text = _build_place_note_text(
-            row,
-            level_slug=level_slug,
-            language=self._language,
-            updated_on=self._updated_on,
-        )
         saw_candidate = False
         saw_matchable_candidate = False
         rejected_candidates: list[SyncRejectedCandidate] = []
@@ -1087,6 +1110,7 @@ class GoogleMapsSyncWriter:
                 reason="SaveActionFailed",
                 attempted_queries=attempted_queries,
                 rejected_candidates=tuple(rejected_candidates),
+                note_text=note_text,
             )
             await self._invoke_row_failure_callback(failure)
             self._debug_log(
@@ -1105,6 +1129,7 @@ class GoogleMapsSyncWriter:
             reason=failure_reason,
             attempted_queries=attempted_queries,
             rejected_candidates=tuple(rejected_candidates),
+            note_text=note_text,
         )
         await self._invoke_row_failure_callback(failure)
         self._debug_log(

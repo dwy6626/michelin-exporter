@@ -103,6 +103,39 @@ _ADDRESS_ONLY_KML_TEXT = """\
 
 
 class MyMapsSourceAdapterTests(unittest.TestCase):
+    def test_parse_kml_preserves_description_html_and_extracts_key_value_fields(self) -> None:
+        kml_text = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>500 Bowls</name>
+    <Placemark>
+      <name>Alpha Spring Rolls</name>
+      <description><![CDATA[
+        <div>總得碗數: 1</div>
+        <div>得獎菜色: 春捲</div>
+        <div>地區: 台東</div>
+        <div>菜系: 台式</div>
+        <div>推薦評審: 蔣勳</div>
+        <div>地址: 950臺東縣台東市正氣路453-1號</div>
+        <div>營業時間: 08:30–19:30</div>
+        <div>電話: 08 933 2520</div>
+      ]]></description>
+      <address>950臺東縣台東市正氣路453-1號</address>
+    </Placemark>
+  </Document>
+</kml>
+"""
+
+        result = parse_my_maps_kml_text(kml_text)
+
+        row = result.rows[0]
+        self.assertIn("<div>總得碗數: 1</div>", row["DescriptionRawHtml"])
+        self.assertEqual(row["DescriptionFields"]["總得碗數"], "1")
+        self.assertEqual(row["DescriptionFields"]["得獎菜色"], "春捲")
+        self.assertEqual(row["DescriptionFields"]["電話"], "08 933 2520")
+        self.assertIn("總得碗數: 1", row["Description"])
+
     def test_parse_kml_namespaces_and_maps_placemark_fields(self) -> None:
         result = parse_my_maps_kml_text(_KML_TEXT)
 

@@ -109,6 +109,9 @@ def _create_sync_writer(
         ignore_existing_lists_check=command.ignore_existing_lists_check,
         on_row_synced=_on_row_synced,
         probe_only=(command.maps_probe_only or bool(command.maps_probe_rows_file)),
+        source=command.source,
+        note_format=command.note_format,
+        note_template=command.note_template,
         language=language,
         state_dir=command.state_dir,
     )
@@ -139,7 +142,7 @@ def _write_error_report(path: Path, failures: Sequence[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file_handle:
         for failure in failures:
-            file_handle.write(json.dumps(failure, ensure_ascii=True) + "\n")
+            file_handle.write(json.dumps(failure, ensure_ascii=False) + "\n")
 
 
 def _serialize_failed_items(
@@ -154,6 +157,7 @@ def _serialize_failed_items(
             "reason": failure.reason,
             "attempted_queries": ", ".join(failure.attempted_queries),
             "attempted_query_list": list(failure.attempted_queries),
+            "note_text": failure.note_text,
         }
         rejected_candidates = [
             _serialize_rejected_candidate(candidate)

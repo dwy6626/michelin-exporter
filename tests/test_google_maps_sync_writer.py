@@ -102,6 +102,146 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             "入選 | 台菜 | 2026-05-01 更新\n經典風味。",
         )
 
+    async def test_sync_rows_by_level_uses_my_maps_raw_note_without_updated_date(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("My Maps|imported")
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=0,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="stop",
+                ignore_existing_lists_check=True,
+                source="my-maps",
+                note_format="raw",
+                note_template="",
+                updated_on="2026-07-04",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="My Maps", level_slugs=("imported",))
+            fake_driver.candidates_by_query = {
+                "Alpha Taitung": PlaceCandidate(
+                    name="Alpha",
+                    address="Taitung",
+                    category="Restaurant",
+                )
+            }
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "imported": [
+                        {
+                            "Name": "Alpha",
+                            "City": "Taitung",
+                            "Description": "總得碗數: 1 得獎菜色: 春捲",
+                            "DescriptionFields": {
+                                "總得碗數": "1",
+                                "得獎菜色": "春捲",
+                            },
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(result.added_count_by_level["imported"], 1)
+            self.assertEqual(fake_driver.save_calls[0][1], "總得碗數: 1 | 得獎菜色: 春捲")
+            self.assertNotIn("updated 2026-07-04", fake_driver.save_calls[0][1])
+
+    async def test_sync_rows_by_level_uses_my_maps_500bowls_note_format(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("My Maps|imported")
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=0,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="stop",
+                ignore_existing_lists_check=True,
+                source="my-maps",
+                note_format="500bowls",
+                note_template="",
+                updated_on="2026-07-04",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="My Maps", level_slugs=("imported",))
+            fake_driver.candidates_by_query = {
+                "Alpha Taitung": PlaceCandidate(
+                    name="Alpha",
+                    address="Taitung",
+                    category="Restaurant",
+                )
+            }
+
+            await writer.sync_rows_by_level(
+                {
+                    "imported": [
+                        {
+                            "Name": "Alpha",
+                            "City": "Taitung",
+                            "DescriptionFields": {
+                                "總得碗數": "1",
+                                "得獎菜色": "春捲",
+                                "電話": "08 933 2520",
+                            },
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(fake_driver.save_calls[0][1], "1碗 | 春捲 | 08 933 2520")
+
+    async def test_sync_rows_by_level_failed_item_includes_note_text_for_manual_recovery(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("My Maps|imported")
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=0,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="continue",
+                ignore_existing_lists_check=True,
+                source="my-maps",
+                note_format="500bowls",
+                note_template="",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="My Maps", level_slugs=("imported",))
+            fake_driver.candidates_by_query = {}
+
+            result = await writer.sync_rows_by_level(
+                {
+                    "imported": [
+                        {
+                            "Name": "Alpha",
+                            "City": "Taitung",
+                            "DescriptionFields": {
+                                "總得碗數": "1",
+                                "得獎菜色": "春捲",
+                                "菜系": "台式",
+                                "推薦評審": "蔣勳",
+                                "地址": "950臺東縣台東市正氣路453-1號",
+                                "電話": "08 933 2520",
+                            },
+                        }
+                    ]
+                }
+            )
+
+            self.assertEqual(len(result.failed_items), 1)
+            self.assertEqual(
+                result.failed_items[0].note_text,
+                "1碗 | 春捲 | 台式 | 蔣勳 | 950臺東縣台東市正氣路453-1號 | 08 933 2520",
+            )
+
     async def test_initialize_run_fails_when_required_list_already_exists_at_startup(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()
@@ -572,6 +712,10 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(captured.exception.failure.restaurant_name, "Alpha")
             self.assertTrue(captured.exception.failure.reason.startswith("NoteWriteFailed:"))
+            self.assertEqual(
+                captured.exception.failure.note_text,
+                "1 Star | Jiangzhe | updated 2026-05-01",
+            )
             self.assertEqual(fake_driver.queries, ["Alpha Taipei"])
             self.assertEqual(captured.exception.added_count_by_level["one-star"], 0)
             self.assertEqual(captured.exception.skipped_count_by_level["one-star"], 0)
@@ -974,6 +1118,11 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(result.failed_items), 1)
             self.assertTrue(result.failed_items[0].reason.startswith("NoteWriteFailed:"))
             self.assertEqual(
+                result.failed_items[0].note_text,
+                "2025 | 1 Star | Jiangzhe | updated 2026-05-01\n"
+                "A vibrant dining room with a skyline view.",
+            )
+            self.assertEqual(
                 fake_driver.save_calls,
                 [
                     (
@@ -1019,6 +1168,10 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(result.failed_items), 1)
             self.assertTrue(result.failed_items[0].reason.startswith("SelectorRuntimeFailure:"))
             self.assertIn("Visible search controls snapshot", result.failed_items[0].reason)
+            self.assertEqual(
+                result.failed_items[0].note_text,
+                "1 Star | Jiangzhe | updated 2026-05-01",
+            )
 
     async def test_sync_rows_by_level_skips_already_saved_place_when_check_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
