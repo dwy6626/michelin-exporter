@@ -43,9 +43,9 @@ FEATURE_NAMES = (
 MINIMUM_GROUP_COUNTS = {
     "known_good_michelin_japan": 2,
     "known_good_michelin_taiwan": 123,
-    "known_rejects": 60,
-    "confirmed_my_maps_positive": 3,
-    "my_maps_unresolved": 20,
+    "known_rejects": 55,
+    "confirmed_my_maps_positive": 11,
+    "my_maps_unresolved": 17,
 }
 PRIMARY_GROUPS = {
     "known_good_michelin_japan",

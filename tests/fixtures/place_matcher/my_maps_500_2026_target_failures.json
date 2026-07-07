@@ -1,0 +1,457 @@
+{
+  "source": ".michelin-state/my-maps-500-2026-maps-sync-errors.jsonl",
+  "rows": [
+    {
+      "restaurant_name": "蒸餃阿姨",
+      "row_key": "7c0979817255d4ec81440976c10c95f8df50b2d9810bcba7b566645fa8f46ce2",
+      "reason": "AmbiguousPlaceMatch",
+      "source_note": "2碗 | 招牌韭菜蒸餃 高麗菜蒸餃 | 台式 | <redacted-reviewer> | 261宜蘭縣頭城鎮南門路12號 | <redacted-phone>",
+      "matcher_row": {
+        "Name": "蒸餃阿姨",
+        "City": "宜蘭",
+        "Address": "261宜蘭縣頭城鎮南門路12號",
+        "Cuisine": ""
+      },
+      "attempted_queries": [
+        "蒸餃阿姨 宜蘭縣頭城鎮",
+        "蒸餃阿姨 南門路12號",
+        "蒸餃阿姨 宜蘭",
+        "蒸餃阿姨",
+        "261宜蘭縣頭城鎮南門路12號"
+      ],
+      "candidate_expectations": [
+        {
+          "expect": "match",
+          "query": "蒸餃阿姨 宜蘭縣頭城鎮",
+          "name": "Steamed dumplings",
+          "address": "No. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+          "category": "餐廳",
+          "subtitle": "蒸餃阿姨",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "蒸餃阿姨 南門路12號",
+          "name": "Steamed dumplings",
+          "address": "No. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+          "category": "餐廳",
+          "subtitle": "蒸餃阿姨",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "蒸餃阿姨 宜蘭",
+          "name": "Steamed dumplings",
+          "address": "No. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+          "category": "餐廳",
+          "subtitle": "蒸餃阿姨",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "蒸餃阿姨",
+          "name": "Steamed dumplings",
+          "address": "No. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+          "category": "餐廳",
+          "subtitle": "蒸餃阿姨",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "261宜蘭縣頭城鎮南門路12號",
+          "name": "No. 12號, Nanmen Rd, Chengnan Village, Toucheng Township",
+          "address": "No. 12號, Nanmen Rd, Chengnan Village, Toucheng Township, Yilan County, 261",
+          "category": "",
+          "subtitle": "",
+          "located_in": ""
+        }
+      ]
+    },
+    {
+      "restaurant_name": "合府小籠湯包",
+      "row_key": "c96ea4f9461a7cc429c494a50c56453c247ba2a58c14ebee23822c1c82a5e157",
+      "reason": "AmbiguousPlaceMatch",
+      "source_note": "1碗 | 蒸高麗菜 | 台式 | <redacted-reviewer> | 106臺北市大安區光復南路180巷13號1樓 | <redacted-phone>",
+      "matcher_row": {
+        "Name": "合府小籠湯包",
+        "City": "台北",
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "Cuisine": ""
+      },
+      "attempted_queries": [
+        "合府小籠湯包 臺北市大安區",
+        "合府小籠湯包 台北",
+        "合府小籠湯包",
+        "106臺北市大安區光復南路180巷13號1樓"
+      ],
+      "candidate_expectations": [
+        {
+          "expect": "match",
+          "query": "合府小籠湯包 臺北市大安區",
+          "name": "合府小籠湯包（光復店）",
+          "address": "106, Taipei City, Da’an District, Zhengsheng Village, Guangfu S Rd, 262-1號1樓",
+          "category": "中菜館",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "合府小籠湯包 台北",
+          "name": "合府小籠湯包（光復店）",
+          "address": "106, Taipei City, Da’an District, Zhengsheng Village, Guangfu S Rd, 262-1號1樓",
+          "category": "中菜館",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "合府小籠湯包",
+          "name": "合府小籠湯包（光復店）",
+          "address": "106, Taipei City, Da’an District, Zhengsheng Village, Guangfu S Rd, 262-1號1樓",
+          "category": "中菜館",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "106臺北市大安區光復南路180巷13號1樓",
+          "name": "合府小籠湯包（光復店）",
+          "address": "106, Taipei City, Da’an District, Zhengsheng Village, Guangfu S Rd, 262-1號1樓",
+          "category": "中菜館",
+          "subtitle": "",
+          "located_in": ""
+        }
+      ]
+    },
+    {
+      "restaurant_name": "豬大郎豬血糕",
+      "row_key": "aee19b70a223d9c38ef87cfc19b66af84c8bc6f0bbff64f57cc7da3a30834b7c",
+      "reason": "AmbiguousPlaceMatch",
+      "source_note": "1碗 | 豬血糕 | 台式 | <redacted-reviewer> | 114臺北市內湖區內湖路一段737巷30號屈臣氏前 | <redacted-phone>",
+      "matcher_row": {
+        "Name": "豬大郎豬血糕",
+        "City": "台北",
+        "Address": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+        "Cuisine": ""
+      },
+      "attempted_queries": [
+        "豬大郎豬血糕 臺北市內湖區",
+        "豬大郎豬血糕 台北",
+        "豬大郎豬血糕",
+        "114臺北市內湖區內湖路一段737巷30號屈臣氏前"
+      ],
+      "candidate_expectations": [
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕 臺北市內湖區",
+          "name": "內湖737巷豬大郎豬血糕(汐止中興店)",
+          "address": "No. 168號, Zhongxing Rd, Zhongxing Village, Xizhi District, New Taipei City, 221",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕 臺北市內湖區",
+          "name": "內湖737豬大郎豬血糕（南機場店）",
+          "address": "No. 117, Alley 5, Lane 315, Section 2, Zhonghua Rd, Zhongqin Village, Zhongzheng District, Taipei City, 100",
+          "category": "Restaurant",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "豬大郎豬血糕 台北",
+          "name": "豬大郎豬血糕",
+          "address": "No. 37號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕 台北",
+          "name": "內湖737巷豬大郎豬血糕(汐止中興店)",
+          "address": "No. 168號, Zhongxing Rd, Zhongxing Village, Xizhi District, New Taipei City, 221",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕 台北",
+          "name": "豬大郎豬血糕（師大直營店）已撤點…抱歉無法再為你們服務好吃的（豬血糕&刈包）",
+          "address": "106209, Taipei City, Da’an District, Longquan Village, Lane 39, Shida Rd, 1號號（側面",
+          "category": "Snack bar",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕 台北",
+          "name": "豬大郎豬血糕（師大直營店）已撤點…抱歉無法再為你們服務好吃的（豬血糕&刈包）",
+          "address": "106209, Taipei City, Da’an District, Longquan Village, Lane 39, Shida Rd, 1號號（側面",
+          "category": "Snack bar",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕 台北",
+          "name": "豬大郎 豬血糕 現打果汁 手搖飲料",
+          "address": "No. 7-1號, Dazhi St, Dazhi Village, Zhongshan District, Taipei City, 10491",
+          "category": "Restaurant",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "豬大郎豬血糕",
+          "name": "豬大郎豬血糕",
+          "address": "No. 37號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕",
+          "name": "內湖737巷豬大郎豬血糕(汐止中興店)",
+          "address": "No. 168號, Zhongxing Rd, Zhongxing Village, Xizhi District, New Taipei City, 221",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕",
+          "name": "豬大郎豬血糕（七堵店）",
+          "address": "No. 2-1號, Chongzhi St, Zhengguang Village, Qidu District, Keelung City, 206",
+          "category": "Night market",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕",
+          "name": "豬大郎 豬血糕 現打果汁 手搖飲料",
+          "address": "No. 7-1號, Dazhi St, Dazhi Village, Zhongshan District, Taipei City, 10491",
+          "category": "Restaurant",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "豬大郎豬血糕",
+          "name": "豬大郎豬血糕",
+          "address": "No. 61號, Tonghua St, Tonghua Village, Da’an District, Taipei City, 106",
+          "category": "Chinese restaurant",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+          "name": "豬大郎豬血糕",
+          "address": "No. 37號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+          "name": "屈臣氏Watsons 港墘門市",
+          "address": "No. 37, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+          "category": "藥房",
+          "subtitle": "屈臣氏 港墘門市",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+          "name": "葉師傅 737蚵仔煎",
+          "address": "No. 30號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+          "name": "內湖-737炸烤之家",
+          "address": "No. 37號, Lane 737, Section 1, Neihu Rd, 內湖區 Neihu District, Taipei City, 114",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": "Located in: Lane 737 Food Street"
+        },
+        {
+          "expect": "weak",
+          "query": "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+          "name": "老家餡餅 內湖737店",
+          "address": "No. 12號, Lane 737, Section 1, Neihu Rd, Gangfu Village, Neihu District, Taipei City, 114",
+          "category": "Hawker stall",
+          "subtitle": "",
+          "located_in": "Located in: Lane 737 Food Street"
+        }
+      ]
+    },
+    {
+      "restaurant_name": "廟口肉圓",
+      "row_key": "94d3de597e7f6c98df81cec3afe704d58b794e579bba1acf0aeb9073b92ef793",
+      "reason": "AmbiguousPlaceMatch",
+      "source_note": "1碗 | 肉圓+豆腐湯 | 台式 | <redacted-reviewer> | 356苗栗後龍鎮三民路120號",
+      "matcher_row": {
+        "Name": "廟口肉圓",
+        "City": "苗栗",
+        "Address": "356苗栗後龍鎮三民路120號",
+        "Cuisine": ""
+      },
+      "attempted_queries": [
+        "廟口肉圓 苗栗後龍鎮",
+        "廟口肉圓 三民路120號",
+        "廟口肉圓 苗栗",
+        "廟口肉圓",
+        "356苗栗後龍鎮三民路120號"
+      ],
+      "candidate_expectations": [
+        {
+          "expect": "match",
+          "query": "廟口肉圓 苗栗後龍鎮",
+          "name": "廟口肉圓",
+          "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "廟口肉圓 三民路120號",
+          "name": "廟口肉圓",
+          "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓 三民路120號",
+          "name": "吉品高雄脆皮肉圓",
+          "address": "No. 172號, Xinmin Rd, Wanli Village, Sanmin District, Kaohsiung City, 807",
+          "category": "台灣餐廳",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓 三民路120號",
+          "name": "廟口肉圓",
+          "address": "No. 79, Zhushan Rd, Zhushan Village, Zhushan Township, Nantou County, 557",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓 三民路120號",
+          "name": "北門口肉圓",
+          "address": "No. 494號, Section 1, Zhongzheng Rd, Xinyi Village, Changhua City, Changhua County, 500",
+          "category": "Taiwanese restaurant",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓 三民路120號",
+          "name": "基肉圓",
+          "address": "No. 11號, Dingqiang St, Dingzhong Village, Sanmin District, Kaohsiung City, 807",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "廟口肉圓 苗栗",
+          "name": "廟口肉圓",
+          "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "廟口肉圓",
+          "name": "廟口肉圓",
+          "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓",
+          "name": "後龍新竹肉圓店",
+          "address": "No. 124, Sanmin Rd, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "熟食店",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓",
+          "name": "金豐玉漿（超人氣芋圓🔥熱/🧊冰甜品）",
+          "address": "356, Miaoli County, Houlong Township, Zhonglong Village, Sanmin Rd, 120號慈雲亭廣場肉圓攤旁",
+          "category": "Ice cream and drink shop",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "match",
+          "query": "廟口肉圓",
+          "name": "廟口肉圓",
+          "address": "No. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "Deli",
+          "subtitle": "",
+          "located_in": ""
+        },
+        {
+          "expect": "weak",
+          "query": "廟口肉圓",
+          "name": "正老牌豐原肉丸",
+          "address": "號, No. 2-7, Lane 167, Zhongzheng Rd, Zhongshan Village, Fengyuan District, Taichung City, 420",
+          "category": "Taiwanese restaurant",
+          "subtitle": "",
+          "located_in": "Located in: Fengyuan Miaodong Night Market"
+        },
+        {
+          "expect": "weak",
+          "query": "356苗栗後龍鎮三民路120號",
+          "name": "No. 120, Sanmin Rd, Zhonglong Village, Houlong Township",
+          "address": "No. 120, Sanmin Rd, Zhonglong Village, Houlong Township, Miaoli County, 356",
+          "category": "",
+          "subtitle": "",
+          "located_in": ""
+        }
+      ]
+    },
+    {
+      "restaurant_name": "福德小館",
+      "row_key": "610ac01463e2ed7471022169021755ff4a098f947ce0652e21e96336c4f66496",
+      "reason": "TransientNavigationError: Timed out waiting for Google Maps search outcome for query '福德小館 馬祖'. Search loading indicator remained visible. Visible search controls snapshot: combobox:q, button:Search, button:Close",
+      "source_note": "1碗 | 炒佛手貝 | 台式 | <redacted-reviewer> | 209連江縣南竿鄉介壽村107-3號 | <redacted-phone>",
+      "matcher_row": {
+        "Name": "福德小館",
+        "City": "馬祖",
+        "Address": "209連江縣南竿鄉介壽村107-3號",
+        "Cuisine": ""
+      },
+      "attempted_queries": [
+        "福德小館 連江縣南竿鄉",
+        "福德小館 馬祖",
+        "福德小館",
+        "209連江縣南竿鄉介壽村107-3號"
+      ],
+      "candidate_expectations": []
+    }
+  ]
+}

@@ -126,7 +126,11 @@ _ALIAS_SEPARATOR_PATTERN = re.compile(r"[()（）［］\[\]{}｛｝/／|｜]")
 _CJK_HOUSE_NUMBER_PATTERN = re.compile(r"(\d+(?:[-之]\d+)?)\s*號")
 _LATIN_HOUSE_NUMBER_PATTERN = re.compile(r"\bno\.?\s*(\d+(?:-\d+)?)\b", re.IGNORECASE)
 _LOW_PRECISION_SOURCE_ADDRESS_PATTERN = re.compile(
-    r"(?:\d+\s*號\s*(?:前|旁|附近|對面)|夜市|市場|門口|入口|附近|對面)"
+    r"(?:\d+\s*號\s*(?:[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaffa-z0-9]{1,16})?"
+    r"(?:前|旁邊|旁|附近|對面|隔壁|門口|入口)|夜市|市場|門口|入口|附近|對面|隔壁|旁邊)"
+)
+_NEARBY_OR_LANDMARK_NAME_PATTERN = re.compile(
+    r"(?:廟口|路口|街口|巷口|夜市|市場|入口|門口|附近|對面)"
 )
 _CJK_ADDRESS_COMPONENT_PATTERN = re.compile(
     r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]{2,}(?:大道|路|街|巷|弄)"
@@ -705,6 +709,16 @@ def extract_place_match_features(
         house_number_match=house_number_match,
     ):
         risk_labels_list.append("short_latin_fuzzy_name_without_place_anchor")
+    if (
+        "house_number_conflict" in risk_labels_list
+        and _has_precise_identity_for_nearby_house_number(
+            row=row,
+            candidate=candidate,
+            source_names=source_names,
+            subtitle_similarity=subtitle_similarity,
+        )
+    ):
+        risk_labels_list.append("strong_nearby_house_number_identity")
     risk_labels = tuple(risk_labels_list)
     return PlaceMatchFeatures(
         name_similarity=name_similarity,
@@ -719,8 +733,13 @@ def extract_place_match_features(
         local_embedding_similarity=0.0,
         risk_score=_score_soft_risks(
             risk_labels,
-            name_similarity=max(name_similarity, alias_similarity),
+            name_similarity=name_similarity,
+            alias_similarity=alias_similarity,
             address_similarity=address_similarity,
+            city_similarity=city_similarity,
+            category_similarity=category_similarity,
+            subtitle_similarity=subtitle_similarity,
+            text_ngram_similarity=text_ngram_similarity,
         ),
         disqualifier_score=_score_disqualifiers(risk_labels),
         risk_labels=risk_labels,
@@ -888,16 +907,113 @@ def _detect_generic_risk_labels(
     return labels
 
 
+def _has_precise_identity_for_nearby_house_number(
+    *,
+    row: Mapping[str, Any],
+    candidate: PlaceCandidateLike,
+    source_names: Sequence[str],
+    subtitle_similarity: float,
+) -> bool:
+    if subtitle_similarity >= 95.0:
+        return True
+    source_compact_names = {_compact_mixed_name(name) for name in source_names if _compact_mixed_name(name)}
+    candidate_compact_name = _compact_mixed_name(candidate.name)
+    if candidate_compact_name in source_compact_names:
+        return _has_nearby_or_landmark_anchor(row)
+    branch_labels = _candidate_branch_labels(candidate.name)
+    if not branch_labels:
+        return False
+    row_context = _compact_mixed_name(
+        " ".join(
+            (
+                str(row.get("Name") or ""),
+                str(row.get("NameLocal") or ""),
+                str(row.get("Address") or ""),
+                str(row.get("City") or ""),
+            )
+        )
+    )
+    return any(_compact_mixed_name(label) in row_context for label in branch_labels if _compact_mixed_name(label))
+
+
+def _has_nearby_or_landmark_anchor(row: Mapping[str, Any]) -> bool:
+    row_address = str(row.get("Address") or "")
+    if _has_low_precision_source_address(row_address):
+        return True
+    row_name_context = " ".join((str(row.get("Name") or ""), str(row.get("NameLocal") or "")))
+    return bool(_NEARBY_OR_LANDMARK_NAME_PATTERN.search(row_name_context))
+
+
+def _candidate_branch_labels(candidate_name: str) -> tuple[str, ...]:
+    labels: list[str] = []
+    for content in re.findall(r"[（(]([^）)]{1,12})[）)]", candidate_name):
+        label = _normalize_branch_label(content)
+        if label:
+            labels.append(label)
+    for content in re.findall(r"[-－—]\s*([\u3400-\u9fff]{1,8})(?:直營)?店", candidate_name):
+        label = _normalize_branch_label(content)
+        if label:
+            labels.append(label)
+    return tuple(labels)
+
+
+def _normalize_branch_label(value: str) -> str:
+    label = re.sub(r"(?:直營)?(?:本|分)?店$", "", value.strip())
+    label = label.strip()
+    if label in {"", "本", "總", "直營"}:
+        return ""
+    return label
+
+
+def _has_strong_identity_for_nearby_house_number(
+    *,
+    name_similarity: float,
+    alias_similarity: float,
+    category_similarity: float,
+    address_similarity: float,
+    city_similarity: float,
+    subtitle_similarity: float,
+    text_ngram_similarity: float,
+) -> bool:
+    identity_score = max(name_similarity, alias_similarity, subtitle_similarity)
+    if identity_score < 95.0:
+        return False
+    if category_similarity < 90.0:
+        return False
+    if city_similarity < 70.0 and address_similarity < 25.0:
+        return False
+    if address_similarity < 25.0 and text_ngram_similarity < 20.0:
+        return False
+    return True
+
+
 def _score_soft_risks(
     risk_labels: Sequence[str],
     *,
     name_similarity: float,
+    alias_similarity: float,
     address_similarity: float,
+    city_similarity: float,
+    category_similarity: float,
+    subtitle_similarity: float,
+    text_ngram_similarity: float,
 ) -> float:
     score = 0.0
+    identity_similarity = max(name_similarity, alias_similarity, subtitle_similarity)
+    has_precise_nearby_identity = "strong_nearby_house_number_identity" in risk_labels
     for label in risk_labels:
         if label == "house_number_conflict":
-            if name_similarity >= 95.0 and address_similarity < 45.0:
+            if has_precise_nearby_identity and _has_strong_identity_for_nearby_house_number(
+                name_similarity=name_similarity,
+                alias_similarity=alias_similarity,
+                category_similarity=category_similarity,
+                address_similarity=address_similarity,
+                city_similarity=city_similarity,
+                subtitle_similarity=subtitle_similarity,
+                text_ngram_similarity=text_ngram_similarity,
+            ):
+                score += 12.0
+            elif identity_similarity >= 95.0 and address_similarity < 45.0:
                 score += 85.0
             elif address_similarity < 45.0:
                 score += 28.0
@@ -906,9 +1022,9 @@ def _score_soft_risks(
         elif label == "cjk_proper_prefix_conflict":
             score += 12.0
         elif label == "food_descriptor_conflict":
-            if name_similarity < 70.0:
+            if identity_similarity < 70.0:
                 score += 75.0
-            elif name_similarity >= 95.0 and address_similarity >= 30.0:
+            elif identity_similarity >= 95.0 and address_similarity >= 30.0:
                 score += 8.0
             else:
                 score += 35.0

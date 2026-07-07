@@ -1,6 +1,10 @@
 """Tests for Google Maps place matching heuristics."""
 
+import json
+import re
 import unittest
+from pathlib import Path
+from typing import Any
 
 from michelin_scraper.application.place_matcher import (
     PlaceCandidate,
@@ -8,8 +12,35 @@ from michelin_scraper.application.place_matcher import (
     classify_place_match,
 )
 
+TARGET_FAILURES_PATH = Path(__file__).parent / "fixtures" / "place_matcher" / "my_maps_500_2026_target_failures.json"
+TARGET_FIXTURE_PHONE_PATTERN = re.compile(
+    r"(?:09[0-9]{2}[ -]?[0-9]{3}[ -]?[0-9]{3}|0[2-8][ -]?[0-9]{3,4}[ -]?[0-9]{3,4}|\+886)"
+)
+
+
+def _load_target_failure_rows() -> list[dict[str, Any]]:
+    payload = json.loads(TARGET_FAILURES_PATH.read_text(encoding="utf-8"))
+    return list(payload["rows"])
+
+
+def _matcher_row_from_fixture(failure_row: dict[str, Any]) -> dict[str, str]:
+    matcher_row = dict(failure_row["matcher_row"])
+    return {str(key): str(value) for key, value in matcher_row.items()}
+
 
 class PlaceMatcherTests(unittest.TestCase):
+    def test_target_failure_fixture_redacts_source_note_reviewer_and_phone(self) -> None:
+        for failure_row in _load_target_failure_rows():
+            with self.subTest(restaurant=failure_row["restaurant_name"]):
+                note = str(failure_row["source_note"])
+                fields = [field.strip() for field in note.split("|")]
+
+                self.assertGreaterEqual(len(fields), 5)
+                self.assertEqual(fields[3], "<redacted-reviewer>")
+                self.assertIsNone(TARGET_FIXTURE_PHONE_PATTERN.search(note))
+                if len(fields) >= 6:
+                    self.assertEqual(fields[-1], "<redacted-phone>")
+
     def test_assess_place_match_strong_when_name_and_location_overlap(self) -> None:
         row = {
             "Name": "Alpha",
@@ -615,6 +646,34 @@ class PlaceMatcherTests(unittest.TestCase):
 
         self.assertFalse(assessment.name_match)
         self.assertEqual(assessment.strength, "weak")
+
+    def test_failure_report_candidates_follow_expected_match_outcomes(self) -> None:
+        for failure_row in _load_target_failure_rows():
+            restaurant_name = str(failure_row["restaurant_name"])
+            row = _matcher_row_from_fixture(failure_row)
+            for candidate_payload in failure_row.get("candidate_expectations", ()):
+                candidate = PlaceCandidate(
+                    name=str(candidate_payload["name"]),
+                    address=str(candidate_payload["address"]),
+                    category=str(candidate_payload.get("category", "")),
+                    subtitle=str(candidate_payload.get("subtitle", "")),
+                    located_in=str(candidate_payload.get("located_in", "")),
+                )
+                expectation = candidate_payload["expect"]
+
+                with self.subTest(
+                    restaurant=restaurant_name,
+                    query=candidate_payload.get("query", ""),
+                    candidate=candidate.name,
+                    address=candidate.address,
+                ):
+                    assessment = assess_place_match(row, candidate)
+                    if expectation == "match":
+                        self.assertNotEqual(assessment.strength, "weak")
+                    elif expectation == "weak":
+                        self.assertEqual(assessment.strength, "weak")
+                    else:
+                        self.fail(f"Unknown expectation: {expectation}")
 
 
 if __name__ == "__main__":

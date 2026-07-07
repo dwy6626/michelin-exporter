@@ -911,6 +911,8 @@ class GoogleMapsSyncWriter:
         note_text: str,
     ) -> _RowSyncOutcome:
         attempted_queries = build_place_query_attempts(row)
+        transient_errors: list[str] = []
+        completed_query_count = 0
         saw_candidate = False
         saw_matchable_candidate = False
         rejected_candidates: list[SyncRejectedCandidate] = []
@@ -1007,10 +1009,29 @@ class GoogleMapsSyncWriter:
                 accepted_match_strength = match_strength
                 return True
 
-            candidate = await self._driver.search_and_open_first_acceptable_result(
-                query,
-                accept_candidate,
-            )
+            try:
+                candidate = await self._driver.search_and_open_first_acceptable_result(
+                    query,
+                    accept_candidate,
+                )
+            except GoogleMapsTransientError as exc:
+                _tq1 = monotonic()
+                transient_errors.append(f"{query}: {exc}")
+                self._debug_log(
+                    f"[timing] search_and_match: {(_tq1-_tq0)*1000:.0f}ms  "
+                    f"query={query!r}  result=transient_error"
+                )
+                self._debug_log(
+                    f"Transient Maps error on query '{query}' for row '{_row_name}': {exc}. "
+                    "Trying the next query."
+                )
+                await self._capture_debug_snapshot(
+                    context="transient-query-error",
+                    row_name=_row_name,
+                )
+                await self._driver.open_maps_home()
+                continue
+            completed_query_count += 1
             _tq1 = monotonic()
 
             if candidate is None:
@@ -1101,6 +1122,9 @@ class GoogleMapsSyncWriter:
                 f"[timing] TOTAL sync_one_row: {(monotonic()-_t_row_start)*1000:.0f}ms  name={_row_name!r}  outcome=added"
             )
             return _RowSyncOutcome(status=_ROW_STATUS_ADDED, failure=None)
+
+        if transient_errors and completed_query_count == 0:
+            raise GoogleMapsTransientError("; ".join(transient_errors))
 
         if saw_matchable_candidate:
             failure = SyncItemFailure(

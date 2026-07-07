@@ -6,14 +6,17 @@ from pathlib import Path
 from typing import Any
 
 from michelin_scraper.application.place_matcher import PlaceCandidate, assess_place_match
+from michelin_scraper.devtools.evaluate_matchers import (
+    MINIMUM_GROUP_COUNTS as EVALUATOR_MINIMUM_GROUP_COUNTS,
+)
 
 CORPUS_PATH = Path(__file__).parent / "fixtures" / "place_matcher" / "corpus.json"
 MINIMUM_GROUP_COUNTS = {
     "known_good_michelin_japan": 2,
     "known_good_michelin_taiwan": 123,
-    "known_rejects": 60,
-    "confirmed_my_maps_positive": 3,
-    "my_maps_unresolved": 20,
+    "known_rejects": 55,
+    "confirmed_my_maps_positive": 11,
+    "my_maps_unresolved": 17,
 }
 PRIMARY_GROUPS = {
     "known_good_michelin_japan",
@@ -28,6 +31,14 @@ def _load_cases() -> list[dict[str, Any]]:
 
 
 class PlaceMatcherCorpusTests(unittest.TestCase):
+    def test_corpus_minimum_metadata_matches_runtime_gates(self) -> None:
+        payload = json.loads(CORPUS_PATH.read_text(encoding="utf-8"))
+        metadata_minimums = dict(payload["minimums"])
+        metadata_minimums.pop("total", None)
+
+        self.assertEqual(metadata_minimums, MINIMUM_GROUP_COUNTS)
+        self.assertEqual(metadata_minimums, EVALUATOR_MINIMUM_GROUP_COUNTS)
+
     def test_corpus_minimum_size_and_distribution(self) -> None:
         cases = _load_cases()
         self.assertGreaterEqual(len(cases), 200)

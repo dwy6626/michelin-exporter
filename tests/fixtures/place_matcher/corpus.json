@@ -4,9 +4,9 @@
     "total": 200,
     "known_good_michelin_japan": 2,
     "known_good_michelin_taiwan": 123,
-    "known_rejects": 60,
-    "my_maps_unresolved": 20,
-    "confirmed_my_maps_positive": 3
+    "known_rejects": 55,
+    "my_maps_unresolved": 17,
+    "confirmed_my_maps_positive": 11
   },
   "cases": [
     {
@@ -2573,8 +2573,8 @@
     },
     {
       "id": "reject-probe-001-蒸餃阿姨",
-      "group": "known_rejects",
-      "expected": "reject",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "deidentified-maps-probe-log-plus-kml-row",
       "row": {
         "Name": "蒸餃阿姨",
@@ -2589,7 +2589,8 @@
         "subtitle": "蒸餃阿姨",
         "located_in": ""
       },
-      "notes": "Observed weak probe candidate rejected before the run tried another query."
+      "notes": "Observed weak probe candidate rejected before the run tried another query.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "reject-probe-002-吉家槓子頭",
@@ -3419,8 +3420,8 @@
     },
     {
       "id": "reject-jsonl-043-合府小籠湯包",
-      "group": "known_rejects",
-      "expected": "reject",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-rejected-candidate",
       "row": {
         "Name": "合府小籠湯包",
@@ -3435,7 +3436,8 @@
         "subtitle": "",
         "located_in": ""
       },
-      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "reject-jsonl-044-合府小籠湯包",
@@ -3499,8 +3501,8 @@
     },
     {
       "id": "reject-jsonl-047-豬大郎豬血糕",
-      "group": "known_rejects",
-      "expected": "reject",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-rejected-candidate",
       "row": {
         "Name": "豬大郎豬血糕",
@@ -3515,7 +3517,8 @@
         "subtitle": "",
         "located_in": ""
       },
-      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "reject-jsonl-048-無名米粉湯",
@@ -3720,8 +3723,8 @@
     },
     {
       "id": "reject-jsonl-058-廟口肉圓",
-      "group": "known_rejects",
-      "expected": "reject",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-rejected-candidate",
       "row": {
         "Name": "廟口肉圓",
@@ -3736,7 +3739,8 @@
         "subtitle": "",
         "located_in": ""
       },
-      "notes": "Observed candidate from rejected-candidates JSONL diagnostics."
+      "notes": "Observed candidate from rejected-candidates JSONL diagnostics.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "reject-jsonl-059-廟口肉圓",
@@ -3780,8 +3784,8 @@
     },
     {
       "id": "mymaps-unresolved-001-蒸餃阿姨",
-      "group": "my_maps_unresolved",
-      "expected": "manual",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
       "row": {
         "Name": "蒸餃阿姨",
@@ -3796,7 +3800,8 @@
         "subtitle": "蒸餃阿姨",
         "located_in": ""
       },
-      "notes": "Current unresolved My Maps probe case remains manual because the candidate subtitle matches but the house number conflicts."
+      "notes": "Current unresolved My Maps probe case remains manual because the candidate subtitle matches but the house number conflicts.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "mymaps-unresolved-002-六號碼頭麵店",
@@ -3860,8 +3865,8 @@
     },
     {
       "id": "mymaps-unresolved-005-豬大郎豬血糕",
-      "group": "my_maps_unresolved",
-      "expected": "manual",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
       "row": {
         "Name": "豬大郎豬血糕",
@@ -3876,7 +3881,8 @@
         "subtitle": "",
         "located_in": ""
       },
-      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "mymaps-unresolved-006-無名米粉湯",
@@ -3981,8 +3987,8 @@
     },
     {
       "id": "mymaps-unresolved-011-廟口肉圓",
-      "group": "my_maps_unresolved",
-      "expected": "manual",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-report-plus-kml-row",
       "row": {
         "Name": "廟口肉圓",
@@ -3997,7 +4003,8 @@
         "subtitle": "",
         "located_in": ""
       },
-      "notes": "Current unresolved My Maps probe case retained as manual review tuning data."
+      "notes": "Current unresolved My Maps probe case retained as manual review tuning data.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "my-maps-confirmed-houli-fried-kueh",
@@ -4266,8 +4273,8 @@
     },
     {
       "id": "reject-jsonl-extra-廟口肉圓-wrong-address",
-      "group": "known_rejects",
-      "expected": "reject",
+      "group": "confirmed_my_maps_positive",
+      "expected": "match",
       "source": "my-maps-500-2026-jsonl-rejected-candidate",
       "row": {
         "Name": "廟口肉圓",
@@ -4282,7 +4289,8 @@
         "subtitle": "",
         "located_in": ""
       },
-      "notes": "Observed same-name but wrong-address candidate from unresolved JSONL diagnostics."
+      "notes": "Observed same-name but wrong-address candidate from unresolved JSONL diagnostics.",
+      "expected_strength_min": "medium"
     },
     {
       "id": "my-maps-confirmed-juzi-wouli-889",

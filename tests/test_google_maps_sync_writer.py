@@ -1,5 +1,6 @@
 """Tests for Google Maps sync writer policy behavior."""
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -19,6 +20,16 @@ from michelin_scraper.adapters.google_maps_sync_writer import (
 )
 from michelin_scraper.application.place_matcher import PlaceCandidate
 from tests.fakes import FakeDriver
+
+TARGET_FAILURES_PATH = Path("tests/fixtures/place_matcher/my_maps_500_2026_target_failures.json")
+
+
+def _load_target_failure_row(restaurant_name: str) -> dict[str, object]:
+    payload = json.loads(TARGET_FAILURES_PATH.read_text(encoding="utf-8"))
+    for row in payload["rows"]:
+        if row["restaurant_name"] == restaurant_name:
+            return row
+    raise AssertionError(f"Missing target failure row: {restaurant_name}")
 
 
 class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
@@ -574,7 +585,7 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(rejected_candidate.house_number_conflict)
             self.assertIn("首烏 New Taipei, 臺灣", fake_driver.queries)
 
-    async def test_sync_rows_by_level_rejects_address_only_name_mismatch_and_uses_next_query(self) -> None:
+    async def test_sync_rows_by_level_skips_address_only_for_named_row_and_uses_next_query(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_driver = FakeDriver()
             fake_driver.openable_lists.add("Taiwan|selected")
@@ -621,7 +632,6 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
                     "首烏 民族路27號",
                     "首烏 New Taipei, 臺灣",
                     "首烏",
-                    "板橋區民族路27號",
                     "首烏 客家菜 板橋區",
                 ],
             )
@@ -902,6 +912,98 @@ class GoogleMapsSyncWriterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result.skipped_count_by_level["bib-gourmand"], 0)
             self.assertEqual(search_call_count, 1)
             self.assertEqual(save_call_count, 1)
+
+    async def test_sync_rows_by_level_continues_real_fude_xiaoguan_queries_after_transient(self) -> None:
+        failure_row = _load_target_failure_row("福德小館")
+        attempted_queries = [
+            query
+            for query in failure_row["attempted_queries"]
+            if query != "209連江縣南竿鄉介壽村107-3號"
+        ]
+        row = dict(failure_row["matcher_row"])  # type: ignore[arg-type]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("500碗2026|imported")
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=0,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="continue",
+                ignore_existing_lists_check=True,
+                source="my-maps",
+                note_format="500bowls",
+                note_template="",
+                updated_on="2026-07-04",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="500碗2026", level_slugs=("imported",))
+
+            async def search_with_one_real_transient(query: str) -> PlaceCandidate | None:
+                fake_driver.queries.append(query)
+                if query == "福德小館 馬祖":
+                    raise GoogleMapsTransientError(
+                        "Timed out waiting for Google Maps search outcome for query '福德小館 馬祖'"
+                    )
+                return None
+
+            fake_driver.search_and_open_first_result = search_with_one_real_transient  # type: ignore[method-assign]
+
+            result = await writer.sync_rows_by_level({"imported": [row]})
+
+            self.assertEqual(fake_driver.queries, attempted_queries)
+            self.assertNotIn("209連江縣南竿鄉介壽村107-3號", fake_driver.queries)
+            self.assertEqual(result.added_count_by_level["imported"], 0)
+            self.assertEqual(len(result.failed_items), 1)
+            self.assertNotIn("TransientNavigationError", result.failed_items[0].reason)
+
+    async def test_sync_rows_by_level_preserves_transient_failure_when_all_real_fude_queries_timeout(self) -> None:
+        failure_row = _load_target_failure_row("福德小館")
+        attempted_queries = [
+            query
+            for query in failure_row["attempted_queries"]
+            if query != "209連江縣南竿鄉介壽村107-3號"
+        ]
+        row = dict(failure_row["matcher_row"])  # type: ignore[arg-type]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_driver = FakeDriver()
+            fake_driver.openable_lists.add("500碗2026|imported")
+            writer = GoogleMapsSyncWriter(
+                user_data_dir=Path(temp_dir) / "profile",
+                headless=True,
+                sync_delay_seconds=0,
+                max_save_retries=0,
+                list_name_template="{scope}|{level}",
+                list_name_prefix="",
+                on_missing_list="continue",
+                ignore_existing_lists_check=True,
+                source="my-maps",
+                note_format="500bowls",
+                note_template="",
+                updated_on="2026-07-04",
+                driver=fake_driver,
+            )
+            await writer.initialize_run(scope_name="500碗2026", level_slugs=("imported",))
+
+            async def search_with_real_transient(query: str) -> PlaceCandidate | None:
+                fake_driver.queries.append(query)
+                raise GoogleMapsTransientError(
+                    f"Timed out waiting for Google Maps search outcome for query {query!r}"
+                )
+
+            fake_driver.search_and_open_first_result = search_with_real_transient  # type: ignore[method-assign]
+
+            result = await writer.sync_rows_by_level({"imported": [row]})
+
+            self.assertEqual(fake_driver.queries, attempted_queries)
+            self.assertNotIn("209連江縣南竿鄉介壽村107-3號", fake_driver.queries)
+            self.assertEqual(result.added_count_by_level["imported"], 0)
+            self.assertEqual(len(result.failed_items), 1)
+            self.assertIn("TransientNavigationError", result.failed_items[0].reason)
 
     async def test_sync_rows_by_level_refreshes_maps_before_retrying_transient_save_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -117,12 +117,13 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
             attempts.append(_build_text(name_local, cuisine, city))
 
     # Primary name combinations
-    if local_area_hint:
-        attempts.append(_build_text(name, local_area_hint))
-    if street_house_hint:
-        attempts.append(_build_text(name, street_house_hint))
-    attempts.append(_build_text(name, city))
-    attempts.append(_build_text(name))
+    if name:
+        if local_area_hint:
+            attempts.append(_build_text(name, local_area_hint))
+        if street_house_hint:
+            attempts.append(_build_text(name, street_house_hint))
+        attempts.append(_build_text(name, city))
+        attempts.append(_build_text(name))
 
     for alias in aliases:
         if local_area_hint:
@@ -132,8 +133,11 @@ def build_place_query_attempts(row: dict[str, Any]) -> tuple[str, ...]:
         attempts.append(_build_text(alias, city))
         attempts.append(_build_text(alias))
 
+    has_identity_anchor = bool(name or name_local or aliases)
+
     attempts.append(coordinate_query)
-    attempts.append(_build_text(address))
+    if not has_identity_anchor:
+        attempts.append(_build_text(address))
     if cuisine:
         if local_area_hint:
             attempts.append(_build_text(name, cuisine, local_area_hint))

@@ -24,7 +24,6 @@ class PlaceQueryBuilderTests(unittest.TestCase):
                 "Alpha Taipei",
                 "Alpha",
                 "25.033,121.5654",
-                "No. 1 Example Street",
                 "Alpha Taiwanese Taipei",
             ),
         )
@@ -46,7 +45,6 @@ class PlaceQueryBuilderTests(unittest.TestCase):
                 "首烏 民族路27號",
                 "首烏 New Taipei, 臺灣",
                 "首烏",
-                "板橋區民族路27號",
                 "首烏 客家菜 板橋區",
                 "首烏 客家菜 New Taipei, 臺灣",
             ),
@@ -117,11 +115,9 @@ class PlaceQueryBuilderTests(unittest.TestCase):
         attempts = build_place_query_attempts(row)
 
         self.assertEqual(attempts[0], "饅頭達人｜金獅湖肉包 高雄市三民區")
-        self.assertLess(
-            attempts.index("金獅湖肉包 高雄市三民區"),
-            attempts.index("807高雄市三民區鼎金後路45號"),
-        )
+        self.assertIn("金獅湖肉包 高雄市三民區", attempts)
         self.assertIn("金獅湖肉包 鼎金後路45號", attempts)
+        self.assertNotIn("807高雄市三民區鼎金後路45號", attempts)
 
     def test_build_place_query_attempts_uses_street_house_before_city_for_branch_chains(self) -> None:
         row = {
@@ -174,9 +170,70 @@ class PlaceQueryBuilderTests(unittest.TestCase):
             (
                 "Alpha Taipei",
                 "Alpha",
-                "No. 1 Example Street",
             ),
         )
+
+    def test_build_place_query_attempts_skips_pure_address_for_real_named_failure_rows(self) -> None:
+        cases = (
+            (
+                "蒸餃阿姨",
+                "宜蘭",
+                "261宜蘭縣頭城鎮南門路12號",
+                ("蒸餃阿姨 宜蘭縣頭城鎮", "蒸餃阿姨 南門路12號", "蒸餃阿姨 宜蘭", "蒸餃阿姨"),
+            ),
+            (
+                "合府小籠湯包",
+                "台北",
+                "106臺北市大安區光復南路180巷13號1樓",
+                ("合府小籠湯包 臺北市大安區", "合府小籠湯包 台北", "合府小籠湯包"),
+            ),
+            (
+                "豬大郎豬血糕",
+                "台北",
+                "114臺北市內湖區內湖路一段737巷30號屈臣氏前",
+                ("豬大郎豬血糕 臺北市內湖區", "豬大郎豬血糕 台北", "豬大郎豬血糕"),
+            ),
+            (
+                "廟口肉圓",
+                "苗栗",
+                "356苗栗後龍鎮三民路120號",
+                ("廟口肉圓 苗栗後龍鎮", "廟口肉圓 三民路120號", "廟口肉圓 苗栗", "廟口肉圓"),
+            ),
+            (
+                "福德小館",
+                "馬祖",
+                "209連江縣南竿鄉介壽村107-3號",
+                ("福德小館 連江縣南竿鄉", "福德小館 馬祖", "福德小館"),
+            ),
+        )
+
+        for name, city, address, expected_attempts in cases:
+            with self.subTest(name=name):
+                attempts = build_place_query_attempts(
+                    {
+                        "Name": name,
+                        "City": city,
+                        "Address": address,
+                        "Cuisine": "",
+                    }
+                )
+
+                self.assertEqual(attempts, expected_attempts)
+                self.assertNotIn(address, attempts)
+
+    def test_build_place_query_attempts_keeps_address_only_for_rows_without_identity_anchor(self) -> None:
+        row = {
+            "Name": "",
+            "NameLocal": "",
+            "Aliases": (),
+            "City": "",
+            "Address": "209連江縣南竿鄉介壽村107-3號",
+            "Cuisine": "",
+        }
+
+        attempts = build_place_query_attempts(row)
+
+        self.assertEqual(attempts, ("209連江縣南竿鄉介壽村107-3號",))
 
 
 if __name__ == "__main__":
