@@ -28,6 +28,12 @@ Install developer dependencies:
 uv sync --extra dev
 ```
 
+Enable local git hooks for this checkout:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Lint Flow
 
 Auto-fix lint issues first:
@@ -76,6 +82,12 @@ Fixture files are stored under:
 Each fixture has a metadata sidecar (`*.metadata.json`) with capture scenario,
 language, and `sanitized=true`.
 
+Run the local fixture safety gate before committing fixture changes:
+
+```bash
+make fixture-safety
+```
+
 ### Importing New Real HTML Fixtures
 
 Use the fixture import tool to convert raw snapshots into de-identified fixture
@@ -91,7 +103,10 @@ uv run python tools/import_real_html_fixture.py \
 ```
 
 The importer refuses to write output if sensitive markers remain after
-redaction (email/token/cookie/user-path).
+redaction. The local scanner blocks emails, token/cookie values, local user
+paths, Google account names or labels, and Google account avatar URLs. Public
+Google Maps reviewer names, contribution IDs, and public reviewer avatar URLs
+are allowed.
 
 Batch import every HTML snapshot in a debug directory:
 
@@ -101,6 +116,17 @@ uv run python tools/import_real_html_fixture.py \
   --fixture-set google_maps \
   --captured-at 2026-02-17
 ```
+
+Clean and verify existing fixture files:
+
+```bash
+uv run python -m michelin_scraper.devtools.redact_fixture_files
+uv run python tools/scan_sensitive_fixtures.py --all
+uv run python tools/scan_sensitive_git_history.py
+```
+
+See `docs/security/fixture-data-safety.md` for the full local gate and history
+cleanup procedure.
 
 ## Direct Maps Probe (No Crawl)
 

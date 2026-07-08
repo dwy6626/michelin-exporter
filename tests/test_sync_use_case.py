@@ -12,7 +12,10 @@ from michelin_scraper.adapters.google_maps_driver import (
     GoogleMapsListAlreadyExistsError,
 )
 from michelin_scraper.adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
-from michelin_scraper.application.html_redaction import redact_html_text
+from michelin_scraper.application.html_redaction import (
+    find_unredacted_sensitive_markers,
+    redact_html_text,
+)
 from michelin_scraper.application.sync_enums import SyncRowStatus
 from michelin_scraper.application.sync_models import (
     ScrapeSyncCommand,
@@ -1394,8 +1397,13 @@ class SyncUseCaseTests(unittest.TestCase):
             "url=https://maps.google.com/?access_token=secrettoken "
             "escaped=https://maps.google.com/?center=1,2&amp;key=AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0 "
             "path=/Users/testuser/.michelin-gmaps-profile "
+            "avatar=https://lh3.googleusercontent.com/ogw/ACCOUNT_AVATAR_TOKEN=s64-c "
             '<div class="gb_g">Example Account</div> '
             '<a aria-label="Google Account: Example Account  person@example.com">'
+            "<script>"
+            '"Google Account: Sample Local Account\\u0026#10;sample.local@example.com";'
+            '"Sample Local Account\\u003c/div\\u003e\\u003cdiv\\u003esample.local@example.com";'
+            "</script>"
             "</body></html>"
         )
 
@@ -1407,13 +1415,23 @@ class SyncUseCaseTests(unittest.TestCase):
         self.assertNotIn("AIzaSyBoYjeRtfVI0Jd8Q_9mnflo9i4sOYpShB0", redacted_html)
         self.assertNotIn("/Users/testuser", redacted_html)
         self.assertNotIn("Example Account", redacted_html)
+        self.assertNotIn("ACCOUNT_AVATAR_TOKEN", redacted_html)
+        self.assertNotIn("Sample Local Account", redacted_html)
+        self.assertNotIn("sample.local@example.com", redacted_html)
         self.assertIn("<redacted-email>", redacted_html)
         self.assertIn("SID=<redacted>", redacted_html)
         self.assertIn("access_token=<redacted>", redacted_html)
         self.assertIn("&amp;key=<redacted>", redacted_html)
         self.assertIn("/Users/<redacted-user>", redacted_html)
+        self.assertIn("https://lh3.googleusercontent.com/ogw/<redacted-account-avatar>", redacted_html)
         self.assertIn('<div class="gb_g"><redacted-account-name></div>', redacted_html)
         self.assertIn('aria-label="Google Account: <redacted-account-name>"', redacted_html)
+        self.assertIn("Google Account: <redacted-account-name>\\u0026#10;<redacted-email>", redacted_html)
+        self.assertIn(
+            "<redacted-account-name>\\u003c/div\\u003e\\u003cdiv\\u003e<redacted-email>",
+            redacted_html,
+        )
+        self.assertEqual(find_unredacted_sensitive_markers(redacted_html), ())
 
     @patch("michelin_scraper.sources.michelin.crawl")
     @patch("michelin_scraper.application.sync_use_case._create_sync_writer")

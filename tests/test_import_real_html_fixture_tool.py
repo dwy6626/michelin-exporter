@@ -110,6 +110,77 @@ class ImportRealHtmlFixtureToolTests(unittest.TestCase):
             self.assertIn("&amp;key=AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000", html_text)
             self.assertIn('<div class="gb_g"><redacted-account-name></div>', html_text)
 
+    def test_source_dir_batch_import_redacts_google_account_avatar_url(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir)
+            source_dir = workspace / "debug"
+            source_dir.mkdir(parents=True, exist_ok=True)
+            account_avatar_url = "https://lh3.googleusercontent.com/ogw/ACCOUNT_AVATAR_TOKEN=s64-c"
+            (source_dir / "google.html").write_text(
+                f'<html><body><img src="{account_avatar_url}"></body></html>',
+                encoding="utf-8",
+            )
+
+            argv = [
+                "import_real_html_fixture.py",
+                "--source-dir",
+                str(source_dir),
+                "--fixture-set",
+                "google_maps",
+                "--captured-at",
+                "2026-02-17",
+            ]
+            with _pushd(workspace):
+                with patch("sys.argv", argv):
+                    exit_code = _TOOL_MODULE.main()
+
+            self.assertEqual(exit_code, 0)
+            html_text = (workspace / "tests" / "fixtures" / "google_maps" / "google.html").read_text(
+                encoding="utf-8"
+            )
+            self.assertNotIn(account_avatar_url, html_text)
+            self.assertIn("https://lh3.googleusercontent.com/ogw/<redacted-account-avatar>", html_text)
+
+    def test_source_dir_batch_import_redacts_escaped_google_account_label(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir)
+            source_dir = workspace / "debug"
+            source_dir.mkdir(parents=True, exist_ok=True)
+            (source_dir / "google.html").write_text(
+                (
+                    "<html><body><script>"
+                    '"Google Account: Sample Local Account\\u0026#10;sample.local@example.com";'
+                    '"Sample Local Account\\u003c/div\\u003e\\u003cdiv\\u003esample.local@example.com";'
+                    "</script></body></html>"
+                ),
+                encoding="utf-8",
+            )
+
+            argv = [
+                "import_real_html_fixture.py",
+                "--source-dir",
+                str(source_dir),
+                "--fixture-set",
+                "google_maps",
+                "--captured-at",
+                "2026-02-17",
+            ]
+            with _pushd(workspace):
+                with patch("sys.argv", argv):
+                    exit_code = _TOOL_MODULE.main()
+
+            self.assertEqual(exit_code, 0)
+            html_text = (workspace / "tests" / "fixtures" / "google_maps" / "google.html").read_text(
+                encoding="utf-8"
+            )
+            self.assertNotIn("Sample Local Account", html_text)
+            self.assertNotIn("sample.local@example.com", html_text)
+            self.assertIn("Google Account: <redacted-account-name>\\u0026#10;<redacted-email>", html_text)
+            self.assertIn(
+                "<redacted-account-name>\\u003c/div\\u003e\\u003cdiv\\u003e<redacted-email>",
+                html_text,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

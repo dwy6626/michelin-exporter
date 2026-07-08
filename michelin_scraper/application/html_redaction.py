@@ -6,15 +6,35 @@ import re
 
 _REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (
+        re.compile(
+            r"(?is)(Google Account:\s*)"
+            r"(?!<redacted-account-name>|<redacted-email>)[^\"<\\]*?"
+            r"(\\u0026#10;)[^\"<\\]*?@[A-Z0-9.-]+\.[A-Z]{2,}"
+        ),
+        r"\1<redacted-account-name>\2<redacted-email>",
+    ),
+    (
+        re.compile(
+            r"(?is)[^\\\"<>]{1,120}?"
+            r"(\\u003c/div\\u003e\\u003cdiv\\u003e)"
+            r"[^\"<\\]*?@[A-Z0-9.-]+\.[A-Z]{2,}"
+        ),
+        r"<redacted-account-name>\1<redacted-email>",
+    ),
+    (
         re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b"),
         "<redacted-email>",
     ),
     (
-        re.compile(r"AIza[0-9A-Za-z_-]{20,}"),
+        re.compile(r"AIza(?!SyFAKE_KEY_FOR_TESTING_ONLY_00000000)[0-9A-Za-z_-]{20,}"),
         "AIza<redacted>",
     ),
     (
-        re.compile(r"(?i)([?&](?:amp;)?key=)(?:AIza[0-9A-Za-z_-]{20,}|[^&#\"'\s]+)"),
+        re.compile(
+            r"(?i)([?&](?:amp;)?key=)"
+            r"(?!AIzaSyFAKE_KEY_FOR_TESTING_ONLY_00000000(?:[&#\"'\s]|$))"
+            r"(?:AIza[0-9A-Za-z_-]{20,}|[^&#\"'\s]+)"
+        ),
         r"\1<redacted>",
     ),
     (
@@ -38,6 +58,20 @@ _REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
         "/Users/<redacted-user>",
     ),
     (
+        re.compile(
+            r"(?i)((?:https?:)?//lh3\.googleusercontent\.com/ogw/)"
+            r"(?!<redacted-account-avatar>)[^\"'&<>\s)]+"
+        ),
+        r"\1<redacted-account-avatar>",
+    ),
+    (
+        re.compile(
+            r"(?i)(\blh3\.googleusercontent\.com/ogw/)"
+            r"(?!<redacted-account-avatar>)[^\"'&<>\s)]+"
+        ),
+        r"\1<redacted-account-avatar>",
+    ),
+    (
         re.compile(r'(?s)(<div class="gb_g">)[^<]*(</div>)'),
         r"\1<redacted-account-name>\2",
     ),
@@ -54,6 +88,21 @@ _REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
             r'(?!<redacted-account-name>|<redacted-email>)[^"]*(")'
         ),
         r"\1 <redacted-account-name>\2",
+    ),
+    (
+        re.compile(
+            r"(?is)(Google Account:\s*)"
+            r"(?!<redacted-account-name>|<redacted-email>)[^\"<\\]*?"
+            r"(\\u0026#10;\s*<redacted-email>)"
+        ),
+        r"\1<redacted-account-name>\2",
+    ),
+    (
+        re.compile(
+            r"(?is)[^\\\"<>]{1,120}?"
+            r"(\\u003c/div\\u003e\\u003cdiv\\u003e<redacted-email>)"
+        ),
+        r"<redacted-account-name>\1",
     ),
 )
 
@@ -87,6 +136,13 @@ _UNREDACTED_MARKER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         re.compile(r"(?i)/Users/(?!<redacted-user>)[^/\"'<>\\\s]+"),
     ),
     (
+        "google-account-avatar-url",
+        re.compile(
+            r"(?i)(?:(?:https?:)?//)?lh3\.googleusercontent\.com/ogw/"
+            r"(?!<redacted-account-avatar>)[^\"'&<>\s)]+"
+        ),
+    ),
+    (
         "google-account-name",
         re.compile(r'(?s)<div class="gb_g">(?!<redacted-account-name>)[^<]+</div>'),
     ),
@@ -94,6 +150,22 @@ _UNREDACTED_MARKER_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         "google-account-label",
         re.compile(
             r'(?is)aria-label="Google Account:(?!\s*(?:<redacted-account-name>|<redacted-email>))[^"]+?"'
+        ),
+    ),
+    (
+        "google-account-escaped-label",
+        re.compile(
+            r"(?is)Google Account:\s*"
+            r"(?!<redacted-account-name>|<redacted-email>)[^\"<\\]*?"
+            r"\\u0026#10;\s*(?:<redacted-email>|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})"
+        ),
+    ),
+    (
+        "google-account-escaped-name",
+        re.compile(
+            r"(?is)[^\\\"<>]{1,120}?"
+            r"\\u003c/div\\u003e\\u003cdiv\\u003e"
+            r"(?:<redacted-email>|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})"
         ),
     ),
 )

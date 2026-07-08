@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+uv run python tools/scan_sensitive_fixtures.py --staged
+uv run python tools/scan_sensitive_fixtures.py --all
+uv run python -m unittest \
+  tests.test_real_html_fixtures_google_maps \
+  tests.test_import_real_html_fixture_tool \
+  tests.test_sensitive_fixture_scanner
