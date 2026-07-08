@@ -103,6 +103,7 @@ class SensitiveFixtureScannerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(["git", "branch", "-M", "main"], cwd=root, check=True, capture_output=True, text=True)
             subprocess.run(
                 ["git", "config", "user.name", "Fixture Scanner Test"],
                 cwd=root,
@@ -152,6 +153,101 @@ class SensitiveFixtureScannerTests(unittest.TestCase):
             self.assertIn("google-account-avatar-url", combined_output)
             self.assertNotIn(account_avatar_url, combined_output)
             self.assertNotIn("<img", combined_output)
+
+    def test_git_history_scanner_ignores_local_codex_refs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(["git", "branch", "-M", "main"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "config", "user.name", "Fixture Scanner Test"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "fixture-scanner@example.invalid"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            fixture_path = root / "tests" / "fixtures" / "google_maps" / "fixture.html"
+            fixture_path.parent.mkdir(parents=True, exist_ok=True)
+            fixture_path.write_text(
+                "<html><body>No sensitive account surface</body></html>",
+                encoding="utf-8",
+            )
+            subprocess.run(
+                ["git", "add", "tests/fixtures/google_maps/fixture.html"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "add clean fixture"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            clean_commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            fixture_path.write_text(
+                '<html><body><img src="https://lh3.googleusercontent.com/ogw/CODEX_REF_ONLY=s64-c"></body></html>',
+                encoding="utf-8",
+            )
+            subprocess.run(
+                ["git", "add", "tests/fixtures/google_maps/fixture.html"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "add local codex snapshot fixture"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            codex_only_commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            subprocess.run(
+                ["git", "update-ref", "refs/codex/turn-diffs/example", codex_only_commit],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "update-ref", "refs/heads/main", clean_commit],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            completed = subprocess.run(
+                [sys.executable, str(_HISTORY_SCANNER_PATH), "--root", str(root)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
 
 if __name__ == "__main__":

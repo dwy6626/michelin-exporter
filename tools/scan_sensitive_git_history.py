@@ -44,6 +44,28 @@ def _run_git(root: Path, args: Sequence[str]) -> subprocess.CompletedProcess[byt
     )
 
 
+def _history_ref_names(root: Path) -> tuple[str, ...]:
+    completed = _run_git(
+        root,
+        [
+            "for-each-ref",
+            "--format=%(refname)",
+            "refs/heads",
+            "refs/remotes",
+            "refs/tags",
+        ],
+    )
+    ref_names: list[str] = []
+    for raw_line in completed.stdout.splitlines():
+        ref_name = raw_line.decode("utf-8", errors="replace")
+        if ref_name.endswith("/HEAD"):
+            continue
+        if ref_name.startswith(("refs/codex/", "refs/original/")):
+            continue
+        ref_names.append(ref_name)
+    return tuple(ref_names)
+
+
 def _decode_text(data: bytes) -> str | None:
     try:
         return data.decode("utf-8")
@@ -58,7 +80,10 @@ def _find_unredacted_sensitive_markers(html_text: str) -> tuple[str, ...]:
 
 
 def _fixture_blob_entries(root: Path) -> Iterable[tuple[str, str, str]]:
-    completed = _run_git(root, ["rev-list", "--objects", "--all"])
+    ref_names = _history_ref_names(root)
+    if not ref_names:
+        return
+    completed = _run_git(root, ["rev-list", "--objects", *ref_names])
     for raw_line in completed.stdout.splitlines():
         line = raw_line.decode("utf-8", errors="replace")
         object_id, separator, path = line.partition(" ")
