@@ -45,8 +45,13 @@ class JsonCheckpointStore:
         self._pending_synced_row_keys = set(row_keys)
 
     def add_synced_row(self, row_key: str) -> None:
-        """Record a successfully synced row key in memory."""
+        """Persist a confirmed row without advancing an existing resume cursor."""
         self._pending_synced_row_keys.add(row_key)
+        if self._path.exists():
+            payload = json.loads(self._path.read_text(encoding="utf-8"))
+            self._pending_synced_row_keys.update(payload.get("synced_row_keys", []))
+            payload["synced_row_keys"] = sorted(self._pending_synced_row_keys)
+            self._write_payload(payload)
 
     def load(self, expected_start_url: str) -> tuple[ResumeState | None, str | None]:
         if not self._path.exists():
@@ -129,6 +134,9 @@ class JsonCheckpointStore:
             "rows_per_level": rows_per_level,
             "synced_row_keys": sorted(self._pending_synced_row_keys),
         }
+        self._write_payload(payload)
+
+    def _write_payload(self, payload: dict) -> None:
         temporary_path = self._path.with_suffix(f"{self._path.suffix}.tmp")
         serialized = json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True)
         temporary_path.write_text(serialized + "\n", encoding="utf-8")

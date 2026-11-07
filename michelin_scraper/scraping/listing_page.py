@@ -153,7 +153,8 @@ def scrape_results_single_page(
 
     # Submit detail-page fetches in parallel (up to 4 concurrent requests).
     _PREFETCH_WORKERS = min(4, len(eligible_cards)) if eligible_cards else 1
-    with ThreadPoolExecutor(max_workers=_PREFETCH_WORKERS) as pool:
+    pool = ThreadPoolExecutor(max_workers=_PREFETCH_WORKERS)
+    try:
         futures: list[tuple[int, str, Future[dict[str, Any]]]] = []
         for card_index, listing_card, restaurant_name in eligible_cards:
             fut = pool.submit(
@@ -199,6 +200,8 @@ def scrape_results_single_page(
                 on_item(page_number, estimated_total_pages, total_restaurants_expected, row)
             if i < len(futures) - 1 and item_sleep_seconds > 0:
                 time.sleep(item_sleep_seconds)
+    finally:
+        pool.shutdown(wait=True, cancel_futures=True)
 
     return ScrapeResultsPage(
         restaurant_rows=scraped_rows,

@@ -106,6 +106,7 @@ def scrape_restaurant_page(
         tls_verify=tls_verify,
         progress_reporter=progress_reporter,
         page_type=_RESTAURANT_PAGE_TYPE,
+        required_selector=_ADDRESS_SELECTOR,
     )
     if restaurant_page_soup.soup is None:
         return build_empty_data()

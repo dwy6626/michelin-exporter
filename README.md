@@ -300,6 +300,15 @@ State files are stored in `--state-dir` (or current directory when omitted):
 
 The checkpoint stores both source progress and confirmed saved-row keys. There
 is no separate sync journal file.
+When resuming an existing checkpoint, each confirmed save also atomically updates
+`synced_row_keys` without advancing the source cursor. A failure partway through
+a page therefore retains confirmed saves and retries that page on the next run.
+
+Fail-fast shuts down the producer queue, cancels detail jobs that have not
+started, and waits for active requests to finish their bounded timeouts. Every
+browser-rendered source fetch closes its own browser and Playwright runtime;
+these source browsers are independent of the attached Google browser. No shared
+Chrome service needs to be stopped during cleanup.
 
 When debug logging is enabled, Maps sync logs every accepted and rejected
 row-to-candidate decision with the source row name, query string, candidate
@@ -316,6 +325,12 @@ list reuse checks skip places already present in the exact generated target list
 
 If Maps search fails, the error includes visible search controls; use the
 de-identified HTML under `state_dir/debug/` to identify the failing surface.
+If source queries unexpectedly lack an address or district, check the source
+fetch messages first. Restaurant detail fetches require a nonempty address;
+incomplete HTTP content is retried in a browser that waits for the recorded
+address element within the navigation timeout. Persistent failures report the
+source URL and required selector instead of treating challenge HTML as a valid
+detail page. Matching thresholds and address-conflict checks are unchanged.
 
 ## Notes
 

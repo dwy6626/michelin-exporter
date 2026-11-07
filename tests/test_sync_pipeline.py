@@ -1,6 +1,9 @@
 """Tests for the async scrape-sync pipeline."""
 
 import asyncio
+import subprocess
+import sys
+import textwrap
 import time
 import unittest
 from typing import Any
@@ -41,6 +44,32 @@ class _FakePageHandler:
 
 class SyncPipelineTests(unittest.TestCase):
     """Unit tests for SyncPipeline."""
+
+    def test_fail_fast_releases_a_saturated_producer(self) -> None:
+        code = textwrap.dedent('''
+            import asyncio
+            from michelin_scraper.application.sync_pipeline import SyncPipeline
+            from michelin_scraper.adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
+            from michelin_scraper.application.sync_models import SyncItemFailure
+            class Handler:
+                async def on_item(self, *args):
+                    raise GoogleMapsRowSyncFailFastError(
+                        failure=SyncItemFailure(level_slug='selected', row_key='key', restaurant_name='君尹',
+                                                reason='AmbiguousPlaceMatch', attempted_queries=()),
+                        added_count_by_level={}, skipped_count_by_level={})
+            def source(on_item, on_page):
+                try:
+                    for _ in range(50): on_item(6, 9, 434, 'selected', {})
+                finally:
+                    print('producer-finalized', flush=True)
+            try:
+                asyncio.run(SyncPipeline(_page_handler=Handler(), _max_queue_size=1).run_async(source))
+            except GoogleMapsRowSyncFailFastError:
+                print('fail-fast-returned', flush=True)
+        ''')
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=4, check=True)
+        self.assertIn("producer-finalized", result.stdout)
+        self.assertIn("fail-fast-returned", result.stdout)
 
     def test_items_are_forwarded_to_page_handler(self) -> None:
         handler = _FakePageHandler()

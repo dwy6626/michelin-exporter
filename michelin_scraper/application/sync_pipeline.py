@@ -1,6 +1,6 @@
 """Async pipeline that overlaps source collection with Google Maps sync.
 
-Uses asyncio.Queue to coordinate a producer (HTTP scraping in a thread)
+Uses queue.Queue to coordinate a producer (HTTP scraping in a thread)
 with a consumer (async Playwright Maps sync) in the same event loop.
 """
 
@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
+from queue import Queue, ShutDown
 from typing import Any
 
 from ..adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
@@ -75,7 +76,7 @@ class SyncPipeline:
 
     # ── producer-side helpers (called from scraper thread) ──────────
 
-    def _make_on_item(self, work_queue: asyncio.Queue, loop: asyncio.AbstractEventLoop) -> Any:  # type: ignore[type-arg]
+    def _make_on_item(self, work_queue: Queue) -> Any:  # type: ignore[type-arg]
         """Return a sync callback suitable for ``crawl(on_item=...)``."""
 
         def on_item(
@@ -92,12 +93,11 @@ class SyncPipeline:
                 bucket_slug=bucket_slug,
                 row=row,
             )
-            # Called from producer thread — use thread-safe put.
-            asyncio.run_coroutine_threadsafe(work_queue.put(work), loop).result()
+            work_queue.put(work)
 
         return on_item
 
-    def _make_on_page(self, work_queue: asyncio.Queue, loop: asyncio.AbstractEventLoop) -> Any:  # type: ignore[type-arg]
+    def _make_on_page(self, work_queue: Queue) -> Any:  # type: ignore[type-arg]
         """Return a sync callback suitable for ``crawl(on_page=...)``."""
 
         def on_page(
@@ -118,13 +118,13 @@ class SyncPipeline:
                 estimated_total_pages=estimated_total_pages,
                 total_restaurants=total_restaurants,
             )
-            asyncio.run_coroutine_threadsafe(work_queue.put(work), loop).result()
+            work_queue.put(work)
 
         return on_page
 
     # ── consumer (runs as async task in the event loop) ─────────────
 
-    async def _consume(self, work_queue: asyncio.Queue) -> None:  # type: ignore[type-arg]
+    async def _consume(self, work_queue: Queue) -> None:  # type: ignore[type-arg]
         """Drain the queue, dispatching to SyncPageHandler.
 
         Runs as an async task so that Playwright async operations stay in
@@ -132,7 +132,7 @@ class SyncPipeline:
         """
 
         while True:
-            work = await work_queue.get()
+            work = await asyncio.to_thread(work_queue.get)
             try:
                 if work is _SENTINEL:
                     break
@@ -157,12 +157,12 @@ class SyncPipeline:
                         )
                 except GoogleMapsRowSyncFailFastError as exc:
                     self.result.fail_fast_error = exc
-                    _drain_queue(work_queue)
+                    work_queue.shutdown(immediate=True)
                     break
                 except Exception as exc:  # noqa: BLE001
                     _log.warning("Pipeline consumer error: %s", exc)
                     self.result.consumer_error = exc
-                    _drain_queue(work_queue)
+                    work_queue.shutdown(immediate=True)
                     break
             finally:
                 work_queue.task_done()
@@ -180,13 +180,13 @@ class SyncPipeline:
         task in the event loop.
         """
 
-        work_queue: asyncio.Queue[_ItemWork | _PageWork | None] = asyncio.Queue(
+        work_queue: Queue[_ItemWork | _PageWork | None] = Queue(
             maxsize=self._max_queue_size,
         )
 
         loop = asyncio.get_event_loop()
-        on_item = self._make_on_item(work_queue, loop)
-        on_page = self._make_on_page(work_queue, loop)
+        on_item = self._make_on_item(work_queue)
+        on_page = self._make_on_page(work_queue)
 
         # Producer runs in a background thread.
         producer_error: list[BaseException | None] = [None]
@@ -199,31 +199,26 @@ class SyncPipeline:
                 producer_error[0] = exc
             finally:
                 # Signal consumer to stop.
-                asyncio.run_coroutine_threadsafe(work_queue.put(_SENTINEL), loop).result()
+                try:
+                    work_queue.put(_SENTINEL)
+                except ShutDown:
+                    pass
 
         producer_task = loop.run_in_executor(None, _produce)
 
         # Consumer runs as an async task in the event loop.
-        await self._consume(work_queue)
-
-        await producer_task
+        try:
+            await self._consume(work_queue)
+        finally:
+            work_queue.shutdown(immediate=True)
+            await asyncio.shield(producer_task)
 
         # Re-raise errors in priority order.
         if self.result.fail_fast_error is not None:
             raise self.result.fail_fast_error
-        if producer_error[0] is not None:
-            raise producer_error[0]
         if self.result.consumer_error is not None:
             raise self.result.consumer_error
+        if producer_error[0] is not None:
+            raise producer_error[0]
 
         return producer_metrics[0]
-
-
-def _drain_queue(work_queue: asyncio.Queue) -> None:  # type: ignore[type-arg]
-    """Discard remaining items so the producer thread is unblocked."""
-    while True:
-        try:
-            work_queue.get_nowait()
-            work_queue.task_done()
-        except asyncio.QueueEmpty:
-            break

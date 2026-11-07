@@ -1,0 +1,29 @@
+{
+  "source_row": {
+    "Name": "君尹",
+    "NameLocal": "君尹",
+    "GuideYear": "2026",
+    "Rating": "Selected",
+    "City": "Taipei, 台灣地區",
+    "Price Range": "$$$",
+    "Cuisine": "時尚歐陸菜",
+    "Description": "用餐空間頗具現代感，吧檯座位環繞開放式廚房，客人可以一邊品嘗佳餚，一邊欣賞廚師製作料理。主廚擁有豐富的法式餐飲經驗，運用歐陸烹調技法，結合法式醬汁與亞洲食材，如湖南臘肉和金棗，不追求華麗型態，餐點呈現簡約細膩的風格。菜單設計順應季節時令，每三個月更換一次。推薦平日午間限定的短套餐，可視需求自由加點特色菜餚。",
+    "Address": "中山區建國北路一段92巷8號, Taipei, 台灣地區",
+    "Latitude": "",
+    "Longitude": "",
+    "Michelin Website": "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/brise",
+    "Restaurant Website": "",
+    "Restaurant Telephone Number": "+886 2 2509 1070",
+    "Reservation Link": ""
+  },
+  "maps_candidate": {
+    "name": "君尹 Brisé",
+    "address": "\nNo. 8號, Lane 92, Section 1, Jianguo N Rd, Zhuyuan Village, Zhongshan District, Taipei City, 10491",
+    "category": "現代法國餐廳",
+    "subtitle": "",
+    "located_in": ""
+  },
+  "source_url": "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/brise",
+  "scenario": "official-detail-recovery-and-real-maps-probe",
+  "sanitized": true
+}
