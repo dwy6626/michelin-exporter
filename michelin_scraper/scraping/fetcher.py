@@ -158,7 +158,7 @@ class _BrowserHtmlFetcher:
         if self._browser is not None:
             return self._browser
         try:
-            from playwright.sync_api import sync_playwright
+            from playwright.sync_api import Error, sync_playwright
         except ImportError as exc:
             raise RuntimeError(
                 "Playwright is not installed. Run `uv sync` and "
@@ -166,7 +166,12 @@ class _BrowserHtmlFetcher:
             ) from exc
 
         self._playwright = sync_playwright().start()
-        self._browser = self._playwright.chromium.launch(headless=True)
+        try:
+            self._browser = self._playwright.chromium.launch(headless=True)
+        except Error as exc:
+            if "Executable doesn't exist" not in str(exc):
+                raise
+            self._browser = self._playwright.chromium.launch(headless=True, channel="chrome")
         return self._browser
 
     def close(self) -> None:

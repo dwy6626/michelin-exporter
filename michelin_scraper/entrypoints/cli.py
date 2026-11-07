@@ -37,6 +37,7 @@ from ..config import (
     DEFAULT_SLEEP_SECONDS,
     DEFAULT_SYNC_DELAY_SECONDS,
     DRY_RUN_OPTION_FLAGS,
+    GOOGLE_CDP_URL_OPTION_FLAGS,
     GOOGLE_USER_DATA_DIR_OPTION_FLAGS,
     HEADED_OPTION_FLAGS,
     HELP_OPTION_NAMES,
@@ -88,10 +89,13 @@ APP_HELP_TEXT = (
     "- Sync a Google My Maps export:\n"
     f"  python -m michelin_scraper sync-my-maps {MY_MAPS_FILE_OPTION_FLAGS[0]} <MAP.kml|MAP.kmz>\n"
     f"- Default Google profile path: {DEFAULT_GOOGLE_USER_DATA_DIR}\n"
+    f"- Attach to an existing Google browser with {GOOGLE_CDP_URL_OPTION_FLAGS[0]} <ENDPOINT>.\n"
+    "  CDP mode opens and closes only a new tab, including on forced shutdown.\n"
+    "  Sign in within the attached browser before retrying if authentication is required.\n"
     "- Default state directory: .michelin-state/ (git-ignored, created in current working directory).\n"
     "- Login handling:\n"
     "  Commands check Google login state automatically.\n"
-    "  If not logged in, they prompt to open a browser for interactive login,\n"
+    "  In persistent-profile mode, they prompt to open a browser for interactive login,\n"
     "  then retry sync automatically.\n"
     "- If sign-in shows 'This browser or app may not be secure':\n"
     "  install or update Google Chrome and retry.\n"
@@ -100,7 +104,7 @@ APP_HELP_TEXT = (
     "- Troubleshooting (browser starts then closes with SIGTRAP / TargetClosed):\n"
     "  close all Chrome windows and retry with a fresh profile path, for example:\n"
     f"    {GOOGLE_USER_DATA_DIR_OPTION_FLAGS[0]} ~/.michelin-gmaps-profile-fresh\n"
-    "  The tool auto-cleans stale profile lock/session files at startup.\n"
+    "  Persistent-profile mode auto-cleans stale profile lock/session files at startup.\n"
     "  If crash persists, remove the profile directory and login again.\n"
     "- Troubleshooting (run stops with 'List already exists at startup'):\n"
     f"  rerun with {IGNORE_EXISTING_LISTS_CHECK_OPTION_FLAGS[0]} to reuse existing lists.\n"
@@ -150,6 +154,12 @@ def _run_with_login_prompt(
     if exit_code != AUTH_REQUIRED_EXIT_CODE:
         raise typer.Exit(exit_code)
 
+    if command.google_cdp_url is not None:
+        presenter.show_failure(
+            "Sign in to Google Maps in the attached browser, then retry with --google-cdp-url."
+        )
+        raise typer.Exit(AUTH_REQUIRED_EXIT_CODE)
+
     should_login_now = typer.confirm(
         (
             "No authenticated Google Maps session was found. "
@@ -198,6 +208,18 @@ def sync_michelin(
             rich_help_panel=USER_OPTIONS_HELP_PANEL,
         ),
     ] = DEFAULT_GOOGLE_USER_DATA_DIR,
+    google_cdp_url: Annotated[
+        str | None,
+        typer.Option(
+            *GOOGLE_CDP_URL_OPTION_FLAGS,
+            help=(
+                "Attach to an existing Chromium CDP HTTP or WebSocket endpoint. "
+                "Uses one new tab; leaves the browser and existing tabs open. "
+                "Ignores --google-user-data-dir and --headed/--headless."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = None,
     language: Annotated[
         str,
         typer.Option(
@@ -454,6 +476,7 @@ def sync_michelin(
     command = ScrapeSyncCommand(
         target=target,
         google_user_data_dir=google_user_data_dir,
+        google_cdp_url=google_cdp_url,
         levels=selected_levels,
         source=SOURCE_MICHELIN,
         language=effective_language,
@@ -516,6 +539,18 @@ def sync_my_maps(
             rich_help_panel=USER_OPTIONS_HELP_PANEL,
         ),
     ] = DEFAULT_GOOGLE_USER_DATA_DIR,
+    google_cdp_url: Annotated[
+        str | None,
+        typer.Option(
+            *GOOGLE_CDP_URL_OPTION_FLAGS,
+            help=(
+                "Attach to an existing Chromium CDP HTTP or WebSocket endpoint. "
+                "Uses one new tab; leaves the browser and existing tabs open. "
+                "Ignores --google-user-data-dir and --headed/--headless."
+            ),
+            rich_help_panel=USER_OPTIONS_HELP_PANEL,
+        ),
+    ] = None,
     state_dir: Annotated[
         str,
         typer.Option(
@@ -714,6 +749,7 @@ def sync_my_maps(
     command = ScrapeSyncCommand(
         target="",
         google_user_data_dir=google_user_data_dir,
+        google_cdp_url=google_cdp_url,
         levels=("imported",),
         source=SOURCE_MY_MAPS,
         my_maps_file=my_maps_file,

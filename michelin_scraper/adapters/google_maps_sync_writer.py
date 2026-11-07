@@ -257,6 +257,7 @@ class GoogleMapsSyncWriter:
         list_name_prefix: str,
         on_missing_list: str,
         ignore_existing_lists_check: bool,
+        google_cdp_url: str | None = None,
         on_row_synced: RowSyncedCallback | None = None,
         initial_synced_row_keys: frozenset[str] = frozenset(),
         probe_only: bool = False,
@@ -271,6 +272,7 @@ class GoogleMapsSyncWriter:
         self._driver: GoogleMapsDriverPort = driver or GoogleMapsDriver(
             GoogleMapsDriverConfig(
                 user_data_dir=user_data_dir,
+                google_cdp_url=google_cdp_url,
                 headless=headless,
                 sync_delay_seconds=sync_delay_seconds,
             )

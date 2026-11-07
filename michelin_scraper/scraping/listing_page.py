@@ -26,7 +26,7 @@ from .restaurant_details import (
 )
 
 _LISTING_PAGE_TYPE = "listing"
-_LISTING_CARD_SELECTOR = "div.card__menu"
+_LISTING_CARD_SELECTOR = "div.card__menu:not(.section-nearby-restaurants div.card__menu)"
 _RESTAURANT_TITLE_SELECTOR = "h3.card__menu-content--title"
 _CARD_FOOTER_SCORE_SELECTOR = "div.card__menu-footer--score"
 _DISTINCTION_ICON_SELECTOR = "span.distinction-icon"
@@ -63,7 +63,10 @@ _EXPLICIT_COUNTRY_MARKERS_BY_CODE = {
 
 def _extract_region_segment(url: str) -> str:
     """Extract the region path segment (e.g. 'tainan-region') from a listing URL."""
-    for segment in urlparse(url).path.split("/"):
+    segments = urlparse(url).path.split("/")
+    if "selection" in segments:
+        return ""
+    for segment in segments:
         if segment.endswith("-region"):
             return segment
     return ""

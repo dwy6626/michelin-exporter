@@ -103,13 +103,14 @@ class GoogleMapsDriverPort(Protocol):
 
 @dataclass(frozen=True)
 class GoogleMapsDriverConfig:
-    """Runtime config for Playwright persistent browser session."""
+    """Runtime config for a persistent profile or an external CDP session."""
 
     user_data_dir: Path
     headless: bool
     sync_delay_seconds: float
     browser_channel: str | None = "chrome"
     suppress_automation_flags: bool = True
+    google_cdp_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -133,6 +134,7 @@ class GoogleMapsDriver:
     _SEARCH_BUTTON_SELECTOR = selectors.SEARCH_BUTTON_SELECTOR
     _SIGNED_IN_ANCHOR_SELECTORS = selectors.SIGNED_IN_ANCHOR_SELECTORS
     _SIGN_IN_BUTTON_SELECTORS = selectors.SIGN_IN_BUTTON_SELECTORS
+    _AUTH_CONTROLS_READY_TIMEOUT_MS = selectors.AUTH_CONTROLS_READY_TIMEOUT_MS
     _SAVED_TAB_SELECTORS = list_flow.SAVED_TAB_SELECTORS
     _LISTS_TAB_SELECTORS = list_flow.LISTS_TAB_SELECTORS
     _SAVED_VIEW_MORE_SELECTORS = list_flow.SAVED_VIEW_MORE_SELECTORS
@@ -197,7 +199,7 @@ class GoogleMapsDriver:
         self._original_sigint_handler: Any | None = None
 
     async def start(self) -> None:
-        """Start Playwright and open persistent browser context."""
+        """Start Playwright and open an owned page in the selected session."""
 
         try:
             from playwright.async_api import async_playwright
@@ -207,19 +209,32 @@ class GoogleMapsDriver:
             ) from exc
 
         self._playwright = await async_playwright().start()
-        _prepare_user_data_dir_for_automation(self._config.user_data_dir)
-        launch_options = _build_launch_options(
-            user_data_dir=self._config.user_data_dir,
-            headless=self._config.headless,
-            suppress_automation_flags=self._config.suppress_automation_flags,
-            base_args=self._BROWSER_RECOVERY_SUPPRESSION_ARGS,
-        )
-        context = await self._launch_persistent_context_with_channel_fallback(launch_options)
-        if context is None:
-            raise GoogleMapsError("Playwright did not return a browser context.")
-        self._context = context
-        self._page = await context.new_page()
-        self._install_interrupt_handler()
+        try:
+            if self._config.google_cdp_url is not None:
+                browser = await self._playwright.chromium.connect_over_cdp(self._config.google_cdp_url)
+                if not browser.contexts:
+                    raise GoogleMapsError("Attached CDP browser has no default browser context.")
+                context = browser.contexts[0]
+            else:
+                _prepare_user_data_dir_for_automation(self._config.user_data_dir)
+                launch_options = _build_launch_options(
+                    user_data_dir=self._config.user_data_dir,
+                    headless=self._config.headless,
+                    suppress_automation_flags=self._config.suppress_automation_flags,
+                    base_args=self._BROWSER_RECOVERY_SUPPRESSION_ARGS,
+                )
+                context = await self._launch_persistent_context_with_channel_fallback(launch_options)
+            if context is None:
+                raise GoogleMapsError("Playwright did not return a browser context.")
+            self._context = context
+            page = await context.new_page()
+            self._page = page
+            if self._config.google_cdp_url is not None:
+                await page.set_viewport_size({"width": 1280, "height": 720})
+            self._install_interrupt_handler()
+        except BaseException:
+            await self.close(force=True)
+            raise
 
     def _install_interrupt_handler(self) -> None:
         """Install a SIGINT handler that requests a graceful shutdown.
@@ -237,7 +252,8 @@ class GoogleMapsDriver:
             del signum, frame
             if self._interrupt_requested:
                 # Second Ctrl+C should force-unblock Playwright and terminate.
-                _force_kill_browser_process(self._context)
+                if self._config.google_cdp_url is None:
+                    _force_kill_browser_process(self._context)
                 _signal.signal(_signal.SIGINT, _signal.default_int_handler)
                 raise KeyboardInterrupt
             self._interrupt_requested = True
@@ -253,32 +269,41 @@ class GoogleMapsDriver:
         self._interrupt_requested = False
 
     async def close(self, *, force: bool = False) -> None:
-        """Close browser context and Playwright runtime."""
+        """Close owned resources and disconnect from an external browser."""
 
         self._uninstall_interrupt_handler()
 
         context = self._context
         playwright = self._playwright
+        page = self._page
         self._context = None
         self._playwright = None
         self._page = None
 
-        if force:
+        attached = self._config.google_cdp_url is not None
+        if force and not attached:
             await _force_kill_playwright(context, playwright)
             return
 
         close_error: BaseException | None = None
-        if context is not None:
+        close_target = page if attached else context
+        if close_target is not None:
             try:
-                await context.close()
+                if attached:
+                    await asyncio.wait_for(close_target.close(), timeout=3)
+                else:
+                    await close_target.close()
             except BaseException as exc:  # noqa: BLE001
                 close_error = close_error or exc
         if playwright is not None:
             try:
-                await playwright.stop()
+                if attached:
+                    await asyncio.wait_for(playwright.stop(), timeout=3)
+                else:
+                    await playwright.stop()
             except BaseException as exc:  # noqa: BLE001
                 close_error = close_error or exc
-        if close_error is not None and not isinstance(close_error, KeyboardInterrupt):
+        if close_error is not None and not force and not isinstance(close_error, KeyboardInterrupt):
             raise close_error
 
     async def open_maps_home(self) -> None:
@@ -330,10 +355,21 @@ class GoogleMapsDriver:
         if refresh:
             await self.open_maps_home()
             page = await self._require_page()
-        if await self._is_any_selector_visible(page, self._SIGN_IN_BUTTON_SELECTORS, timeout_ms=1000):
-            return False
+        if self._config.google_cdp_url is not None:
+            from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+
+            auth_selectors = self._SIGNED_IN_ANCHOR_SELECTORS + self._SIGN_IN_BUTTON_SELECTORS
+            visible_controls = ", ".join(f"{selector}:visible" for selector in auth_selectors)
+            try:
+                await page.locator(visible_controls).first.wait_for(
+                    state="visible", timeout=self._AUTH_CONTROLS_READY_TIMEOUT_MS
+                )
+            except PlaywrightTimeoutError:
+                return False
         if await self._is_any_selector_visible(page, self._SIGNED_IN_ANCHOR_SELECTORS, timeout_ms=1000):
             return True
+        if await self._is_any_selector_visible(page, self._SIGN_IN_BUTTON_SELECTORS, timeout_ms=1000):
+            return False
         return await self._has_google_session_cookie()
 
     async def wait_for_authenticated(self, timeout_seconds: int) -> bool:
@@ -993,7 +1029,7 @@ class GoogleMapsDriver:
         if self._page is not None:
             candidate_pages.append(self._page)
         context = self._context
-        if context is not None:
+        if context is not None and self._config.google_cdp_url is None:
             for candidate in reversed(tuple(getattr(context, "pages", ()))):
                 if candidate in candidate_pages:
                     continue
@@ -3896,6 +3932,8 @@ class GoogleMapsDriver:
             raise GoogleMapsError("Google Maps driver is not started.")
         if self._page is not None and not _is_page_closed(self._page):
             return self._page
+        if self._config.google_cdp_url is not None:
+            raise GoogleMapsError("The owned Google Maps CDP tab is closed or unavailable. Retry the command.")
         for candidate in reversed(tuple(context.pages)):
             if _is_page_closed(candidate):
                 continue
@@ -3922,7 +3960,7 @@ class GoogleMapsDriver:
         return self._LIMITED_VIEW_TOKEN in html_content
 
     async def _has_google_session_cookie(self) -> bool:
-        if self._context is None:
+        if self._context is None or self._config.google_cdp_url is not None:
             return False
         try:
             cookies = await self._context.cookies([GOOGLE_MAPS_HOME_URL, "https://accounts.google.com"])

@@ -16,11 +16,18 @@ Create/update the virtual environment and install dependencies:
 uv sync
 ```
 
-Playwright browser runtime is required for Google Maps automation:
+For local browser launches, install the bundled Playwright browser runtime:
 
 ```bash
 uv run playwright install chromium
 ```
+
+Google Maps can also use installed Google Chrome or attach to a running browser
+with `--google-cdp-url`. Michelin's browser-rendered fetch fallback prefers
+bundled Chromium; if its executable is missing, it retries with installed Google
+Chrome through Playwright's `channel="chrome"`. This supports environments where
+the bundled browser cannot be installed. The Michelin fallback uses a separate
+temporary browser session, independent of the attached Google session.
 
 Install developer dependencies:
 
@@ -170,6 +177,44 @@ uv run python -m michelin_scraper sync-michelin --help
 Michelin-only options include `--target`, `--levels`, `--language`,
 `--crawl-delay`, `--max-pages`, `--ca-bundle`, and `--insecure`.
 
+## Attach to an Existing Google Session
+
+Both sync commands accept optional `--google-cdp-url` with an existing Chromium
+CDP HTTP or WebSocket endpoint. For a browser already exposing CDP at port 9222,
+run a small read-only Taiwan probe:
+
+```bash
+uv run python -m michelin_scraper sync-michelin \
+  --target taiwan --language zh_TW \
+  --google-cdp-url http://127.0.0.1:9222 \
+  --maps-probe-only --max-pages 1 --max-rows-per-page 1 \
+  --on-missing-list stop --debug-sync-failures \
+  --state-dir .michelin-state/cdp-probe
+```
+
+CDP mode uses the browser's default context and opens one new tab. It bypasses
+profile preparation and browser launch; `--google-user-data-dir`, browser channel,
+and `--headed/--headless` do not configure the attached browser. Normal shutdown,
+forced shutdown, and interrupts close only the new tab and disconnect Playwright.
+The new tab receives a 1280 × 720 viewport so Maps search remains usable when
+the external browser reports zero window dimensions; this applies only to that tab.
+The external browser, context, and preexisting tabs remain open. Recovery and
+debug capture never adopt or inspect another tab. If the owned tab closes, retry
+the command. Connection errors fail without launching another Google browser.
+
+Authentication in CDP mode uses the Maps UI without reading session cookies. If
+the account controls are still loading, it waits up to 10 seconds. The visible
+Google Account control confirms sign-in; its `accounts.google.com/SignOutOptions`
+link is an account-menu control, not a sign-in prompt. If
+authentication is required, sign in within the existing browser and retry; the
+CLI does not prompt to launch a persistent profile. Probe-only mode skips
+authentication and list preparation and performs search/match checks without
+creating lists, saving places, or changing sharing. Its state and de-identified
+failure HTML are stored under `--state-dir`, including `debug/` snapshots when
+`--debug-sync-failures` is set. Default list names and buckets still apply.
+
+Omitting `--google-cdp-url` retains persistent-profile mode.
+
 ## Sync Google My Maps KML/KMZ
 
 Export your Google My Maps data as `.kml` or `.kmz`, then import the local file
@@ -242,8 +287,8 @@ Missing values are removed and common extra separators are cleaned up.
 State files are stored in `--state-dir` (or current directory when omitted):
 
 - `{checkpoint-scope}-michelin-checkpoint.json` (legacy checkpoint filename
-  suffix retained for existing state files)
-- `{scope}-maps-sync-journal.json`
+  suffix retained for existing state files; includes the source cursor, row
+  counters, and confirmed saved-row keys in `synced_row_keys`)
 - `{scope}-maps-sync-errors.jsonl` (only when row failures occur)
 - `debug/{scope}-maps-debug-<context>-<timestamp>.html` (de-identified
   snapshots written when `--debug-sync-failures` captures page-level sync
@@ -253,10 +298,8 @@ State files are stored in `--state-dir` (or current directory when omitted):
   `<record-fixtures-dir>/<debug-stem>.metadata.json` (written only when
   `--record-fixtures-dir` is set)
 
-Checkpoint and journal serve different purposes:
-
-- Checkpoint controls where source collection resumes next.
-- Journal stores only rows that were confirmed as successfully synced.
+The checkpoint stores both source progress and confirmed saved-row keys. There
+is no separate sync journal file.
 
 When debug logging is enabled, Maps sync logs every accepted and rejected
 row-to-candidate decision with the source row name, query string, candidate
@@ -264,9 +307,15 @@ name/address/category, and match signals. Taiwan rows with district-level
 address text also try a narrowed `name + district` query before broader
 city-level queries, for example `首烏 板橋區` before `首烏 New Taipei, 臺灣`.
 
-If a run is interrupted or partially fails, retry with the same `--state-dir`
-and `--ignore-checkpoint`. This reprocesses from page 1 while safely skipping
-rows already recorded in the journal.
+Normal resume retains the source cursor and saved-row keys. A row-capped write
+can advance the source cursor beyond rows that were collected but not saved.
+To process the full source after a capped run, restart from page 1 with the same
+`--state-dir`, `--ignore-checkpoint`, and `--ignore-existing-lists-check`, and
+remove the page/row limits. Ignoring the checkpoint clears its saved-row keys;
+list reuse checks skip places already present in the exact generated target lists.
+
+If Maps search fails, the error includes visible search controls; use the
+de-identified HTML under `state_dir/debug/` to identify the failing surface.
 
 ## Notes
 
@@ -276,8 +325,12 @@ rows already recorded in the journal.
   `michelin_scraper/catalog/target_url_matrix.json`. If a localized country has
   no verified listing URL, the command fails early instead of scraping a guessed
   Michelin URL.
-- The command automatically checks login state; if no session is found, it
-  prompts whether to run interactive login immediately.
+- The Traditional Chinese Taiwan country listing uses
+  `/tw/zh_TW/selection/taiwan-region/restaurants`. Nearby and new-restaurant
+  recommendation sections are excluded from results, including on empty searches.
+- The command automatically checks login state; persistent-profile mode prompts
+  whether to run interactive login immediately when no session is found. CDP
+  mode requires signing in within the attached browser before retrying.
 - Default level buckets are `stars`, `selected`, and `bib-gourmand`. Use
   `--levels one-star,two-star,three-star,selected,bib-gourmand` to keep star
   levels split into separate lists.
@@ -321,7 +374,8 @@ remain marked `unsupported-or-undiscovered`.
 
 ## Troubleshooting
 
-If you see a Playwright error that Chromium executable does not exist:
+If bundled Chromium is missing, Michelin's browser-rendered fallback retries
+installed Google Chrome automatically. If neither browser is available:
 
 ```bash
 uv sync
@@ -345,7 +399,8 @@ uv run python -m michelin_scraper \
   --google-user-data-dir ~/.michelin-gmaps-profile-fresh
 ```
 
-The tool auto-cleans stale lock/session files in `--google-user-data-dir` before launch.
+In persistent-profile mode, the tool auto-cleans stale lock/session files in
+`--google-user-data-dir` before launch. CDP mode does not touch profile files.
 If it still crashes, remove the profile directory and re-login:
 
 ```bash
