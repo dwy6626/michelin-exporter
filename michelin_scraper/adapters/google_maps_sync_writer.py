@@ -955,11 +955,13 @@ class GoogleMapsSyncWriter:
                     match_strength == "weak"
                     and _is_coordinate_query(query_for_candidate)
                     and not match_assessment.coordinate_like_candidate_name
+                    and not match_assessment.hard_veto
                 ):
                     # Coordinate lookup is a high-signal fallback when Maps returns local-script names.
                     match_strength = "medium"
                 if (
                     match_strength == "weak"
+                    and not match_assessment.hard_veto
                     and match_assessment.city_in_candidate_address
                     and candidate.address
                     and not match_assessment.coordinate_like_candidate_name

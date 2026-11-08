@@ -1,0 +1,30 @@
+{
+  "source_row": {
+    "Name": "Restaurant 12",
+    "NameLocal": "Restaurant 12",
+    "GuideYear": "2026",
+    "Rating": "1 Star",
+    "City": "Taipei, 台灣地區",
+    "Price Range": "$$$$",
+    "Cuisine": "現代菜",
+    "Description": "位於陽明山的原美軍宿舍，在保留建築架構的同時，既有大面積的玻璃窗景，也融入現代設計師家具。由西班牙行政主廚領軍，菜單呈現法國與西班牙元素，當中選用高級進口食材與在地蔬菜，滋味細膩。套餐包含十多道菜色，全都造型精美，如同藝術品般令人賞心悅目。酒單選擇豐富，不妨請侍酒師推薦。",
+    "Address": "士林區建業路12號, Taipei, 台灣地區",
+    "Latitude": "",
+    "Longitude": "",
+    "Michelin Website": "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/restaurant-12",
+    "Restaurant Website": "https://ymsbyonefifteen.com/restaurant-12/",
+    "Restaurant Telephone Number": "+886 2 2861 8880",
+    "Reservation Link": ""
+  },
+  "candidate": {
+    "name": "Kitchen 12",
+    "address": "\n100, Taipei City, Zhongzheng District, Xingfu Village, Section 1, Zhongxiao E Rd, 12號1樓",
+    "category": "自助餐餐廳",
+    "subtitle": "十二廚 台北喜來登大飯店",
+    "located_in": ""
+  },
+  "status": "skipped",
+  "failure": null,
+  "scenario": "numeric-name-wrong-street",
+  "sanitized": true
+}

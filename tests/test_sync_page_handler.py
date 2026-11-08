@@ -1,10 +1,15 @@
 """Tests for sync page handler debug failure logging."""
 
+import json
+import tempfile
 import unittest
 from collections.abc import Callable, Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
+from michelin_scraper.adapters.checkpoint_store import JsonCheckpointStore
 from michelin_scraper.adapters.google_maps_sync_writer import GoogleMapsRowSyncFailFastError
+from michelin_scraper.application.row_identity import build_row_identity_key
 from michelin_scraper.application.sync_enums import SyncRowStatus
 from michelin_scraper.application.sync_models import (
     SyncAccumulation,
@@ -195,6 +200,30 @@ class _NoOpReporter:
 
 
 class SyncPageHandlerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_terminal_page_keeps_confirmed_keys_and_last_page_cursor(self) -> None:
+        payload = json.loads((Path(__file__).parent / "fixtures/place_matcher/nanmen-2026-11-08.json").read_text())
+        key = build_row_identity_key("selected", payload["source_row"])
+        start = "https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants"
+        terminal = start + "/page/10"
+        with tempfile.TemporaryDirectory() as directory:
+            store = JsonCheckpointStore(Path(directory) / "checkpoint.json", ("selected",))
+            store.initialize_synced_row_keys(frozenset({key}))
+            handler = SyncPageHandler(
+                start_url=start, checkpoint_store=store, sync_writer=_FakeSyncWriter(),
+                accumulation=SyncAccumulation(
+                    scraped_count_by_level={"selected": 227}, added_count_by_level={"selected": 0},
+                    skipped_count_by_level={"selected": 0}, sample_rows=[], failed_items=[],
+                ),
+            )
+            await handler.on_page(10, terminal, [], None, 10, 10, 434)
+            state, warning = store.load(start)
+        self.assertIsNone(warning)
+        self.assertIsNotNone(state)
+        assert state is not None
+        self.assertEqual(state.synced_row_keys, frozenset({key}))
+        self.assertEqual(state.next_url, terminal)
+        self.assertEqual(state.next_page_number, 10)
+
     def _build_handler(
         self,
         *,

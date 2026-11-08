@@ -1,6 +1,7 @@
 """Tests for fetch_page_soup retry and exponential backoff behavior."""
 
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, call, patch
 
 import requests
@@ -231,6 +232,40 @@ class FetchPageSoupRetryTests(unittest.TestCase):
 
 
 class BrowserHtmlFetcherRuntimeTests(unittest.TestCase):
+    @patch("playwright.sync_api.sync_playwright")
+    def test_transient_browser_network_change_retries_same_owned_page(self, start: Mock) -> None:
+        runtime = start.return_value.start.return_value
+        page = runtime.chromium.launch.return_value.new_context.return_value.new_page.return_value
+        html = (Path(__file__).parent / "fixtures/michelin/brise-detail-2026-11-07.html").read_text()
+        page.content.return_value = html
+        page.goto.side_effect = [Error("Page.goto: net::ERR_NETWORK_CHANGED"), None]
+        fetcher = _BrowserHtmlFetcher()
+        try:
+            self.assertEqual(fetcher.fetch(
+                url="https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/brise",
+                headers={}, required_selector="div.data-sheet__block--text",
+            ), html)
+            self.assertEqual(page.goto.call_count, 2)
+            self.assertEqual(runtime.chromium.launch.call_count, 1)
+        finally:
+            fetcher.close()
+        runtime.stop.assert_called_once()
+
+    @patch("playwright.sync_api.sync_playwright")
+    def test_browser_navigation_retry_is_bounded_and_transient_only(self, start: Mock) -> None:
+        page = start.return_value.start.return_value.chromium.launch.return_value.new_context.return_value.new_page.return_value
+        for message, count in (("net::ERR_NETWORK_CHANGED", HTTP_MAX_FETCH_RETRIES), ("net::ERR_NAME_NOT_RESOLVED", 1)):
+            with self.subTest(message=message):
+                page.goto.reset_mock()
+                page.goto.side_effect = Error(message)
+                fetcher = _BrowserHtmlFetcher()
+                try:
+                    with self.assertRaisesRegex(Error, message):
+                        fetcher.fetch(url="https://guide.michelin.com", headers={})
+                    self.assertEqual(page.goto.call_count, count)
+                finally:
+                    fetcher.close()
+
     @patch("playwright.sync_api.sync_playwright")
     def test_missing_bundled_browser_uses_installed_chrome(self, mock_sync_playwright: Mock) -> None:
         runtime = mock_sync_playwright.return_value.start.return_value

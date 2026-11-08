@@ -303,6 +303,9 @@ is no separate sync journal file.
 When resuming an existing checkpoint, each confirmed save also atomically updates
 `synced_row_keys` without advancing the source cursor. A failure partway through
 a page therefore retains confirmed saves and retries that page on the next run.
+Successful completion also retains the checkpoint and saved-row keys, with the
+cursor on the terminal page. Rerunning checks that page and skips confirmed
+rows; completion no longer deletes the deduplication ledger.
 
 Fail-fast shuts down the producer queue, cancels detail jobs that have not
 started, and waits for active requests to finish their bounded timeouts. Every
@@ -330,7 +333,39 @@ fetch messages first. Restaurant detail fetches require a nonempty address;
 incomplete HTTP content is retried in a browser that waits for the recorded
 address element within the navigation timeout. Persistent failures report the
 source URL and required selector instead of treating challenge HTML as a valid
-detail page. Matching thresholds and address-conflict checks are unchanged.
+detail page. A detail fetch that still has no address stops the listing producer
+before that incomplete identity can reach Maps or advance the page checkpoint.
+Matching thresholds and address-conflict checks are unchanged.
+
+An address-like Maps title can contain a restaurant's street-number branding
+(for example, `No.10 Nanmen南門壹食`). The matcher recognizes this only when the
+title contains the exact source restaurant name independently of its address,
+the category is food service, and both city and house number corroborate the
+source without a house-number conflict. Bare address pins, coordinate titles,
+and businesses located inside another venue retain their safety checks.
+Browser-rendered source navigation retries Chromium's transient
+`net::ERR_NETWORK_CHANGED` on the same owned page, up to the configured HTTP
+attempt limit and within the original navigation deadline. Other browser
+navigation errors retain their existing failure behavior.
+For restaurant names whose only distinctive token is a number, matching also
+requires a shared street anchor. A shared city and house number alone can
+identify an unrelated restaurant. Coordinate and cross-script fallbacks respect
+hard vetoes from the matcher.
+When a saved list and a place are visible together, candidate extraction prefers
+the place-detail heading over the list heading, keeping the name with the
+address and category from the opened place.
+Direct place results are assessed in place. Article cards for neighboring
+businesses or other tenants below that panel are not treated as search results.
+The non-food category veto also recognizes the recorded Traditional Chinese
+tourist-attraction category.
+An unrecognized category needs strong name or alias identity. A fuzzy name and
+shared city cannot establish that a campground or another unfamiliar category
+is the source restaurant. Exact food-business names with generic shop categories
+retain their existing handling.
+Pagination follows the source's next-page link even when it exceeds the highest
+visible numbered button. That number is a progress estimate, not a limit; the
+visited-URL guard still prevents pagination loops. Taiwan's page 9 can link to
+page 10 while showing numbered buttons only through 9.
 
 ## Notes
 

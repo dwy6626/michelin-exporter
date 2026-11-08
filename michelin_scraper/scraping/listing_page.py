@@ -365,6 +365,10 @@ def _build_restaurant_row_from_card(
         local_country_code=local_country_code,
         requested_language=requested_language,
     )
+    if not str(restaurant_page_data.get("Address") or "").strip():
+        raise RuntimeError(
+            f"Michelin detail has no verified address for {restaurant_name!r} at {restaurant_url}; refusing incomplete source row."
+        )
 
     return build_restaurant_record(
         name=restaurant_name,

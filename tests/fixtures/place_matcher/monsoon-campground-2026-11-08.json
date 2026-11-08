@@ -1,0 +1,30 @@
+{
+  "source_row": {
+    "Name": "季風",
+    "NameLocal": "季風",
+    "GuideYear": "2026",
+    "Rating": "Bib Gourmand",
+    "City": "Hsinchu County, 台灣地區",
+    "Price Range": "$$",
+    "Cuisine": "素食",
+    "Description": "由臺北移師新竹，現址外觀潔白明亮，室內以植栽點綴，氣氛溫馨活潑。主廚為苗栗客家人，疫情讓他重新省視健康，採以蔬食料理闡述客家飲食文化。套餐的靈感來自時事，譬如在颱風後創作的「芋頭、九層塔、苦茶油」，便是將客家芋頭九層塔湯加以發揮，選用苗栗的檳榔心芋製成泥狀，再以苦茶油和九層塔增添風味。",
+    "Address": "竹北市成功一街20號, Hsinchu County, 台灣地區",
+    "Latitude": "",
+    "Longitude": "",
+    "Michelin Website": "https://guide.michelin.com/tw/zh_TW/northern-taiwan/hsinchu-county_2853127/restaurant/monsoon-1245161",
+    "Restaurant Website": "https://www.monsoon.tw",
+    "Restaurant Telephone Number": "+886 921 991 423",
+    "Reservation Link": "",
+    "level_slug": "bib-gourmand"
+  },
+  "candidate": {
+    "name": "迎風露營",
+    "address": "\n313, Hsinchu County, Jianshi Township, Xinle Village, 部落11鄰號",
+    "category": "營地",
+    "subtitle": "",
+    "located_in": ""
+  },
+  "place_url": "https://www.google.com/maps/place/%E8%BF%8E%E9%A2%A8%E9%9C%B2%E7%87%9F/@25.0192357,121.4942168,13z/data=!4m10!1m2!2m1!1z5a2j6aKoIEhzaW5jaHUgQ291bnR5LCDlj7DngaPlnLDljYA!3m6!1s0x34683ffbca739eeb:0xee5eb883e6f7ed33!8m2!3d24.7221429!4d121.2538421!15sCiPlraPpoqggSHNpbmNodSBDb3VudHksIOWPsOeBo-WcsOWNgJIBCmNhbXBncm91bmTgAQA!16s%2Fg%2F11c4bh5ckv?hl=en&entry=ttu&g_ep=EgoyMDI2MTEwMy4wIKXMDSoASAFQAw%3D%3D",
+  "scenario": "unrecognized-category-with-weak-name",
+  "sanitized": true
+}

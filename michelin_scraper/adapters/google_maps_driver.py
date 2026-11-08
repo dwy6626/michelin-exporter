@@ -1305,6 +1305,14 @@ class GoogleMapsDriver:
         query: str,
         result_index: int,
     ) -> bool:
+        if (
+            "/maps/place/" in self._read_page_url(page)
+            and await self._first_visible_locator(page, ("h1.DUwDvf",)) is not None
+            and await self._first_visible_locator(page, ("div[role='feed']",)) is None
+        ):
+            # Article cards below a direct place can be neighboring businesses,
+            # including other tenants in the same building.
+            return False
         for attempt in range(1, self._SEARCH_RESULT_CLICK_MAX_ATTEMPTS + 1):
             first_result_locator = await self._matching_locator_at(
                 page,

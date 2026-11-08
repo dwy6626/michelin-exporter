@@ -142,6 +142,8 @@ class _BrowserHtmlFetcher:
         self._browser: Any | None = None
 
     def fetch(self, *, url: str, headers: dict[str, str], required_selector: str | None = None) -> str:
+        from playwright.sync_api import Error
+
         deadline = time.monotonic() + _BROWSER_FETCH_TIMEOUT_MS / 1000
         browser = self._ensure_browser()
         context = browser.new_context(
@@ -154,7 +156,17 @@ class _BrowserHtmlFetcher:
         )
         try:
             page = context.new_page()
-            page.goto(url, wait_until="domcontentloaded", timeout=max(1, int((deadline - time.monotonic()) * 1000)))
+            for attempt in range(HTTP_MAX_FETCH_RETRIES):
+                try:
+                    page.goto(url, wait_until="domcontentloaded", timeout=max(1, int((deadline - time.monotonic()) * 1000)))
+                    break
+                except Error as exc:
+                    if (
+                        "net::ERR_NETWORK_CHANGED" not in str(exc)
+                        or attempt == HTTP_MAX_FETCH_RETRIES - 1
+                        or time.monotonic() >= deadline
+                    ):
+                        raise
             if required_selector is not None:
                 page.wait_for_selector(
                     required_selector, state="attached", timeout=max(1, int((deadline - time.monotonic()) * 1000))

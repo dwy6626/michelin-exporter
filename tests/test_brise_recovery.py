@@ -17,7 +17,7 @@ from michelin_scraper.application.sync_enums import SyncRowStatus
 from michelin_scraper.scraping.fetcher import FetchPageResult, _BrowserHtmlFetcher, _fetch_html_with_browser, fetch_page_soup
 from michelin_scraper.scraping.listing_page import _build_restaurant_row_from_card, scrape_results_single_page
 from michelin_scraper.scraping.models import NullProgressReporter
-from michelin_scraper.scraping.restaurant_details import scrape_restaurant_page
+from michelin_scraper.scraping.restaurant_details import build_empty_data, scrape_restaurant_page
 from tests.fakes import FakeDriver
 
 _FIXTURES = Path(__file__).parent / "fixtures" / "michelin"
@@ -25,6 +25,19 @@ _URL = "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/bris
 
 
 class BriseRecoveryTests(unittest.TestCase):
+    def test_failed_detail_never_emits_an_addressless_listing_row(self) -> None:
+        card = BeautifulSoup((_FIXTURES / "brise-listing-card-2026-11-07.html").read_text(), "html.parser").select_one(
+            "div.card__menu"
+        )
+        with (
+            patch("michelin_scraper.scraping.listing_page._fetch_restaurant_page_data", return_value=build_empty_data()),
+            self.assertRaisesRegex(RuntimeError, "no verified address.*brise"),
+        ):
+            _build_restaurant_row_from_card(
+                session=MagicMock(), listing_card=card, restaurant_name="君尹", headers={}, tls_verify=True,
+                progress_reporter=NullProgressReporter(),
+            )
+
     def test_incomplete_rendered_detail_is_a_fetch_failure(self) -> None:
         incomplete = (_FIXTURES / "brise-incomplete-2026-11-07.html").read_text()
         session = MagicMock()

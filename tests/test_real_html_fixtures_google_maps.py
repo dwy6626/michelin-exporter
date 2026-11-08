@@ -160,6 +160,12 @@ class RealHtmlGoogleMapsFixtureTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("模咒CURSE", page_text)
         self.assertIn("Xizhi District", page_text)
 
+    def test_open_place_heading_takes_priority_over_saved_list_heading(self) -> None:
+        soup = BeautifulSoup(_read_fixture_text("saved-list-with-open-place-2026-11-08.html"), "html.parser")
+        self.assertEqual(
+            _extract_first_selector_text(soup, selectors.PLACE_TITLE_SELECTORS), "石二鍋 台北士林中正店"
+        )
+
     def test_single_cjk_gen_fixture_matches_known_michelin_row(self) -> None:
         soup = BeautifulSoup(
             _read_fixture_text("single-cjk-gen-weak-match.html"),

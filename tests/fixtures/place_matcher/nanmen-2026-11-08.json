@@ -1,0 +1,29 @@
+{
+  "source_row": {
+    "Name": "南門壹食",
+    "NameLocal": "南門壹食",
+    "GuideYear": "2026",
+    "Rating": "Selected",
+    "City": "Hsinchu City, 台灣地區",
+    "Price Range": "$",
+    "Cuisine": "麵食",
+    "Description": "小店採用老屋花磚與木製門面，佈置成簡約愜意的空間。除了多樣化的麵食選擇，也供應些許滷味及小菜。不要錯過每日新鮮製作的紅油抄手，內餡用上手打溫體豬肉與鮮脆的白蝦仁，佐以辣度溫潤、香氣十足的紅油，十分滋味。店家貼心提供辣度調整，也可改以蒜油搭配。用餐時間較為繁忙，建議提早前往。",
+    "Address": "東區南門街10號, Hsinchu City, 台灣地區",
+    "Latitude": "",
+    "Longitude": "",
+    "Michelin Website": "https://guide.michelin.com/tw/zh_TW/northern-taiwan/hsinchu-city_2853126/restaurant/no-10-nanmen",
+    "Restaurant Website": "",
+    "Restaurant Telephone Number": "+886 965 308 493",
+    "Reservation Link": ""
+  },
+  "maps_candidate": {
+    "name": "No.10 Nanmen南門壹食",
+    "address": "\nNo. 10號, Nanmen St, 東區 East District, Hsinchu City, 300",
+    "category": "餐廳",
+    "subtitle": "",
+    "located_in": ""
+  },
+  "source_url": "https://guide.michelin.com/tw/zh_TW/northern-taiwan/hsinchu-city_2853126/restaurant/no-10-nanmen",
+  "scenario": "address-prefix-business-branding",
+  "sanitized": true
+}

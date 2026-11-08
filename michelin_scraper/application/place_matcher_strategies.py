@@ -188,6 +188,8 @@ _FOOD_SERVICE_CATEGORY_KEYWORDS = (
     "餅",
     "餃",
     "湯包",
+    "包點",
+    "壽司",
     "豆腐",
     "甜點",
     "甜品",
@@ -203,6 +205,7 @@ _NON_FOOD_CATEGORY_KEYWORDS = (
     "workshop",
     "office",
     "tourist attraction",
+    "旅遊景點",
     "宗教",
     "寺",
     "廟",
@@ -670,6 +673,18 @@ def extract_place_match_features(
         max_size=4,
     )
     risk_labels_list = _detect_generic_risk_labels(row, candidate)
+    category = normalize_text(candidate.category)
+    if category and not _is_food_service_category(category) and max(name_similarity, alias_similarity) < 95.0:
+        risk_labels_list.append("unrecognized_category_without_strong_identity")
+    identity_tokens = set().union(*(_latin_identity_tokens(name) for name in source_names))
+    if identity_tokens and all(token.isdigit() for token in identity_tokens):
+        street_tokens = (
+            _significant_address_tokens(str(row.get("Address") or ""))
+            - _significant_address_tokens(str(row.get("City") or ""))
+        )
+        street_tokens = {token for token in street_tokens if not token.isdigit()}
+        if not street_tokens.intersection(_significant_address_tokens(candidate.address)):
+            risk_labels_list.append("numeric_name_without_street_anchor")
     if (
         max(name_similarity, alias_similarity) >= 95.0
         and address_similarity < 30.0
@@ -866,6 +881,25 @@ def _score_category_similarity(row: Mapping[str, Any], candidate: PlaceCandidate
     return 0.0
 
 
+def is_address_like_candidate_name(row: Mapping[str, Any], candidate: PlaceCandidateLike) -> bool:
+    """Keep address pins vetoed while recognizing independently anchored business branding."""
+    if not _ADDRESS_LIKE_PLACE_NAME_PATTERN.search(candidate.name.strip()):
+        return False
+    source_name = _compact_mixed_name(str(row.get("Name") or ""))
+    source_address = _compact_mixed_name(str(row.get("Address") or ""))
+    branded_business = (
+        len(source_name) >= 3
+        and source_name in _compact_mixed_name(candidate.name)
+        and source_name not in source_address
+        and not _ADDRESS_LIKE_PLACE_NAME_PATTERN.search(str(row.get("Name") or ""))
+        and _is_food_service_category(normalize_text(candidate.category))
+        and _score_house_number_evidence(row, candidate) >= 90.0
+        and _score_city_similarity(row, candidate) >= 70.0
+        and not _has_house_number_conflict(str(row.get("Address") or ""), candidate.address)
+    )
+    return not branded_business
+
+
 def _detect_generic_risk_labels(
     row: Mapping[str, Any],
     candidate: PlaceCandidateLike,
@@ -876,7 +910,7 @@ def _detect_generic_risk_labels(
         or _COORDINATE_DMS_PATTERN.match(candidate.name.strip())
     ):
         labels.append("coordinate_like_candidate_name")
-    if _ADDRESS_LIKE_PLACE_NAME_PATTERN.search(candidate.name.strip()):
+    if is_address_like_candidate_name(row, candidate):
         labels.append("address_like_candidate_name")
     if _has_house_number_conflict(str(row.get("Address") or ""), candidate.address):
         labels.append("house_number_conflict")
@@ -1048,6 +1082,8 @@ def _score_disqualifiers(risk_labels: Sequence[str]) -> float:
         "coordinate_like_candidate_name",
         "address_like_candidate_name",
         "non_food_category",
+        "numeric_name_without_street_anchor",
+        "unrecognized_category_without_strong_identity",
     }
     return 100.0 if any(label in disqualifiers for label in risk_labels) else 0.0
 

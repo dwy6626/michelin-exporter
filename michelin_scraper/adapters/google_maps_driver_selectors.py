@@ -45,6 +45,7 @@ SEARCH_RESULT_CANDIDATE_SELECTORS = (
     "a[href*='/maps/place/']",
 )
 PLACE_TITLE_SELECTORS = (
+    "h1.DUwDvf",
     "h1",
     "h1.fontHeadlineLarge",
 )

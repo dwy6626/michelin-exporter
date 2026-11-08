@@ -1,0 +1,7 @@
+{
+  "scenario": "numeric-name-wrong-street",
+  "captured_at": "2026-11-08",
+  "language": "en",
+  "source": "real-page-snapshot",
+  "sanitized": true
+}
