@@ -228,7 +228,7 @@ Omitting `--google-cdp-url` retains persistent-profile mode.
 
 ## Daily Taiwan Michelin maintenance
 
-The HTTP-only official-source probe reuses the production Michelin listing/detail
+The HTTP-first official-source probe with admitted source-DOM fallback reuses the production Michelin listing/detail
 parser, follows every next page beyond visible page estimates, and requires a
 positive consistent source count, complete detail addresses, and unique rows.
 
@@ -244,24 +244,31 @@ uv run python -m michelin_scraper.application.taiwan_michelin_maintenance \
 ```
 
 
-The source session tries ordinary HTTP for each listing and detail first. When
-unavailable it uses the existing Firecrawl vendor's official `/v2/scrape` API with
-`formats=["rawHtml"]` and `maxAge=0`, without credentials, cookies or browser use.
-The original source and resolved URL must match the requested official URL, with
-vendor HTTP 200, success true and original-source status 200. The same production
-parser consumes that HTML; vendor errors remain failures. `source-probe.json`
-records per-fetch transport, original status/URL, timestamps and HTML hashes.
-The source budget is 850 seconds, with at most four detail requests in flight,
-vendor starts spaced by 250 ms and each vendor request limited to 75 seconds.
-No applied or pending revision is consumed on a failed source.
+The source session tries ordinary HTTP first. Once unavailable, the remaining collection
+uses the admitted source transport. It reads the official source normally through the existing cron Chrome
+at `http://127.0.0.1:9223`, using one owned 1280x900 page and original DOM or normal
+same-origin fetch HTML. No cloud reader, paid quota, credential setup, cookie
+extraction, profile clone or new browser service is used. The source CLI requires
+the matching `44d6d0d58cbc` public external-runner lease before any CDP access;
+the wrapper holds that lease throughout collection and owned-page cleanup, releases
+it fully, then lets changed revisions enter normal full-runner admission.
+Playwright creation, fetches and cleanup are serialized on one owner thread despite
+the parser's concurrent detail workers. Only the owned page and client connection
+are closed; existing tabs, browser, contexts and authentication remain intact.
+Require exact requested/resolved official URLs and HTTP 200. The same strict parser
+validates all pages and details; challenges, foreign redirects, partial/empty rows
+and transport failures fail closed. `source-probe.json` records transport, source
+status/URL, timestamps and original HTML hashes. The source budget is 850 seconds
+inside the wrapper's 900-second limit, with individual source calls limited to 45
+seconds and serialized source starts spaced by at least one second. Browser congestion is `not_executed`, preserving failure and applied state.
+Empty HTTP 202 navigation responses receive at most two ordinary navigation retries after 3/6-second backoffs within the same source budget; persistent challenges fail closed. No applied or pending revision is consumed on a failed source.
 
 `source-probe.json` and `source-rows.jsonl` are fresh official evidence, never applied
-state. `source-failure.json` preserves failed HTTP/parse context without opening a
-browser; a challenge, partial pagination or empty source cannot authorize removal.
+state. `source-failure.json` preserves failed transport/parse context; a challenge, partial pagination or empty source cannot authorize removal.
 The fingerprint tracks name, rating, address, city and guide year, ignoring row
 ordering and transient links. Michelin updates between annual award editions, so
 production checks daily at 09:00 Asia/Taipei. A healthy unchanged check is silent and
-invokes no Google browser, authentication, model or full runner.
+invokes no Google Maps, authentication, model or full runner. Public source browsing may be required.
 
 `bootstrap` derives `applied.json` only from the actual complete accepted source
 rows and SHA-bound signed-in/anonymous acceptance. `validate-applied` is read-only:

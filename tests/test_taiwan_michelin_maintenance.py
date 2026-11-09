@@ -3,12 +3,16 @@
 import copy
 import hashlib
 import json
+import os
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import requests
+from playwright.sync_api import Error as PlaywrightError
 
 from michelin_scraper.adapters.google_maps_driver import GoogleMapsDriverConfig
 from michelin_scraper.application.taiwan_michelin_maintenance import (
@@ -19,7 +23,7 @@ from michelin_scraper.application.taiwan_michelin_maintenance import (
 )
 from michelin_scraper.scraping.models import ScrapeResultsPage
 from michelin_scraper.sources.taiwan_michelin import (
-    READER_URL,
+    SOURCE_JOB_ID,
     SOURCE_URL,
     _FreshReaderSession,
     discover_taiwan_michelin,
@@ -33,72 +37,169 @@ class FreshReaderTests(unittest.TestCase):
     def _response(self, status: int, text: str) -> requests.Response:
         response = requests.Response()
         response.status_code = status
+        response.url = SOURCE_URL
         response._content = text.encode()
         response.encoding = "utf-8"
         return response
 
-    def _payload(self) -> dict:
-        html = (Path(__file__).parent / "fixtures/michelin/taiwan-region-2026-11-07.html").read_text()
-        return {"success": True, "data": {"rawHtml": html, "metadata": {
-            "sourceURL": SOURCE_URL, "url": SOURCE_URL, "statusCode": 200,
-        }}}
+    def _html(self) -> str:
+        return (Path(__file__).parent / "fixtures/michelin/taiwan-region-2026-11-07.html").read_text()
 
-    @patch("michelin_scraper.sources.taiwan_michelin.requests.post")
+    @patch.object(_FreshReaderSession, "_browser_get")
     @patch("requests.Session.get")
-    def test_direct_http_success_does_not_use_vendor(self, direct, post) -> None:
-        direct.return_value = self._response(200, self._payload()["data"]["rawHtml"])
+    def test_direct_http_success_does_not_use_browser(self, direct, browser) -> None:
+        direct.return_value = self._response(200, self._html())
         with _FreshReaderSession() as session:
             self.assertIs(session.get(SOURCE_URL), direct.return_value)
             self.assertEqual(session.provenance[0]["transport"], "direct-http")
-        post.assert_not_called()
-
-    @patch("michelin_scraper.scraping.fetcher._fetch_html_with_browser")
-    @patch("michelin_scraper.sources.taiwan_michelin.requests.post")
-    @patch("requests.Session.get")
-    def test_challenge_uses_fresh_original_html_without_browser(self, direct, post, browser) -> None:
-        direct.return_value = self._response(202, "")
-        post.return_value = Mock(status_code=200, json=Mock(return_value=self._payload()))
-        with _FreshReaderSession() as session:
-            response = session.get(SOURCE_URL)
-            self.assertEqual(response.text, self._payload()["data"]["rawHtml"])
-            self.assertEqual(session.provenance[0]["source_status_code"], 200)
-        post.assert_called_once()
-        self.assertEqual(post.call_args.args, (READER_URL,))
-        self.assertEqual(post.call_args.kwargs["json"], {"url": SOURCE_URL, "formats": ["rawHtml"], "maxAge": 0})
+            self.assertEqual(session.provenance[0]["resolved_url"], SOURCE_URL)
         browser.assert_not_called()
 
-    @patch("michelin_scraper.sources.taiwan_michelin.requests.post")
+    @patch.object(_FreshReaderSession, "_browser_get")
     @patch("requests.Session.get")
-    def test_vendor_failure_and_wrong_original_provenance_fail_closed(self, direct, post) -> None:
-        direct.return_value = self._response(202, "")
-        mutations = [lambda p: p.update(success=False), lambda p: p["data"].update(rawHtml=""),
-                     lambda p: p["data"]["metadata"].update(statusCode=202),
-                     lambda p: p["data"]["metadata"].update(sourceURL=SOURCE_URL + "/page/2"),
-                     lambda p: p["data"]["metadata"].update(url=READER_URL)]
-        for mutate in mutations:
-            payload = self._payload()
-            mutate(payload)
-            post.return_value = Mock(status_code=200, json=Mock(return_value=payload))
-            with self.subTest(payload=payload["data"]["metadata"]), _FreshReaderSession() as session, self.assertRaises(ValueError):
-                session.get(SOURCE_URL)
-        post.return_value = Mock(status_code=429, headers={"Retry-After": "82590"})
-        with _FreshReaderSession() as session, self.assertRaisesRegex(ValueError, "HTTP 429.*retry_after=82590"):
-            session.get(SOURCE_URL)
-        post.side_effect = requests.HTTPError("vendor unavailable")
-        with _FreshReaderSession() as session, self.assertRaisesRegex(ValueError, "reader request failed"):
-            session.get(SOURCE_URL)
+    def test_challenge_or_redirect_uses_original_source_html(self, direct, browser) -> None:
+        browser.return_value = self._html(), "cron-source-dom"
+        for status, resolved in ((202, SOURCE_URL), (403, SOURCE_URL), (200, "https://example.com/")):
+            direct.return_value = self._response(status, "")
+            direct.return_value.url = resolved
+            with self.subTest(status=status), _FreshReaderSession() as session:
+                response = session.get(SOURCE_URL)
+                self.assertEqual(response.text, self._html())
+                self.assertEqual(response.url, SOURCE_URL)
+                self.assertEqual(session.provenance[0]["source_status_code"], 200)
+                self.assertEqual(session.provenance[0]["direct_status_code"], status)
+        self.assertEqual(browser.call_count, 3)
 
-    @patch("michelin_scraper.sources.taiwan_michelin.requests.post")
+    @patch.object(_FreshReaderSession, "_browser_get")
     @patch("requests.Session.get")
-    def test_foreign_url_or_expired_budget_makes_no_network_request(self, direct, post) -> None:
+    def test_http_failure_keeps_remaining_collection_on_source_transport(self, direct, browser) -> None:
+        direct.return_value = self._response(403, "")
+        browser.return_value = self._html(), "cron-source-fetch"
+        with _FreshReaderSession() as session:
+            session.get(SOURCE_URL)
+            session.get(SOURCE_URL + "/page/2")
+        direct.assert_called_once()
+        self.assertEqual(browser.call_count, 2)
+
+    @patch.object(_FreshReaderSession, "_assert_admitted")
+    @patch("michelin_scraper.sources.taiwan_michelin.sync_playwright")
+    @patch("requests.Session.get")
+    def test_parallel_details_use_one_owner_thread_one_page_and_cleanup(self, direct, playwright, admitted) -> None:
+        direct.return_value = self._response(202, "")
+        thread_ids = []
+        client = playwright.return_value.start.return_value
+        browser = client.chromium.connect_over_cdp.return_value
+        context = Mock()
+        browser.contexts = [context]
+        page = context.new_page.return_value
+        page.url = "about:blank"
+
+        def goto(url, **kwargs):
+            thread_ids.append(threading.get_ident())
+            page.url = url
+            return Mock(status=200, url=url, headers={})
+
+        def fetch(*args):
+            thread_ids.append(threading.get_ident())
+            return {"status": 200, "url": SOURCE_URL, "html": self._html(), "challenge": None}
+
+        page.goto.side_effect = goto
+        page.content.return_value = self._html()
+        page.evaluate.side_effect = fetch
+        page.close.side_effect = lambda: thread_ids.append(threading.get_ident())
+        with _FreshReaderSession() as session, ThreadPoolExecutor(max_workers=4) as callers:
+            responses = list(callers.map(lambda _: session.get(SOURCE_URL), range(4)))
+        self.assertTrue(all(response.status_code == 200 for response in responses))
+        self.assertEqual(len(set(thread_ids)), 1)
+        self.assertNotEqual(thread_ids[0], threading.get_ident())
+        context.new_page.assert_called_once()
+        page.goto.assert_called_once()
+        self.assertEqual(page.evaluate.call_count, 3)
+        page.close.assert_called_once()
+        client.stop.assert_called_once()
+        browser.close.assert_not_called()
+        context.close.assert_not_called()
+        self.assertEqual(admitted.call_count, 4)
+
+    @patch.object(_FreshReaderSession, "_assert_admitted")
+    @patch("michelin_scraper.sources.taiwan_michelin.sync_playwright")
+    @patch("requests.Session.get")
+    def test_wrong_source_status_redirect_or_fetch_failure_rejects_and_cleans_up(self, direct, playwright, admitted) -> None:
+        direct.return_value = self._response(202, "")
+        client = playwright.return_value.start.return_value
+        page = client.chromium.connect_over_cdp.return_value.contexts[0].new_page.return_value
+        page.url = "about:blank"
+        for status, resolved in ((403, SOURCE_URL), (200, "https://example.com/")):
+            page.goto.return_value = Mock(status=status, url=resolved)
+            with self.subTest(status=status), _FreshReaderSession() as session, self.assertRaises(ValueError):
+                session.get(SOURCE_URL)
+        self.assertEqual(page.close.call_count, 2)
+        self.assertEqual(client.stop.call_count, 2)
+
+    @patch("michelin_scraper.sources.taiwan_michelin.sync_playwright")
+    def test_no_matching_held_lease_makes_no_browser_connection(self, playwright) -> None:
+        with tempfile.TemporaryDirectory() as temp, patch.dict(os.environ, {
+            "HERMES_HOME": temp, "HERMES_CRON_BROWSER_LANE_TOKEN": "test-lease",
+        }):
+            lock = Path(temp) / "cron/locks/browser-cdp.lock"
+            lock.parent.mkdir(parents=True)
+            for proof in ({"job_id": "another-job", "token": "test-lease"},
+                          {"job_id": SOURCE_JOB_ID, "token": "wrong-token"},
+                          {"job_id": SOURCE_JOB_ID, "token": "test-lease"}):
+                lock.write_text(json.dumps(proof))
+                with self.subTest(proof=proof), _FreshReaderSession() as session, self.assertRaises(ValueError):
+                    session._browser_get(SOURCE_URL)
+        playwright.assert_not_called()
+
+    @patch.object(_FreshReaderSession, "_assert_admitted")
+    @patch("michelin_scraper.sources.taiwan_michelin.sync_playwright")
+    @patch("requests.Session.get")
+    def test_transient_202_has_bounded_normal_navigation_backoff_and_still_requires_200(self, direct, playwright, admitted) -> None:
+        direct.return_value = self._response(403, "")
+        client = playwright.return_value.start.return_value
+        page = client.chromium.connect_over_cdp.return_value.contexts[0].new_page.return_value
+        page.url = SOURCE_URL
+        page.evaluate.return_value = {"status": 202, "url": SOURCE_URL, "html": "", "challenge": "challenge"}
+        page.content.return_value = self._html()
+        page.goto.side_effect = [Mock(status=202), Mock(status=200, url=SOURCE_URL, headers={})]
+        with _FreshReaderSession() as session:
+            self.assertEqual(session.get(SOURCE_URL).text, self._html())
+        self.assertEqual(page.goto.call_count, 2)
+        page.wait_for_timeout.assert_called_once_with(3000)
+        page.goto.reset_mock(side_effect=True)
+        page.goto.return_value = Mock(status=202)
+        with _FreshReaderSession() as session, self.assertRaisesRegex(ValueError, "status=202"):
+            session.get(SOURCE_URL)
+        self.assertEqual(page.goto.call_count, 3)
+
+    @patch.object(_FreshReaderSession, "_assert_admitted")
+    @patch("michelin_scraper.sources.taiwan_michelin.sync_playwright")
+    @patch("requests.Session.get")
+    def test_normal_fetch_error_falls_back_to_navigation_on_same_owned_page(self, direct, playwright, admitted) -> None:
+        direct.return_value = self._response(403, "")
+        client = playwright.return_value.start.return_value
+        page = client.chromium.connect_over_cdp.return_value.contexts[0].new_page.return_value
+        page.url = SOURCE_URL
+        page.evaluate.side_effect = PlaywrightError("Failed to fetch")
+        page.goto.return_value = Mock(status=200, url=SOURCE_URL, headers={})
+        page.content.return_value = self._html()
+        with _FreshReaderSession() as session:
+            self.assertEqual(session.get(SOURCE_URL).text, self._html())
+            self.assertEqual(session.provenance[0]["transport"], "cron-source-dom")
+        page.goto.assert_called_once()
+        page.close.assert_called_once()
+
+    @patch.object(_FreshReaderSession, "_browser_get")
+    @patch("requests.Session.get")
+    def test_foreign_url_or_expired_budget_makes_no_network_request(self, direct, browser) -> None:
         with _FreshReaderSession() as session:
             with self.assertRaises(ValueError):
-                session.get(READER_URL)
+                session.get("https://example.com/")
             session._deadline = 0
             with self.assertRaises(ValueError):
                 session.get(SOURCE_URL)
         direct.assert_not_called()
-        post.assert_not_called()
+        browser.assert_not_called()
 
 
 class TaiwanMichelinSourceTests(unittest.TestCase):
@@ -116,7 +217,7 @@ class TaiwanMichelinSourceTests(unittest.TestCase):
             self.assertNotEqual(semantic_fingerprint(changed), baseline)
 
     @patch("michelin_scraper.sources.taiwan_michelin.scrape_results_single_page")
-    def test_full_next_chain_is_required_and_http_only(self, scrape) -> None:
+    def test_full_next_chain_uses_only_the_owned_source_transport(self, scrape) -> None:
         rows = copy.deepcopy(FIXTURE["source_rows"])
         scrape.side_effect = [
             ScrapeResultsPage(rows[:2], SOURCE_URL + "/page/2", 1, 3, False),

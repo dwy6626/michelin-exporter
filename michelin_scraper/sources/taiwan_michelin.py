@@ -1,26 +1,31 @@
-"""Probe the complete current Taiwan Michelin selection over HTTP only."""
+"""Probe complete Taiwan Michelin sources: HTTP first, then admitted cron source DOM."""
 
 import argparse
+import fcntl
 import hashlib
 import json
-import threading
+import os
 import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 import requests
+from playwright.sync_api import Browser, Page, Playwright, sync_playwright
+from playwright.sync_api import Error as PlaywrightError
 
 from ..config import HEADERS
 from ..scraping.listing_page import scrape_results_single_page
 from ..scraping.models import NullProgressReporter
 
-READER_URL = "https://api.firecrawl.dev/v2/scrape"
 SOURCE_BUDGET_SECONDS = 850
-READER_TIMEOUT_SECONDS = 75
-READER_INTERVAL_SECONDS = 0.25
+SOURCE_REQUEST_SECONDS = 45
+SOURCE_INTERVAL_SECONDS = 1.0
+SOURCE_JOB_ID = "44d6d0d58cbc"
+SOURCE_CDP_URL = "http://127.0.0.1:9223"
 
 SOURCE_ID = "taiwan-michelin"
 SOURCE_URL = "https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants"
@@ -30,20 +35,108 @@ SEMANTIC_FIELDS = ("Name", "Rating", "Address", "City", "GuideYear")
 
 
 class _FreshReaderSession(requests.Session):
-    """HTTP first, then the configured vendor's fresh original HTML, never a browser."""
+    """HTTP first; one admitted, owned source page lives on one transport thread."""
 
     def __init__(self) -> None:
         super().__init__()
         self.provenance: list[dict[str, Any]] = []
         self._deadline = time.monotonic() + SOURCE_BUDGET_SECONDS
-        self._reader_lock = threading.Lock()
-        self._next_reader_at = 0.0
+        self._owner = ThreadPoolExecutor(max_workers=1, thread_name_prefix="michelin-source")
+        self._playwright: Playwright | None = None
+        self._browser: Browser | None = None
+        self._page: Page | None = None
+        self._http_unavailable = False
+        self._next_source_at = 0.0
 
     def _remaining(self) -> float:
         remaining = self._deadline - time.monotonic()
         if remaining <= 0:
-            raise ValueError("Michelin source exceeded its bounded fresh-reader budget.")
+            raise ValueError("Michelin source exceeded its bounded source-reader budget.")
         return remaining
+
+    def _assert_admitted(self) -> None:
+        home = Path(os.environ.get("HERMES_HOME", str(Path.home() / ".hermes")))
+        token = os.environ.get("HERMES_CRON_BROWSER_LANE_TOKEN")
+        with (home / "cron/locks/browser-cdp.lock").open() as lock:
+            proof = json.load(lock)
+            if not token or proof.get("token") != token or proof.get("job_id") != SOURCE_JOB_ID:
+                raise ValueError("Michelin source requires its matching public job browser lease.")
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            raise ValueError("Michelin source browser mutex is not held.")
+
+    def _browser_get(self, url: str) -> tuple[str, str]:
+        # This method and cleanup always execute in the single owner thread.
+        self._assert_admitted()
+        delay = max(0.0, self._next_source_at - time.monotonic())
+        if delay >= self._remaining():
+            raise ValueError("Michelin source pacing exceeds the source budget.")
+        time.sleep(delay)
+        self._next_source_at = time.monotonic() + SOURCE_INTERVAL_SECONDS
+        timeout = max(1, int(min(SOURCE_REQUEST_SECONDS, self._remaining()) * 1000))
+        if self._page is None:
+            self._playwright = sync_playwright().start()
+            self._browser = self._playwright.chromium.connect_over_cdp(SOURCE_CDP_URL, timeout=timeout)
+            if not self._browser.contexts:
+                raise ValueError("Existing cron browser has no authorized context.")
+            self._page = self._browser.contexts[0].new_page()
+            self._page.set_viewport_size({"width": 1280, "height": 900})
+        page = self._page
+        # Normal same-origin fetch returns the original response HTML and avoids
+        # repeatedly navigating the owned tab for the parser's detail requests.
+        if page.url.startswith("https://guide.michelin.com/tw/zh_TW/"):
+            try:
+                result = page.evaluate("""async ({url, timeout}) => {
+                    const response = await fetch(url, {signal: AbortSignal.timeout(timeout), cache: 'no-store'});
+                    return {status: response.status, url: response.url, html: await response.text(),
+                            challenge: response.headers.get('x-amzn-waf-action')};
+                }""", {"url": url, "timeout": timeout})
+                if (result["status"] == 200 and result["url"] == url and result["html"].strip()
+                        and str(result["challenge"]).casefold() != "challenge"):
+                    return result["html"], "cron-source-fetch"
+            except PlaywrightError:
+                pass
+        timeout = max(1, int(min(SOURCE_REQUEST_SECONDS, self._remaining()) * 1000))
+        response = page.goto(url, wait_until="domcontentloaded", timeout=timeout)
+        # A transient empty 202 is not restaurant HTML. Back off and perform
+        # ordinary navigation again; never interact with challenges or cookies.
+        for delay in (3, 6):
+            if response is None or response.status != 202:
+                break
+            if delay >= self._remaining():
+                raise ValueError("Michelin source navigation backoff exceeds the source budget.")
+            page.wait_for_timeout(delay * 1000)
+            timeout = max(1, int(min(SOURCE_REQUEST_SECONDS, self._remaining()) * 1000))
+            response = page.goto(url, wait_until="domcontentloaded", timeout=timeout)
+        if (response is None or response.status != 200 or response.url != url or page.url != url
+                or response.headers.get("x-amzn-waf-action", "").casefold() == "challenge"):
+            raise ValueError(f"Michelin source navigation rejected at {url}: "
+                             f"status={response.status if response else None}, resolved={page.url}.")
+        html = page.content()
+        if not html.strip():
+            raise ValueError(f"Michelin source DOM is empty at {url}.")
+        return html, "cron-source-dom"
+
+    def _close_owned_page(self) -> None:
+        try:
+            if self._page is not None:
+                self._page.close()
+        finally:
+            self._page = None
+            # Stop this client's connection only; never close the browser/context.
+            if self._playwright is not None:
+                self._playwright.stop()
+                self._playwright = None
+
+    def close(self) -> None:
+        try:
+            self._owner.submit(self._close_owned_page).result()
+        finally:
+            self._owner.shutdown(wait=True, cancel_futures=True)
+            super().close()
 
     def get(self, url: str, **kwargs: Any) -> requests.Response:
         parsed = urlparse(url)
@@ -52,49 +145,22 @@ class _FreshReaderSession(requests.Session):
             raise ValueError("Fresh Michelin reader refuses a URL outside the official Taiwan scope.")
         kwargs["timeout"] = min(float(kwargs.get("timeout", 30)), self._remaining())
         direct_status = None
-        try:
-            response = super().get(url, **kwargs)
-            direct_status = response.status_code
-            if (response.status_code == 200 and response.text.strip()
-                    and response.headers.get("x-amzn-waf-action", "").casefold() != "challenge"):
-                self.provenance.append({"url": url, "transport": "direct-http", "status_code": 200,
-                                        "html_sha256": hashlib.sha256(response.content).hexdigest()})
-                return response
-        except requests.RequestException:
-            pass
-        # The production parser already bounds detail concurrency to four. Space
-        # vendor request starts as well; no retries hide a vendor/source failure.
-        with self._reader_lock:
-            delay = max(0.0, self._next_reader_at - time.monotonic())
-            if delay >= self._remaining():
-                raise ValueError("Michelin reader rate wait exceeds the source budget.")
-            time.sleep(delay)
-            self._next_reader_at = time.monotonic() + READER_INTERVAL_SECONDS
-        try:
-            result = requests.post(
-                READER_URL, json={"url": url, "formats": ["rawHtml"], "maxAge": 0},
-                timeout=min(READER_TIMEOUT_SECONDS, self._remaining()),
-            )
-        except requests.RequestException as exc:
-            raise ValueError(f"Michelin fresh reader request failed at {url}: {type(exc).__name__}.") from exc
-        if result.status_code != 200:
-            raise ValueError(
-                f"Michelin fresh reader HTTP {result.status_code} at {url}; "
-                f"retry_after={result.headers.get('Retry-After', 'unspecified')}."
-            )
-        try:
-            payload = result.json()
-        except ValueError as exc:
-            raise ValueError(f"Michelin fresh reader returned invalid JSON at {url}.") from exc
-        data = payload.get("data") if isinstance(payload, dict) else None
-        metadata = data.get("metadata") if isinstance(data, dict) else None
-        raw_html = data.get("rawHtml") if isinstance(data, dict) else None
-        if (result.status_code != 200 or not isinstance(payload, dict)
-                or payload.get("success") is not True or not isinstance(metadata, dict)
-                or type(metadata.get("statusCode")) is not int or metadata["statusCode"] != 200
-                or metadata.get("sourceURL") != url or metadata.get("url") != url
-                or metadata.get("error") or not isinstance(raw_html, str) or not raw_html.strip()):
-            raise ValueError(f"Fresh Michelin reader returned invalid original-source provenance at {url}.")
+        if not self._http_unavailable:
+            try:
+                response = super().get(url, **kwargs)
+                direct_status = response.status_code
+                if (response.status_code == 200 and response.url == url and response.text.strip()
+                        and response.headers.get("x-amzn-waf-action", "").casefold() != "challenge"):
+                    self.provenance.append({
+                        "url": url, "transport": "direct-http", "status_code": 200, "resolved_url": response.url,
+                        "checked_at_utc": datetime.now(UTC).isoformat(), "html_bytes": len(response.content),
+                        "html_sha256": hashlib.sha256(response.content).hexdigest(),
+                    })
+                    return response
+            except requests.RequestException:
+                pass
+            self._http_unavailable = True
+        raw_html, transport = self._owner.submit(self._browser_get, url).result()
         response = requests.Response()
         response.status_code = 200
         response.url = url
@@ -102,10 +168,8 @@ class _FreshReaderSession(requests.Session):
         response._content = raw_html.encode("utf-8")
         response.headers["Content-Type"] = "text/html; charset=utf-8"
         self.provenance.append({
-            "url": url, "transport": "firecrawl-v2-scrape", "reader_url": READER_URL,
-            "direct_status_code": direct_status, "reader_status_code": result.status_code,
-            "source_status_code": metadata["statusCode"], "source_url": metadata["sourceURL"],
-            "resolved_url": metadata["url"], "max_age": 0, "scrape_id": metadata.get("scrapeId"),
+            "url": url, "transport": transport, "direct_status_code": direct_status,
+            "source_status_code": 200, "source_url": url, "resolved_url": url,
             "checked_at_utc": datetime.now(UTC).isoformat(),
             "html_bytes": len(response.content), "html_sha256": hashlib.sha256(response.content).hexdigest(),
         })
@@ -196,7 +260,7 @@ def discover_taiwan_michelin() -> tuple[dict[str, Any], list[dict[str, Any]]]:
 
 
 def write_probe(state_dir: Path) -> dict[str, Any]:
-    """Write source-only evidence; this never changes applied or browser state."""
+    """Write source-only evidence without changing applied state or existing tabs."""
 
     metadata, rows = discover_taiwan_michelin()
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -211,6 +275,7 @@ def write_probe(state_dir: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--state-dir", required=True, help="Private scratch directory for fresh source-probe.json and source-rows.jsonl.")
+    parser.epilog = "DOM fallback requires the matching public Michelin job lease on existing cron :9223; HTTP needs no lease."
     args = parser.parse_args()
     state_dir = Path(args.state_dir).expanduser()
     try:

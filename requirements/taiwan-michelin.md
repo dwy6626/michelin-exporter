@@ -10,7 +10,7 @@ Official source is
 https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants.
 Michelin's official 2026 Taiwan new-restaurants and live-updates articles establish
 both annual awards and updates between editions. Check every day 09:00 Asia/Taipei.
-Probe over HTTP without Google, browser, authentication, model or full runner.
+Probe HTTP first, with admitted public source-DOM fallback; unchanged checks use no Google Maps, authentication, model or full runner.
 Follow and validate every next link, require positive stable total counts and
 unique complete name/rating/address rows. Compare sorted semantic identities,
 ignoring row ordering and transient URLs. Partial, challenged, failed or empty
@@ -38,18 +38,26 @@ send infrastructure tests or supervisor network notices. Production cadence/mode
 pins belong to the owning automation; engineering/debug remains gpt-6.1-sol.
 
 Focused gates: complete/partial/duplicate/pagination source checks using recorded
-real rows, HTTP-only challenge never launching browser, actual acceptance hash/count
+real rows, HTTP success avoiding CDP, source-only lease/thread/cleanup boundaries, actual acceptance hash/count
 rejection, recorded note reconciliation and owned browser lifecycle. Fresh production
 entrypoint evidence is required before activation; an upstream challenge remains
 pending acceptance and cannot be relabeled unchanged or complete.
 
-The source session tries ordinary HTTP for each listing and detail first. When
-unavailable it uses the existing Firecrawl vendor's official `/v2/scrape` API with
-`formats=["rawHtml"]` and `maxAge=0`, without credentials, cookies or browser use.
-The original source and resolved URL must match the requested official URL, with
-vendor HTTP 200, success true and original-source status 200. The same production
-parser consumes that HTML; vendor errors remain failures. `source-probe.json`
-records per-fetch transport, original status/URL, timestamps and HTML hashes.
-The source budget is 850 seconds, with at most four detail requests in flight,
-vendor starts spaced by 250 ms and each vendor request limited to 75 seconds.
-No applied or pending revision is consumed on a failed source.
+The source session tries ordinary HTTP first. Once unavailable, the remaining collection
+uses the admitted source transport. It reads the official source normally through the existing cron Chrome
+at `http://127.0.0.1:9223`, using one owned 1280x900 page and original DOM or normal
+same-origin fetch HTML. No cloud reader, paid quota, credential setup, cookie
+extraction, profile clone or new browser service is used. The source CLI requires
+the matching `44d6d0d58cbc` public external-runner lease before any CDP access;
+the wrapper holds that lease throughout collection and owned-page cleanup, releases
+it fully, then lets changed revisions enter normal full-runner admission.
+Playwright creation, fetches and cleanup are serialized on one owner thread despite
+the parser's concurrent detail workers. Only the owned page and client connection
+are closed; existing tabs, browser, contexts and authentication remain intact.
+Require exact requested/resolved official URLs and HTTP 200. The same strict parser
+validates all pages and details; challenges, foreign redirects, partial/empty rows
+and transport failures fail closed. `source-probe.json` records transport, source
+status/URL, timestamps and original HTML hashes. The source budget is 850 seconds
+inside the wrapper's 900-second limit, with individual source calls limited to 45
+seconds and serialized source starts spaced by at least one second. Browser congestion is `not_executed`, preserving failure and applied state.
+Empty HTTP 202 navigation responses receive at most two ordinary navigation retries after 3/6-second backoffs within the same source budget; persistent challenges fail closed. No applied or pending revision is consumed on a failed source.
