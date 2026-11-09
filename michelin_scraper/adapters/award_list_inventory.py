@@ -256,6 +256,15 @@ def parse_public_list_inventory(
             "transport": "public Maps renderer response without authentication or cookies"}
 
 
+class AnonymousListRequestError(ValueError):
+    """Preserve rate-limit response metadata for the external recovery owner."""
+
+    def __init__(self, http_status: int, retry_after: str | None):
+        super().__init__(f"Anonymous Saved List renderer returned HTTP {http_status}.")
+        self.status = "challenge" if http_status == 429 else "failed"
+        self.retry_after = retry_after
+
+
 def _get_public_list_payload(url: str) -> Any:
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
@@ -272,7 +281,7 @@ def _get_public_list_payload(url: str) -> Any:
         settings = session.merge_environment_settings(str(request.url), {}, None, None, None)
         response = session.send(request, timeout=30, allow_redirects=False, **settings)
         if response.status_code != 200:
-            raise ValueError(f"Anonymous Saved List renderer returned HTTP {response.status_code}.")
+            raise AnonymousListRequestError(response.status_code, response.headers.get("Retry-After"))
         text = response.content.decode("utf-8")
         if text.startswith(")]}'"):
             text = text[4:]

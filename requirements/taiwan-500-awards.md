@@ -91,3 +91,46 @@ remaining mismatches. `--note-limit 1` bounds the first stage. Save de-identifie
 DOM and complete signed/anonymous inventories beneath the runtime scratch path.
 The migration has a fifteen-minute CLI budget and never forces pair reacceptance
 or changes the source-version acceptance manifests.
+
+## Finite low-frequency Dishes recovery (2026-11-09)
+
+The user authorized durable monitoring and automatic continuation after Google's
+restriction clears. A dedicated external native no-agent/local recovery job named
+`五百盤附註低頻續跑` wakes at `40 * * * *` Asia/Taipei. Its durable cooldown and
+installation receipts belong to the owning hermes-automation repository; the daily
+02:25 awards and 02:45 Michelin detector schedules and source acceptance stay intact.
+Known challenges do not authorize immediate live probes, login retries, model
+invocations or remote test/supervisor notifications. No CAPTCHA solver, stealth,
+human-mimicry, evasion jitter, proxy/IP/account/profile/browser-lane rotation, or
+cookie/credential manipulation is allowed. Request pacing reduces pressure; it
+cannot guarantee Google will never challenge the browser.
+
+The shared existing-note writer enforces at least three seconds between writes,
+serially, and waits for the recorded normal `POST entitylist/updateitem` HTTP 200
+acknowledgment. An acknowledgment is not a verified note. No per-note anonymous
+inventory polling is permitted. Each invocation edits at most 25 mismatches and
+uses complete signed plus cookie-free anonymous inventories at the beginning and
+end of its batch. The first real saved-row reopen barrier remains mandatory; its
+existing verified checkpoint is reusable. Fresh complete readback alone advances
+verified counts. Persist uncertain exact source/physical rows before edits and
+retain them on exceptions; restarts read actual notes before writing.
+
+The public lease must be for exact job `7f9de040f528`, CDP 9223, with its real
+admission token. The CLI holds `maintenance.lock` through the full batch/readback;
+a busy lock produces a local busy receipt before browser access. Reuse one owned
+page, close only owned pages, and never reopen the 317-row list per note.
+A challenge or HTTP 429 ends this occurrence without retries and preserves
+Retry-After for the external cooldown owner. Authentication failure is blocked
+without login retry. Unexpected failures preserve local actionable evidence.
+
+`--note-baseline PATH` supplies immutable original Dishes/Bowls notes by physical
+ID plus recorded icon/sharing metadata for both awards and all three accepted
+Michelin lists. Where older icon evidence predates a permitted icon change, pin
+current metadata once before the first recovery write; retain its provenance and
+compare final metadata. Completion requires all original 317 Dishes IDs clean in
+fresh signed/anonymous inventories, all original 472 Bowls IDs/notes unchanged in
+fresh signed/anonymous inventories, unchanged Michelin notes, and unchanged icons
+and sharing of these five lists. Missing comparable evidence blocks completion.
+Only that full evidence permits the owner to disable just the recovery job and
+its matching manifest; pending notes keep the durable owner enabled. No cosmetic
+cleanup consumes a source version or rewrites pair acceptance.

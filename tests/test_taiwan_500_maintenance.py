@@ -559,7 +559,9 @@ class AwardMaintenanceTests(unittest.IsolatedAsyncioTestCase):
                 maintenance._assert_browser_lane(maintenance.CRON_CDP_URL)
             with lock_path.open() as lock:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                maintenance._assert_browser_lane(maintenance.CRON_CDP_URL)
+                maintenance._assert_browser_lane(maintenance.CRON_CDP_URL, expected_job_id="7f9de040f528")
+                with self.assertRaisesRegex(ValueError, "does not match"):
+                    maintenance._assert_browser_lane(maintenance.CRON_CDP_URL, expected_job_id="wrong-job")
                 with patch.dict(os.environ, {"HERMES_CRON_BROWSER_LANE_TOKEN": "wrong"}):
                     with self.assertRaisesRegex(ValueError, "does not match"):
                         maintenance._assert_browser_lane(maintenance.CRON_CDP_URL)

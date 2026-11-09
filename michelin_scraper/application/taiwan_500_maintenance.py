@@ -77,7 +77,7 @@ def _read_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def _assert_browser_lane(endpoint: str) -> None:
+def _assert_browser_lane(endpoint: str, *, expected_job_id: str | None = None) -> None:
     if endpoint not in (INTERACTIVE_CDP_URL, CRON_CDP_URL):
         raise ValueError("Award maintenance requires the existing interactive 9222 or admitted cron 9223 browser.")
     if os.environ.get("HERMES_EXECUTION_KIND") == "cron" and endpoint != CRON_CDP_URL:
@@ -90,7 +90,8 @@ def _assert_browser_lane(endpoint: str) -> None:
     lock_path = Path.home() / ".hermes/cron/locks/browser-cdp.lock"
     with lock_path.open("r") as handle:
         before = json.load(handle)
-        if before.get("token") != token or not before.get("job_id"):
+        if (before.get("token") != token or not before.get("job_id")
+                or (expected_job_id is not None and before.get("job_id") != expected_job_id)):
             raise ValueError("Cron browser lease metadata does not match this execution.")
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -693,14 +694,16 @@ def main() -> int:
     parser.add_argument("--mode", choices=AWARDS_MAINTENANCE_MODES, default=AWARDS_MAINTENANCE_MODES[0],
                         help=("sync resumes the complete workload; single-write saves one pending row per list; "
                               "verify reads both complete lists; clean-dishes-notes edits only existing accepted Dishes notes."))
-    parser.add_argument("--note-limit", type=int, help="Maximum mismatched Dishes notes to edit in this cleanup invocation.")
+    parser.add_argument("--note-limit", type=int, help="Maximum mismatched Dishes notes to edit (hard maximum 25).")
+    parser.add_argument("--note-baseline", type=Path,
+                        help="Original physical notes and recorded list icon/sharing baseline for completion.")
     parser.add_argument("--note-evidence-dir", type=Path,
                         help="Cleanup DOM/readback evidence directory (required for clean-dishes-notes; use TMPDIR scratch).")
     args = parser.parse_args()
     if args.mode == "clean-dishes-notes":
         if args.note_evidence_dir is None or (args.note_limit is not None and args.note_limit < 1):
             parser.error("clean-dishes-notes requires --note-evidence-dir and a positive --note-limit when supplied")
-    elif args.note_limit is not None or args.note_evidence_dir is not None:
+    elif args.note_limit is not None or args.note_evidence_dir is not None or args.note_baseline is not None:
         parser.error("note options require --mode clean-dishes-notes")
     state_dir = Path(args.state_dir).expanduser()
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -708,13 +711,17 @@ def main() -> int:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
+            if args.mode == "clean-dishes-notes":
+                receipt = {"status": "busy", "browser_opened": False}
+                _write_json(args.note_evidence_dir / "receipt.json", receipt)
+                print(json.dumps(receipt))
             return 0
         if args.mode == "clean-dishes-notes":
             from .taiwan_500_notes import clean_dishes_notes
 
             receipt = asyncio.run(asyncio.wait_for(clean_dishes_notes(
                 state_dir=state_dir, endpoint=args.google_cdp_url,
-                evidence_dir=args.note_evidence_dir, note_limit=args.note_limit,
+                evidence_dir=args.note_evidence_dir, note_limit=args.note_limit, baseline_path=args.note_baseline,
             ), timeout=900))
             print(json.dumps(receipt, ensure_ascii=False))
             return 0

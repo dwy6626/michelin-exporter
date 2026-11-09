@@ -363,6 +363,26 @@ directory contains de-identified DOM, complete signed/anonymous readbacks and
 `receipt.json` with verified/pending counts. `failure.html` and `failure.json`
 retain actionable page context and write count on failure; resume using the same
 state and evidence directories after resolving the reported failure.
+
+Recovery defaults to at most 25 edits per invocation; larger `--note-limit` values
+are capped at 25. The shared typed editor enforces a minimum three-second interval
+and waits for the recorded `POST /maps/preview/entitylist/updateitem` acknowledgment.
+Complete signed/anonymous inventories run at batch boundaries rather than after
+every note. Uncertain writes remain checkpointed and must be read on restart.
+No live request is needed to test the owner's cooldown entrypoint.
+
+Pass `--note-baseline PATH` with the original physical-note and five-list metadata
+evidence for final completion. `receipt.json` reports `partial` or `completed`,
+verified/pending/write counts and the final completion evidence path. A contended
+maintenance lock reports `busy` with `browser_opened: false`. `failure.json`
+classifies `challenge`, `auth_blocked` or `failed` and retains `retry_after_seconds`
+where supplied. Challenge/429 and auth failures never retry in the same occurrence.
+The external dedicated recovery owner persists its hourly-or-longer cooldown,
+resumes bounded batches, and disables only itself after complete physical notes,
+Bowls, Michelin notes and list metadata are verified. Missing completion evidence
+is an explicit local blocker. Pacing reduces request pressure without guaranteeing
+that Google will not issue another challenge.
+
 If Google shows an unusual-traffic challenge, cleanup stops before further edits
 and identifies that surface explicitly. Clear the challenge manually in the
 existing cron browser before resuming; cleanup does not retry or bypass it.
