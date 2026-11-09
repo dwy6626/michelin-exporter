@@ -78,11 +78,16 @@ TAIWAN_500_AWARD_DEFINITIONS = (
         winner_marker="得盤名單",
         note_template=(
             "500盤 {edition} | 總得盤數: {總得盤數} | 得獎菜色: {得獎菜色} | "
-            "區域: {區域} | 評審: {評審} | 地址: {地址} | 電話: {電話} | "
-            "官方: {source_url}"
+            "評審: {評審} | 地址: {地址} | 電話: {電話}"
         ),
     ),
 )
+
+
+def dishes_public_note(note: str) -> str:
+    """Remove only the three user-rejected public field segments, preserving the rest verbatim."""
+
+    return " | ".join(part for part in note.split(" | ") if not part.startswith(("區域:", "官方:", "管理:")))
 
 
 def discover_taiwan_500_awards(fetch_text: FetchText | None = None) -> tuple[Taiwan500AwardRoster, ...]:

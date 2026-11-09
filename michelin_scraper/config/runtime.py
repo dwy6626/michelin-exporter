@@ -18,7 +18,7 @@ DEFAULT_RECORD_FIXTURES_DIR = ""
 DEFAULT_MICHELIN_STATE_DIR = ".michelin-state/taiwan"
 MICHELIN_MAINTENANCE_MODES = ("sync", "bootstrap", "validate-applied")
 DEFAULT_AWARDS_STATE_DIR = ".michelin-state/500-awards"
-AWARDS_MAINTENANCE_MODES = ("sync", "single-write", "verify")
+AWARDS_MAINTENANCE_MODES = ("sync", "single-write", "verify", "clean-dishes-notes")
 
 DEFAULT_LIST_NAME_PREFIX = ""
 SANDBOX_LIST_NAME_PREFIX = "[TEST] "

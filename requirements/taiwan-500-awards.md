@@ -59,9 +59,35 @@ pages; preserve existing tabs/profile/auth. Current auth failure retains actiona
 origin/DOM evidence without reusing an old diagnosis. Healthy unchanged official
 sources return before browser admission and invoke no auth, model or full runner.
 
-The owning automation runs daily 09:00 Asia/Taipei, with original manifest/job pins,
+The owning automation runs daily 02:25 Asia/Taipei, with original manifest/job pins,
 installer provenance and verified transport preserved. Activate only after initial
 complete pair acceptance plus a fresh normal-entrypoint official-source invocation;
 read back native enabled/next run and matching manifest enabled via public Hermes
 CLI. No native JSON edits, Hermes core changes, supervisor network notices, test
 report sends, shared transport changes or unrelated workflow changes are authorized.
+
+## Dishes public notes (2026-11-09)
+
+Remove only the `區域:`, `官方:` and `管理:` segments from all 317 existing 2026
+Dishes notes. Preserve every other segment verbatim and in order, including any
+identity-check explanation. Bowls notes, list membership, names, icons and sharing
+remain unchanged. The official article URL and exact source-row reconciliation
+identifier remain internal provenance; never delete source rows, fingerprints,
+source keys or ownership evidence to remove their public display.
+
+Use the accepted local KML and confirmed physical place identities without source
+rediscovery or place search/import. Dishes audits, retries and stale cleanup must
+associate physical renderer identities with the internal ownership ledger, with
+unknown, duplicate and conflicting associations rejected. Signed DOM cards must
+join uniquely to the complete anonymous physical inventory by exact name and note.
+
+`--mode clean-dishes-notes --note-evidence-dir PATH` edits existing Saved List note
+textareas using normal input/blur events. Require the public external cron lease
+on 9223 throughout writes/readback. Reopen and independently read the first saved
+note and unchanged complete membership set before scaling. Persist exact source
+key/place ID, original/target note and real readback evidence in
+`dishes/note-cleanup.json`; continuation rereads actual notes and writes only
+remaining mismatches. `--note-limit 1` bounds the first stage. Save de-identified
+DOM and complete signed/anonymous inventories beneath the runtime scratch path.
+The migration has a fifteen-minute CLI budget and never forces pair reacceptance
+or changes the source-version acceptance manifests.

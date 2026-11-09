@@ -17,6 +17,7 @@ from urllib.parse import unquote
 from ..adapters.award_list_inventory import (
     ensure_viewer_link,
     list_id_from_url,
+    owned_source_key,
     read_anonymous_list_inventory,
     read_list_inventory,
     remove_owned_stale_rows,
@@ -36,6 +37,7 @@ from ..sources.my_maps_note_formatter import build_my_maps_note_text
 from ..sources.taiwan_500_awards import (
     Taiwan500AwardRoster,
     discover_taiwan_500_awards,
+    dishes_public_note,
     roster_manifest_entry,
     write_roster_kml,
 )
@@ -171,10 +173,15 @@ def managed_rows(
     return rows
 
 
+def roster_note_template(roster: Taiwan500AwardRoster) -> str:
+    template = roster.note_template + " | 定位查核: {定位查核} | 管理: {管理代碼}"
+    return dishes_public_note(template) if roster.award == "dishes" else template
+
+
 def roster_note(roster: Taiwan500AwardRoster, row: dict[str, Any]) -> str:
     return build_my_maps_note_text(
         row, note_format="template",
-        note_template=roster.note_template + " | 定位查核: {定位查核} | 管理: {管理代碼}",
+        note_template=roster_note_template(roster),
     )
 
 
@@ -357,7 +364,7 @@ async def sync_award_rows(
         list_name_template="{scope}", list_name_prefix="", on_missing_list="stop",
         ignore_existing_lists_check=True, on_row_synced=confirmed,
         initial_synced_row_keys=initial_keys, source=SOURCE_MY_MAPS,
-        note_format="template", note_template=roster.note_template + " | 定位查核: {定位查核} | 管理: {管理代碼}",
+        note_format="template", note_template=roster_note_template(roster),
         language="zh_TW", state_dir=str(award_dir), driver=driver,
     )
     writer.set_debug_log_callback(lambda message: print(f"[{roster.award}] {message}", flush=True))
@@ -418,13 +425,12 @@ def audit_inventory(
     associations: dict[str, Any] = {}
     stale = []
     physical_ids = set()
+    seen_keys = set()
     for card in inventory["rows"]:
-        markers = card["source_markers"]
-        if len(markers) != 1:
-            raise ValueError(f"Unidentified or duplicate source association in {roster.award}: {card['name']!r}")
-        award, key = markers[0].split("/", 1)
-        if award != roster.award or key not in ledger["confirmed"]:
-            raise ValueError("Independent readback contains a membership not positively owned by this task.")
+        key = owned_source_key(card, award=roster.award, confirmed=ledger["confirmed"])
+        if key in seen_keys:
+            raise ValueError("Independent readback contains duplicate physical memberships for a source row.")
+        seen_keys.add(key)
         if key not in expected_rows:
             if not allow_stale:
                 raise ValueError("Independent readback still contains an owned stale membership.")
@@ -435,7 +441,9 @@ def audit_inventory(
         row = expected_rows[key]
         saved = ledger["confirmed"][key]
         actual_note = card["note"] or card["text"]
-        if " ".join(roster_note(roster, row).split()) not in " ".join(actual_note.split()):
+        expected_note = " ".join(roster_note(roster, row).split())
+        normalized_note = " ".join(actual_note.split())
+        if (expected_note != normalized_note if roster.award == "dishes" else expected_note not in normalized_note):
             raise ValueError(f"Independent note readback differs for {row['Name']!r}.")
         candidate_data = saved.get("candidate")
         if not candidate_data or not saved.get("place_id"):
@@ -479,13 +487,15 @@ def retain_inventory_retry_work(
     )}
     readable = {}
     for card in inventory["rows"]:
-        if len(card["source_markers"]) == 1:
-            award, key = card["source_markers"][0].split("/", 1)
-            if award == roster.award:
-                readable[key] = card["note"] or card["text"]
+        key = owned_source_key(card, award=roster.award, confirmed=ledger["confirmed"])
+        if key in readable:
+            raise ValueError("Duplicate physical memberships prevent retry reconciliation.")
+        readable[key] = card["note"] or card["text"]
     retry: set[str] = set(ledger.get("retry_source_keys", ()))
     for key, row in expected.items():
-        if " ".join(roster_note(roster, row).split()) not in " ".join(readable.get(key, "").split()):
+        expected_note = " ".join(roster_note(roster, row).split())
+        actual_note = " ".join(readable.get(key, "").split())
+        if (expected_note != actual_note if roster.award == "dishes" else expected_note not in actual_note):
             retry.add(key)
     ledger["retry_source_keys"] = sorted(retry)
 
@@ -525,7 +535,7 @@ async def verify_awards(
             if not await driver.open_list(roster.document_name):
                 raise ValueError(f"Owned award list is unavailable: {roster.document_name}")
             page = await driver._require_page()
-            inventory = await read_list_inventory(page, roster.document_name)
+            inventory = await read_list_inventory(page, roster.document_name, physical_ids=roster.award == "dishes")
             _write_json(state_dir / roster.award / "inventory-before-cleanup.json", inventory)
             retain_inventory_retry_work(roster, ledger, inventory)
             _write_json(state_dir / roster.award / "memberships.json", ledger)
@@ -541,6 +551,7 @@ async def verify_awards(
                 removed = await remove_owned_stale_rows(
                     driver, list_name=roster.document_name, award=roster.award,
                     current_keys=current_keys, owned_keys=set(ledger["confirmed"]),
+                    confirmed=ledger["confirmed"],
                 )
                 ledger["removed_owned_keys"] = sorted(set(ledger.get("removed_owned_keys", ())) | set(removed))
                 _write_json(state_dir / roster.award / "memberships.json", ledger)
@@ -567,7 +578,9 @@ async def verify_awards(
             public = await read_anonymous_list_inventory(page, roster.document_name, expected_count=eligible_count)
             public_audit = audit_inventory(roster=roster, ledger=ledger, inventory=public)
             _write_json(award_dir / "final-anonymous.json", dict(public, audit=public_audit, viewer_url=viewer_url))
-            signed = await read_list_inventory(page, roster.document_name, expected_count=eligible_count)
+            signed = await read_list_inventory(
+                page, roster.document_name, expected_count=eligible_count, physical_ids=roster.award == "dishes",
+            )
             signed_audit = audit_inventory(roster=roster, ledger=ledger, inventory=signed)
             await save_inventory_html(page, award_dir / "final-signed-in.html")
             _write_json(award_dir / "final-signed-in.json", dict(signed, audit=signed_audit))
@@ -679,14 +692,31 @@ def main() -> int:
                         help="Existing signed-in 9222 browser, or external-runner-admitted 9223 browser for cron.")
     parser.add_argument("--mode", choices=AWARDS_MAINTENANCE_MODES, default=AWARDS_MAINTENANCE_MODES[0],
                         help=("sync resumes the complete workload; single-write saves one pending row per list; "
-                              "verify reads both complete lists."))
+                              "verify reads both complete lists; clean-dishes-notes edits only existing accepted Dishes notes."))
+    parser.add_argument("--note-limit", type=int, help="Maximum mismatched Dishes notes to edit in this cleanup invocation.")
+    parser.add_argument("--note-evidence-dir", type=Path,
+                        help="Cleanup DOM/readback evidence directory (required for clean-dishes-notes; use TMPDIR scratch).")
     args = parser.parse_args()
+    if args.mode == "clean-dishes-notes":
+        if args.note_evidence_dir is None or (args.note_limit is not None and args.note_limit < 1):
+            parser.error("clean-dishes-notes requires --note-evidence-dir and a positive --note-limit when supplied")
+    elif args.note_limit is not None or args.note_evidence_dir is not None:
+        parser.error("note options require --mode clean-dishes-notes")
     state_dir = Path(args.state_dir).expanduser()
     state_dir.mkdir(parents=True, exist_ok=True)
     with (state_dir / "maintenance.lock").open("a+") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
+            return 0
+        if args.mode == "clean-dishes-notes":
+            from .taiwan_500_notes import clean_dishes_notes
+
+            receipt = asyncio.run(asyncio.wait_for(clean_dishes_notes(
+                state_dir=state_dir, endpoint=args.google_cdp_url,
+                evidence_dir=args.note_evidence_dir, note_limit=args.note_limit,
+            ), timeout=900))
+            print(json.dumps(receipt, ensure_ascii=False))
             return 0
         changed = asyncio.run(run_maintenance(state_dir=state_dir, endpoint=args.google_cdp_url, mode=args.mode))
     if changed:

@@ -1,0 +1,125 @@
+{
+  "recorded_at_utc": "2026-11-09T06:45:50.448459+00:00",
+  "provenance": "Real signed-in Saved List DOM and cookie-free public renderer after first note save/reopen. The live textarea value is recorded in signed_card.note; HTML contains an empty default value. Tracking metadata and photos removed.",
+  "source_fingerprint": "ac608b8e6aad5a8b4531cd351fbc618e579b07b82fe25e2f6a6183bcf9e6d8c6",
+  "first_source_key": "62245236569e5ddb680d628f8cf4303bcb1e9355c48a28347ddb43db33ecc73d",
+  "records": [
+    {
+      "source_key": "62245236569e5ddb680d628f8cf4303bcb1e9355c48a28347ddb43db33ecc73d",
+      "target": {
+        "place_id": "0x3442a968f68729e7:0xe2dc91302bf325bc",
+        "original_note": "500盤 2026 | 總得盤數: 13盤 | 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 | 區域: 台北 | 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 | 地址: 104台北市中山區中山北路二段39巷3號3樓 | 電話: 02 2521 5000#3236 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 管理: 500-awards/dishes/62245236569e5ddb680d628f8cf4303bcb1e9355c48a28347ddb43db33ecc73d",
+        "target_note": "500盤 2026 | 總得盤數: 13盤 | 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 | 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 | 地址: 104台北市中山區中山北路二段39巷3號3樓 | 電話: 02 2521 5000#3236"
+      },
+      "source_row": {
+        "Name": "晶華軒",
+        "Description": "總得盤數: 13盤 區域: 台北 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 地址: 104台北市中山區中山北路二段39巷3號3樓 電話: 02 2521 5000#3236",
+        "DescriptionRawHtml": "總得盤數: 13盤<br>區域: 台北<br>得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒<br>評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成<br>地址: 104台北市中山區中山北路二段39巷3號3樓<br>電話: 02 2521 5000#3236",
+        "DescriptionFields": {
+          "總得盤數": "13盤",
+          "區域": "台北",
+          "得獎菜色": "生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒",
+          "評審": "江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成",
+          "地址": "104台北市中山區中山北路二段39巷3號3樓",
+          "電話": "02 2521 5000#3236",
+          "管理代碼": "500-awards/dishes/62245236569e5ddb680d628f8cf4303bcb1e9355c48a28347ddb43db33ecc73d"
+        },
+        "Address": "104台北市中山區中山北路二段39巷3號3樓",
+        "City": ""
+      },
+      "confirmed": {
+        "candidate": {
+          "name": "Silks House",
+          "address": "\n104, Taipei City, Zhongshan District, Kangle Village, Lane 39, Section 2, Zhongshan N Rd, 3號3樓",
+          "category": "粵菜館",
+          "subtitle": "晶華軒",
+          "located_in": "Located in: Regent Taipei"
+        },
+        "place_url": "https://www.google.com/maps/place/Silks+House/@25.0541478,121.5216191,17z/data=!3m1!4b1!4m6!3m5!1s0x3442a968f68729e7:0xe2dc91302bf325bc!8m2!3d25.0541478!4d121.524194!16s%2Fg%2F1td_dysy",
+        "place_id": "0x3442a968f68729e7:0xe2dc91302bf325bc",
+        "note": "500盤 2026 | 總得盤數: 13盤 | 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 | 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 | 地址: 104台北市中山區中山北路二段39巷3號3樓 | 電話: 02 2521 5000#3236"
+      },
+      "signed_card": {
+        "index": 0,
+        "name": "Silks House",
+        "text": "Silks House\n4.4(1,868)\n$2,000+\n· Cantonese",
+        "note": "500盤 2026 | 總得盤數: 13盤 | 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 | 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 | 地址: 104台北市中山區中山北路二段39巷3號3樓 | 電話: 02 2521 5000#3236",
+        "source_markers": [],
+        "place_id": "0x3442a968f68729e7:0xe2dc91302bf325bc"
+      },
+      "public_card": {
+        "index": 0,
+        "name": "Silks House",
+        "text": "500盤 2026 | 總得盤數: 13盤 | 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 | 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 | 地址: 104台北市中山區中山北路二段39巷3號3樓 | 電話: 02 2521 5000#3236",
+        "note": "500盤 2026 | 總得盤數: 13盤 | 得獎菜色: 生拆膏蟹燴麻婆豆腐、一掌定乾坤、蟹粉溏心蛋、麻醬炆黃花膠（附冷麵）、火鴨泡飯、豉油皇海中蝦、脆皮豬燒肉、花雕醉乳鴿、鳳凰投胎、招牌蜜汁叉燒 | 評審: 江欣宜、林慧晶、徐承義、陳喬恩、謝忠道、方芳芳 & Daniel Cheng、al.dente.life Henry、何奕佳、陳致遠、陳銳、葉怡蘭、賈永婕、劉奕成 | 地址: 104台北市中山區中山北路二段39巷3號3樓 | 電話: 02 2521 5000#3236",
+        "place_id": "0x3442a968f68729e7:0xe2dc91302bf325bc",
+        "source_markers": []
+      }
+    },
+    {
+      "source_key": "9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+      "target": {
+        "place_id": "0x346e047e2d55d957:0xc03951aa915df4dc",
+        "original_note": "500盤 2026 | 得獎菜色: 燕窩釀鳳翼 | 區域: 高雄 | 評審: 陳肇隆 | 地址: 801 高雄市前金區成功一路266號12樓 | 電話: 07 213 5732 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 定位查核: 漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810 | 管理: 500-awards/dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+        "target_note": "500盤 2026 | 得獎菜色: 燕窩釀鳳翼 | 評審: 陳肇隆 | 地址: 801 高雄市前金區成功一路266號12樓 | 電話: 07 213 5732 | 定位查核: 漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810"
+      },
+      "source_row": {
+        "Name": "漢來名人坊",
+        "Description": "總得盤數: 區域: 高雄 得獎菜色: 燕窩釀鳳翼 評審: 陳肇隆 地址: 801 高雄市前金區成功一路266號12樓 電話: 07 213 5732",
+        "DescriptionRawHtml": "總得盤數: <br>區域: 高雄<br>得獎菜色: 燕窩釀鳳翼<br>評審: 陳肇隆<br>地址: 801 高雄市前金區成功一路266號12樓<br>電話: 07 213 5732",
+        "DescriptionFields": {
+          "區域": "高雄",
+          "得獎菜色": "燕窩釀鳳翼",
+          "評審": "陳肇隆",
+          "地址": "801 高雄市前金區成功一路266號12樓",
+          "電話": "07 213 5732",
+          "管理代碼": "500-awards/dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+          "定位查核": "漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810"
+        },
+        "Address": "801 高雄市前金區成功一路266號12樓",
+        "City": "",
+        "AwardSourceKey": "9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+        "Aliases": [
+          "Celebrity Cuisine",
+          "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch"
+        ]
+      },
+      "confirmed": {
+        "candidate": {
+          "name": "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch",
+          "address": "\n801, Kaohsiung City, Qianjin District, Rongfu Village, Chenggong 1st Rd, 266號12樓",
+          "category": "粵菜館",
+          "subtitle": "漢來名人坊 高雄漢來店",
+          "located_in": "Floor 12 · Grand Hi-Lai Kaohsiung"
+        },
+        "place_url": "https://www.google.com/maps/place/Hi-Lai+Celebrity+Cuisine+Grand+Hi-Lai+Hotel+Branch/@22.6196188,120.2941312,17z/data=!3m2!4b1!5s0x346e047fcb8f2b9d:0xd170dee4e32a432e!4m6!3m5!1s0x346e047e2d55d957:0xc03951aa915df4dc!8m2!3d22.6196188!4d120.2967061!16s%2Fg%2F11bxgbhfsd",
+        "place_id": "0x346e047e2d55d957:0xc03951aa915df4dc",
+        "note": "500盤 2026 | 得獎菜色: 燕窩釀鳳翼 | 區域: 高雄 | 評審: 陳肇隆 | 地址: 801 高雄市前金區成功一路266號12樓 | 電話: 07 213 5732 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 定位查核: 漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810 | 管理: 500-awards/dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3"
+      },
+      "signed_card": {
+        "index": 274,
+        "name": "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch",
+        "text": "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch",
+        "note": "500盤 2026 | 得獎菜色: 燕窩釀鳳翼 | 區域: 高雄 | 評審: 陳肇隆 | 地址: 801 高雄市前金區成功一路266號12樓 | 電話: 07 213 5732 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 定位查核: 漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810 | 管理: 500-awards/dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+        "source_markers": [
+          "dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3"
+        ],
+        "place_id": "0x346e047e2d55d957:0xc03951aa915df4dc"
+      },
+      "public_card": {
+        "index": 274,
+        "name": "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch",
+        "text": "500盤 2026 | 得獎菜色: 燕窩釀鳳翼 | 區域: 高雄 | 評審: 陳肇隆 | 地址: 801 高雄市前金區成功一路266號12樓 | 電話: 07 213 5732 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 定位查核: 漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810 | 管理: 500-awards/dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+        "note": "500盤 2026 | 得獎菜色: 燕窩釀鳳翼 | 區域: 高雄 | 評審: 陳肇隆 | 地址: 801 高雄市前金區成功一路266號12樓 | 電話: 07 213 5732 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 定位查核: 漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。；查核: https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476 https://www.hilai-foods.com/news-article/1810 | 管理: 500-awards/dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+        "place_id": "0x346e047e2d55d957:0xc03951aa915df4dc",
+        "source_markers": [
+          "dishes/9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3"
+        ]
+      }
+    }
+  ],
+  "save_response": {
+    "path": "/maps/preview/entitylist/updateitem",
+    "status": 200
+  }
+}

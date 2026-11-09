@@ -117,7 +117,9 @@ def _verify_viewer_destination(viewer_url: str, expected_list_id: str) -> None:
             raise ValueError("Recorded viewer short link does not resolve anonymously to the owned list.")
 
 
-async def read_list_inventory(page: Any, list_name: str, *, expected_count: int | None = None) -> dict[str, Any]:
+async def read_list_inventory(
+    page: Any, list_name: str, *, expected_count: int | None = None, physical_ids: bool = False,
+) -> dict[str, Any]:
     """Read every physically rendered membership independently of the write ledger."""
 
     title = page.get_by_role("heading", name=list_name, exact=True).or_(
@@ -157,11 +159,57 @@ async def read_list_inventory(page: Any, list_name: str, *, expected_count: int 
     for row in rows:
         markers = MEMBERSHIP_MARKER_PATTERN.findall(row["note"] + " " + row["text"])
         row["source_markers"] = sorted(set(f"{award}/{key}" for award, key in markers))
-    return {
+    inventory = {
         "list_name": list_name, "physical_count": physical_count,
         "rendered_rows": len(rows), "rows": rows,
         "resolved_url": str(page.url),
     }
+    if physical_ids:
+        public = await read_anonymous_list_inventory(page, list_name, expected_count=physical_count)
+        attach_physical_ids(inventory, public)
+    return inventory
+
+
+def attach_physical_ids(inventory: dict[str, Any], public: dict[str, Any]) -> None:
+    """Join complete DOM cards to physical renderer identities by unique exact name and note."""
+
+    identities = {}
+    seen_ids = set()
+    for row in public["rows"]:
+        signature = (row["name"], row["note"])
+        place_id = row["place_id"]
+        if signature in identities or not place_id or place_id in seen_ids:
+            raise ValueError("Public inventory has duplicate or ambiguous physical memberships.")
+        identities[signature] = place_id
+        seen_ids.add(place_id)
+    if len(inventory["rows"]) != len(identities):
+        raise ValueError("Signed and public inventory counts differ.")
+    for row in inventory["rows"]:
+        place_id = identities.pop((row["name"], row["note"]), None)
+        if place_id is None:
+            raise ValueError("Signed card has no unique exact public name/note association.")
+        row["place_id"] = place_id
+
+
+def owned_source_key(card: dict[str, Any], *, award: str, confirmed: dict[str, Any]) -> str:
+    """Resolve ownership without public Dishes markers; reject conflicting or unknown identities."""
+
+    markers = card["source_markers"]
+    if award == "dishes":
+        place_id = card.get("place_id")
+        keys = [key for key, saved in confirmed.items() if place_id and saved.get("place_id") == place_id]
+        if len(keys) != 1:
+            raise ValueError("Unknown or duplicate confirmed physical place identity in dishes inventory.")
+        key = keys[0]
+        if markers and markers != [f"{award}/{key}"]:
+            raise ValueError("Public source marker conflicts with the confirmed physical identity.")
+        return key
+    if len(markers) != 1:
+        raise ValueError("Unidentified or duplicate source association in inventory.")
+    marker_award, key = markers[0].split("/", 1)
+    if marker_award != award or key not in confirmed:
+        raise ValueError("Independent readback contains a membership not positively owned by this task.")
+    return key
 
 
 def parse_public_list_inventory(
@@ -273,7 +321,7 @@ async def rename_owned_list(
 
 async def remove_owned_stale_rows(
     driver: GoogleMapsDriver, *, list_name: str, award: str,
-    current_keys: set[str], owned_keys: set[str],
+    current_keys: set[str], owned_keys: set[str], confirmed: dict[str, Any] | None = None,
 ) -> list[str]:
     """Remove only positively owned obsolete rows after complete replacement verification."""
 
@@ -281,19 +329,26 @@ async def remove_owned_stale_rows(
     if not await driver.open_list(list_name):
         raise ValueError(f"Cannot open owned list for stale membership reconciliation: {list_name}")
     page = await driver._require_page()
-    inventory = await read_list_inventory(page, list_name)
+    inventory = await read_list_inventory(page, list_name, physical_ids=award == "dishes")
+    ownership = confirmed if confirmed is not None else dict.fromkeys(owned_keys, {})
+    keys = [owned_source_key(row, award=award, confirmed=ownership) for row in inventory["rows"]]
+    if len(set(keys)) != len(keys):
+        raise ValueError("Duplicate physical memberships prevent stale-row reconciliation.")
     for row in reversed(inventory["rows"]):
-        if len(row["source_markers"]) != 1:
-            raise ValueError("An unidentified membership prevents stale-row reconciliation.")
-        marker = row["source_markers"][0]
-        marker_award, key = marker.split("/", 1)
-        if marker_award != award or key not in owned_keys:
+        key = owned_source_key(row, award=award, confirmed=ownership)
+        if key not in owned_keys:
             raise ValueError("A membership is not positively owned by this award task.")
         if key in current_keys:
             continue
         card = page.locator(PLACE_CARD_SELECTOR).nth(row["index"])
         container = card.locator("../..")
-        if marker not in ((await container.inner_text()) + " " + str(await container.locator("textarea").input_value())):
+        actual_note = str(await container.locator("textarea").input_value())
+        if award == "dishes":
+            unchanged = (actual_note == row["note"]
+                         and await card.locator(".fontHeadlineSmall").inner_text() == row["name"])
+        else:
+            unchanged = f"{award}/{key}" in ((await container.inner_text()) + " " + actual_note)
+        if not unchanged:
             raise ValueError("Stale membership identity changed before removal.")
         await card.hover()
         await container.get_by_role("button", name="Delete", exact=True).click()

@@ -340,6 +340,33 @@ unverified note complete.
 Exact-row identity corrections live in `verified-place-evidence.json`; they
 require matching original name/address and public evidence URLs. Notes preserve
 the official address and disclose the correction and evidence.
+Dishes public notes omit `區域:`, `官方:` and `管理:`. Their official source URL,
+source keys and confirmed physical place identities stay in internal provenance.
+Bowls notes retain their existing format. Dishes inventory audits, retry work and
+stale cleanup use the internal physical identity ledger; signed DOM cards join
+uniquely to the complete anonymous inventory by exact name and note. Unknown,
+duplicate or conflicting memberships still stop reconciliation.
+
+For an already accepted Dishes list, the leased 9223 runner can use
+`--mode clean-dishes-notes --note-evidence-dir "$TMPDIR/dishes-note-cleanup"`
+with the existing state directory. This uses accepted local KML without source
+rediscovery or membership imports. It edits only the three rejected note segments
+through the existing list textareas, preserving all other text and order. The
+first edit must survive reopening and complete physical membership readback
+before further edits. Use `--note-limit 1` for a single staged edit. The external
+runner must hold its public browser lease for the whole migration/readback and
+pass its admission token; a busy lane must defer before browser access.
+The CLI enforces a fifteen-minute run budget. `dishes/note-cleanup.json` checkpoints
+each exact source key/place ID and its verified old-to-new note transformation.
+Continuation reads real notes before writing remaining mismatches. The evidence
+directory contains de-identified DOM, complete signed/anonymous readbacks and
+`receipt.json` with verified/pending counts. `failure.html` and `failure.json`
+retain actionable page context and write count on failure; resume using the same
+state and evidence directories after resolving the reported failure.
+If Google shows an unusual-traffic challenge, cleanup stops before further edits
+and identifies that surface explicitly. Clear the challenge manually in the
+existing cron browser before resuming; cleanup does not retry or bypass it.
+
 An evidenced restaurant inside a hotel can require its own venue name, so the
 containing hotel cannot satisfy the source row or the final inventory audit.
 Award matching also requires restaurant-name evidence; generic cuisine and
