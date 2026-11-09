@@ -87,6 +87,7 @@ def scrape_results_single_page(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> ScrapeResultsPage:
     """Scrape one listing page and return rows and next-page metadata."""
 
@@ -102,6 +103,7 @@ def scrape_results_single_page(
         tls_verify=tls_verify,
         progress_reporter=progress_reporter,
         page_type=_LISTING_PAGE_TYPE,
+        browser_fallback=browser_fallback,
     )
     if listing_page_soup.soup is None:
         return ScrapeResultsPage(
@@ -168,6 +170,7 @@ def scrape_results_single_page(
                 local_language=local_language,
                 local_country_code=local_country_code,
                 requested_language=requested_language,
+                browser_fallback=browser_fallback,
             )
             futures.append((card_index, restaurant_name, fut))
 
@@ -349,6 +352,7 @@ def _build_restaurant_row_from_card(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> dict[str, Any]:
     """Build one output row from listing card and detail page data."""
 
@@ -364,6 +368,7 @@ def _build_restaurant_row_from_card(
         local_language=local_language,
         local_country_code=local_country_code,
         requested_language=requested_language,
+        browser_fallback=browser_fallback,
     )
     if not str(restaurant_page_data.get("Address") or "").strip():
         raise RuntimeError(
@@ -412,6 +417,7 @@ def _fetch_restaurant_page_data(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> dict[str, float | str]:
     """Fetch parsed detail fields for a restaurant page URL."""
 
@@ -426,6 +432,7 @@ def _fetch_restaurant_page_data(
         local_language=local_language,
         local_country_code=local_country_code,
         requested_language=requested_language,
+        browser_fallback=browser_fallback,
     )
 
 

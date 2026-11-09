@@ -1,0 +1,6 @@
+{
+  "source": "real-page-snapshot",
+  "sanitized": true,
+  "observation": "Query URL/input already target 太順油飯, preceding 大碗油飯 title/address still rendered while loading. Public business data retained; account metadata redacted.",
+  "capture_context": "Actual owned-tab search transition, 2026-11-08"
+}

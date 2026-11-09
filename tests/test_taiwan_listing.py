@@ -11,17 +11,21 @@ from michelin_scraper.catalog.targets import resolve_target
 from michelin_scraper.scraping.fetcher import FetchPageResult
 from michelin_scraper.scraping.listing_page import scrape_results_single_page
 from michelin_scraper.scraping.models import NullProgressReporter
-from michelin_scraper.scraping.restaurant_details import build_empty_data
+from michelin_scraper.scraping.restaurant_details import _extract_restaurant_page_data
 
 _FIXTURES = Path(__file__).parent / "fixtures" / "michelin"
 
 
 class TaiwanListingTests(unittest.TestCase):
-    @patch("michelin_scraper.scraping.listing_page._fetch_restaurant_page_data", return_value=build_empty_data())
+    @patch("michelin_scraper.scraping.listing_page._fetch_restaurant_page_data")
     @patch("michelin_scraper.scraping.listing_page.fetch_page_soup")
     def test_verified_country_selection_keeps_48_results_and_excludes_recommendations(
         self, fetch: Mock, details: Mock,
     ) -> None:
+        # Detail parsing has separate coverage; use recorded fields for this scope-only test.
+        details.return_value = _extract_restaurant_page_data(
+            BeautifulSoup((_FIXTURES / "brise-detail-2026-11-07.html").read_text(), "html.parser")
+        )
         soup = BeautifulSoup((_FIXTURES / "taiwan-region-2026-11-07.html").read_text(), "html.parser")
         self.assertEqual(len(soup.select("div.card__menu")), 52)
         fetch.return_value = FetchPageResult(soup=soup, fetch_failed=False)

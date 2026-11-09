@@ -1,0 +1,11 @@
+{
+  "captured_at_utc": "2026-11-08T06:10:00Z",
+  "source": "Official public UDN award homepages, frontend scripts, story APIs, public shortener HTML, winner article and public Google My Maps KML exports",
+  "sanitized": true,
+  "excerpts": "The index script files retain the recorded get_story URL expression. The article excerpt retains its edition heading and map destination. No authenticated browser content is included.",
+  "bowls_homepage": "https://udn.com/500bowlsaward/",
+  "dishes_homepage": "https://udn.com/500dishesaward/",
+  "dishes_article": "https://500times.udn.com/wtimes/story/122412/9754110",
+  "bowls_kml": "https://www.google.com/maps/d/kml?mid=19E5ausxMMacpaiOhadZFvns_UOlgFNo&forcekml=1",
+  "dishes_kml": "https://www.google.com/maps/d/kml?mid=1dXq2uIcOlq5uQFJn919qudIFehIMWSw&forcekml=1"
+}

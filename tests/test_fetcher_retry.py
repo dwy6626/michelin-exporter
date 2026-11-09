@@ -39,6 +39,20 @@ def _make_response(status_code: int, text: str = "<html></html>") -> Mock:
 
 
 class FetchPageSoupRetryTests(unittest.TestCase):
+    @patch("michelin_scraper.scraping.fetcher._fetch_html_with_browser")
+    def test_http_only_challenge_never_opens_a_browser(self, browser_fetch: Mock) -> None:
+        session = MagicMock()
+        response = _make_response(202, "")
+        response.headers = {"x-amzn-waf-action": "challenge"}
+        session.get.return_value = response
+        result = fetch_page_soup(
+            session=session, url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants",
+            headers={}, tls_verify=True, progress_reporter=_NoOpReporter(), page_type="listing", browser_fallback=False,
+        )
+        self.assertTrue(result.fetch_failed)
+        self.assertIsNone(result.soup)
+        browser_fetch.assert_not_called()
+
     @patch("michelin_scraper.scraping.fetcher.time.sleep")
     def test_succeeds_on_first_attempt_without_sleep(self, mock_sleep: Mock) -> None:
         session = MagicMock()

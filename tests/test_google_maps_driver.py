@@ -1,5 +1,6 @@
 """Contract tests for Google Maps driver core behavior."""
 
+import json
 import tempfile
 import unittest
 from collections.abc import Callable
@@ -209,11 +210,13 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
         driver = self._build_driver()
         initial_page = object()
         retried_page = object()
+        fixture = Path(__file__).parent / "fixtures/500_awards/note-unverified-saved-panel-2026-11-08.metadata.json"
+        recorded = json.loads(fixture.read_text())["current_place"]["candidate"]
 
         with patch.object(
             driver,
             "_require_page",
-            side_effect=[initial_page, retried_page],
+            side_effect=[initial_page, retried_page, retried_page],
         ) as require_page:
             with patch.object(driver, "open_maps_home") as open_home:
                 with patch.object(
@@ -229,20 +232,16 @@ class GoogleMapsDriverContractTests(unittest.IsolatedAsyncioTestCase):
                             with patch.object(
                                 driver,
                                 "_extract_current_place_candidate",
-                                return_value=PlaceCandidate(
-                                    name="New Place",
-                                    address="Taipei",
-                                    category="Restaurant",
-                                ),
+                                return_value=PlaceCandidate(**recorded),
                             ):
                                 candidate = await driver.search_and_open_first_acceptable_result(
-                                    "new query",
+                                    recorded["name"],
                                     lambda _candidate: True,
                                     max_candidates=1,
                                 )
 
         self.assertIsNotNone(candidate)
-        self.assertEqual(require_page.call_count, 2)
+        self.assertEqual(require_page.call_count, 3)
         open_home.assert_called_once()
         self.assertEqual(submit_search.call_count, 2)
         self.assertIs(submit_search.call_args_list[0].kwargs["page"], initial_page)

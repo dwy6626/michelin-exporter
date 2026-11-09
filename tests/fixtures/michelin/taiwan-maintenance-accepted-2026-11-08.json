@@ -1,0 +1,81 @@
+{
+  "source_rows": [
+    {
+      "Name": "頤宮",
+      "NameLocal": "頤宮",
+      "GuideYear": "2026",
+      "Rating": "3 Stars",
+      "City": "Taipei, 台灣地區",
+      "Price Range": "$$$",
+      "Cuisine": "粵菜",
+      "Description": "空間融合中式及歐式設計美學，感覺古典雅致。來自香港的主廚每日駐店，提供優質且精美的廣東菜餚。廣受喜愛的招牌先知鴨、火焰片皮鴨，選用宜蘭櫻桃鴨，並根據體型大小提供多種料理手法，因製作耗時，須提前預訂。金銀蛋蒜香莧菜餃賣相和味道俱佳，適合作為前菜，開啟這場精彩饗宴。",
+      "Address": "大同區承德路一段3號17樓 (君品酒店), Taipei, 103, 台灣地區",
+      "Latitude": "",
+      "Longitude": "",
+      "Michelin Website": "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/le-palais",
+      "Restaurant Website": "https://www.palaisdechinehotel.com/pdc-en/pages/26/0/66",
+      "Restaurant Telephone Number": "+886 2 2181 9985",
+      "Reservation Link": "",
+      "level_slug": "stars"
+    },
+    {
+      "Name": "JL STUDIO",
+      "NameLocal": "JL STUDIO",
+      "GuideYear": "2026",
+      "Rating": "3 Stars",
+      "City": "Taichung, 台灣地區",
+      "Price Range": "$$$$",
+      "Cuisine": "新加坡菜",
+      "Description": "新加坡主廚以其英文名字Jimmy Lim為餐廳命名，其獨到的烹飪靈感和創意，源自過往在歐陸餐廳累積的豐富經驗，還有父親經營過的美食小販攤位。單一品嚐菜單富原創性，結合在地食材、法式料理技巧和新加坡飲食文化，加上各種香料搭配平衡，使菜色味道精巧細緻，且極富層次。與食物相得益彰的是服務同樣出色，令人感覺溫暖。",
+      "Address": "西區存中街59號, Taichung, 台灣地區",
+      "Latitude": "",
+      "Longitude": "",
+      "Michelin Website": "https://guide.michelin.com/tw/zh_TW/taichung-region/taichung/restaurant/jl-studio",
+      "Restaurant Website": "https://jlstudiotw.com",
+      "Restaurant Telephone Number": "",
+      "Reservation Link": "",
+      "level_slug": "stars"
+    },
+    {
+      "Name": "渥達尼斯磨坊",
+      "NameLocal": "渥達尼斯磨坊",
+      "GuideYear": "2026",
+      "Rating": "2 Stars",
+      "City": "Taipei, 台灣地區",
+      "Price Range": "$$$$",
+      "Cuisine": "時尚西班牙菜",
+      "Description": "大氣的石材牆面、溫暖的橙黃燈光與琳瑯滿目的葡萄酒陳列，營造出典雅的歐式風格。主廚以自然風景為靈感，設計出以海鮮為主軸的精美菜餚。餐點食材不求繁多，而是運用現代烹調技法轉化其質地與風味，堆疊多元層次。招牌菜Molino後院以本店庭院為題，爽脆的黃瓜片與輕盈的香草醬汁勾勒出綠意盎然的盤上花園，再撒上鮮美鹹香的生蠔冰晶球，呈現豐富又細膩的滋味。",
+      "Address": "中山區建國北路一段61號 (慕舍酒店), Taipei, 10491, 台灣地區",
+      "Latitude": "",
+      "Longitude": "",
+      "Michelin Website": "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/molino-de-urdaniz",
+      "Restaurant Website": "https://hotelmvsa.com/en/dining/molino-de-urdaniz",
+      "Restaurant Telephone Number": "+886 2 2500 6832",
+      "Reservation Link": "",
+      "level_slug": "stars"
+    }
+  ],
+  "inventory": {
+    "physical_count": 3,
+    "rows": [
+      {
+        "name": "頤宮中餐廳",
+        "text": "頤宮中餐廳\n4.5(3,243)\n廣東料理",
+        "note": "2026 | 三星 | 粵菜 | 2026-11-07 更新\n空間融合中式及歐式設計美學，感覺古典雅致。來自香港的主廚每日駐店，提供優質且精美的廣東菜餚。廣受喜愛的招牌先知鴨、火焰片皮鴨，選用宜蘭櫻桃鴨，並根據體型大小提供多種料理手法，因製作耗時，須提前預訂。金銀蛋蒜香莧菜餃賣相和味道俱佳，適合作為前菜，開啟這場精彩饗宴。",
+        "index": 0
+      },
+      {
+        "name": "JL STUDIO",
+        "text": "JL STUDIO\n4.7(53)\n超過 $2,000\n· 新加坡菜",
+        "note": "2026 | 三星 | 新加坡菜 | 2026-11-07 更新\n新加坡主廚以其英文名字Jimmy Lim為餐廳命名，其獨到的烹飪靈感和創意，源自過往在歐陸餐廳累積的豐富經驗，還有父親經營過的美食小販攤位。單一品嚐菜單富原創性，結合在地食材、法式料理技巧和新加坡飲食文化，加上各種香料搭配平衡，使菜色味道精巧細緻，且極富層次。與食物相得益彰的是服務同樣出色，令人感覺溫暖。",
+        "index": 1
+      },
+      {
+        "name": "Molino de Urdániz 渥達尼斯磨坊",
+        "text": "Molino de Urdániz 渥達尼斯磨坊\n4.2(896)\n超過 $2,000\n· 西班牙菜",
+        "note": "2026 | 二星 | 時尚西班牙菜 | 2026-11-07 更新\n大氣的石材牆面、溫暖的橙黃燈光與琳瑯滿目的葡萄酒陳列，營造出典雅的歐式風格。主廚以自然風景為靈感，設計出以海鮮為主軸的精美菜餚。餐點食材不求繁多，而是運用現代烹調技法轉化其質地與風味，堆疊多元層次。招牌菜Molino後院以本店庭院為題，爽脆的黃瓜片與輕盈的香草醬汁勾勒出綠意盎然的盤上花園，再撒上鮮美鹹香的生蠔冰晶球，呈現豐富又細膩的滋味。",
+        "index": 2
+      }
+    ]
+  }
+}

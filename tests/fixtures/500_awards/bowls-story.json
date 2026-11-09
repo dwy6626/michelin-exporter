@@ -1,0 +1,1682 @@
+{
+  "status": true,
+  "language": {
+    "is_show": true,
+    "is_english": false,
+    "ch_path": "https://udn.com/500bowlsaward/", 
+    "en_path": "https://udn.com/500bowlsaward/en"
+  },
+  "event_id": "500bowlsaward_en",
+  "event_url": "https://udn.com/500bowlsaward/",
+  "logo": "img/500bowl_logo.png",
+  "logo_menu": "img/500bowl_logo.png",
+  "mobile_menu_fontcolor": "#000",
+  "mobile_menu_color": "#ffffff",
+  "footer_text": "聯合線上公司 著作權所有 © udn.com All Rights Reserved.",
+  "social": {
+    "status": true,
+    "facebook": "https://www.facebook.com/500times/",
+    "youtube": "https://www.youtube.com/@Times-kw3jw",
+    "line": "https://udn.com/500bowlsaward"
+  },
+  "button_options": {
+    "sort": "nook",
+    "共有五種樣式(包含移除請留白)": ["nook", "bar", "block", "underline", ""],
+    "font_color": "#fff",
+    "background_color": "#ff6600"
+  },
+  "layout": [
+    {
+      "status": true,
+      "template": "slide_show",
+      "menu": {
+        "status": false,
+        "name": "山頭"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/2026topic_01.png",
+            "portrait": "img/2026topic_02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "#ffffff",
+            "background_color": "#167ac6",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "#222",
+            "background_color": "#fff",
+            "border": false
+          },
+          "link": "https://500times.udn.com/wtimes/cate/123497",
+          "target": "_blank"
+        }
+      ]
+    },
+    {
+      "status": false,
+      "template": "video_full",
+      "menu": {
+        "status": false,
+        "name": "自訂影片"
+      },
+      "scale": "16/9",
+      "url": "./focus_video.mp4",
+      "controls": false,
+      "autoplay": true
+    },
+    {
+      "status": true,
+      "template": "dolly",
+      "scale": "3/2",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "最新消息"
+      },
+      "title": {
+        "en": "",
+        "text": "最新消息"
+      },
+      "list": [
+        {
+          "imgsrc": "img/news2026_09.jpg",
+          "date": "2026.08",
+          "headline": [
+            "500碗小吃市集高雄場",
+            "單日吸引破萬人次"
+          ],
+          "paragraph": "人氣小吃齊聚夢時代",
+          "link": "https://500times.udn.com/wtimes/story/123497/9721981",
+          "target": "_blank"
+        }, 
+            {
+          "imgsrc": "img/news2026_08.jpg",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026登場",
+            "全台名店齊聚 集碗挑戰、吃貨禮包登場"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },         
+        {
+          "imgsrc": "img/news2026_07.jpg",
+          "date": "2026.08",
+          "headline": [
+            "500碗小吃市集高雄場名店集結",
+            "鼎旺麻辣鍋、台中炭火蝦飯連兩日出攤"
+          ],
+          "paragraph": "阿鳳米食、橋頭臭豆腐8/29限定登場",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },   
+        {
+          "imgsrc": "img/2026market_001.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗小吃市集高雄場",
+            "延期至8／29–30舉辦"
+          ],
+          "paragraph": "強颱巴威來襲！500碗小吃市集高雄場延期至8／29–30舉辦",
+          "link": "https://500times.udn.com/wtimes/story/123497/9615647",
+          "target": "_blank"
+        },              
+       {
+          "imgsrc": "img/news_01.jpg",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026公布",
+            "奪3碗最大贏家出爐"
+          ],
+          "paragraph": "許仔豬腳麵線、金饌脆皮烤鴨",
+          "link": "https://500times.udn.com/wtimes/story/123497/9590902",
+        "target": "_blank"
+        }, 
+            {
+          "imgsrc": "img/2026news_06.jpg",
+          "date": "2026.06",
+          "headline": [
+            "最強小吃市集狂吸3萬人",
+            "高雄場7月11日接力開吃"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9593884",
+          "target": "_blank"
+        }, 
+              {
+          "imgsrc": "img/news_03.jpg",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026公布",
+            "全台23間小吃獲2碗肯定"
+          ],
+          "paragraph": "林家乾麵、朱記花枝羹 連4屆上榜",
+          "link": "https://500times.udn.com/wtimes/story/123497/9590974",
+          "target": "_blank"
+        },     
+          {
+          "imgsrc": "img/news2026_01.png",
+          "date": "2026.06",
+          "headline": [
+            "2026第四屆500碗",
+            "完整電子地圖"
+          ],
+          "paragraph": "全台入選小吃Google地圖",
+          "link": "https://reurl.cc/kpRv1q",
+          "target": "_blank"
+        },         
+              {
+          "imgsrc": "img/news2026_03.jpg",
+          "date": "2026.06",
+          "headline": [
+            "500碗小吃市集台北場",
+            "每間都要提早來排隊"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9574614",
+          "target": "_blank"
+        }, 
+         {
+          "imgsrc": "img/news2026_04.png",
+          "date": "2026.06",
+          "headline": [
+            "台北場500碗小吃市集",
+            "鼎旺攜手師園、橋頭臭豆腐"
+          ],
+          "paragraph": "超強名店首度現身",
+          "link": "https://500times.udn.com/wtimes/story/123497/9571832",
+          "target": "_blank"
+        },       
+        {
+          "imgsrc": "img/news2026_05.jpg",
+          "date": "2026.06",
+          "headline": [
+            "500碗攜手環境部",
+            "頒發「友善食力獎」"
+          ],
+          "paragraph": "聚焦外送包裝減量與淨零綠生活",
+          "link": "https://500times.udn.com/wtimes/story/123497/9574011",
+          "target": "_blank"
+        }
+      ]
+    },   
+       {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": false,
+        "name": "關於500碗"
+      },
+      "headline": "關於500碗",
+      "link": "https://500times.udn.com/wtimes/cate/123497",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": "img/2026origin1.png",
+        "portrait": "img/2026origin2.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "img/warning_img.png",
+        "text": "禁止酒駕i未滿十八歲禁止飲酒"
+      }
+    }, 
+           {
+      "status": true,
+      "template": "dolly",
+      "scale": "480/600",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "高雄場"
+      },
+      "title": {
+        "en": "",
+        "text": "高雄場出攤"
+      },
+      "list": [
+         {
+          "imgsrc": "img2/B_market2026_20112.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "鼎旺麻辣鍋X師園"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },
+          {
+          "imgsrc": "img2/B_market2026_201.png",
+          "date": "2026.08",
+          "headline": [
+            "美味登場",
+            "詹記家常飯桌鮮魚湯"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "img2/B_market2026_202.png",
+          "date": "2026.08",
+          "headline": [
+            "台中 租界",
+            "2026蝦皇蝦多多飯"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        }, 
+                 {
+          "imgsrc": "img2/B_market2026_203.png",
+          "date": "2026.08",
+          "headline": [
+            "永香鹽水雞",
+            "限定套餐 "
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },   
+        {
+          "imgsrc": "img2/B_market2026_204.png",
+          "date": "2026.08",
+          "headline": [
+            "迪記法式豬舌飯",
+            "炭香豬寶盒"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },
+   {
+          "imgsrc": "img2/B_market2026_205.png",
+          "date": "2026.08",
+          "headline": [
+            "超人氣排隊名店",
+            "惜緣亭"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },   
+     {
+          "imgsrc": "img2/B_market2026_207.png",
+          "date": "2026.08",
+          "headline": [
+            "超人氣排隊名店",
+            "糯夫米糕"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },
+              {
+          "imgsrc": "img2/B_market2026_20114.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "LA ONE Bakery X 鼎旺麻辣鍋"
+          ],
+          "paragraph": "高雄場限定",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },
+             {
+          "imgsrc": "img2/B_market2026_20102.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "阿鳳米食 手工芋頭棵"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img2/B_market2026_20103.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "貳春Smoothie"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        }, 
+                 {
+          "imgsrc": "img2/B_market2026_20104.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "Her呷雞蛋糕"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },   
+        {
+          "imgsrc": "img2/B_market2026_20105.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "謙稻鍋燒"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },
+   {
+          "imgsrc": "img2/B_market2026_20106.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "明宏拔絲地瓜"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },   
+     {
+          "imgsrc": "img2/B_market2026_20107.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "H&H現炸吉拿棒"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },  
+           {
+          "imgsrc": "img2/B_market2026_20108.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "豐澤復刻飲品"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        }, 
+                  {
+          "imgsrc": "img2/B_market2026_20113.png",
+          "date": "2026.08",
+          "headline": [
+            "限定0829出攤",
+            "玉里橋頭臭豆腐"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9715472",
+          "target": "_blank"
+        },
+           {
+          "imgsrc": "img2/B_market2026_20111.png",
+          "date": "2026.08",
+          "headline": [
+            "500碗2026",
+            "LA ONE Bakery"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9720122",
+          "target": "_blank"
+        },     
+      {
+          "imgsrc": "img2/A_market2026_07.png",
+          "date": "2026.06-08",
+          "headline": [
+            "吃貨禮包獨家販售",
+            "逛市集最佳伴手禮"
+          ],
+          "paragraph": "",
+          "link": "https://500shop.udn.com/",
+          "target": "_blank"
+        },                        
+        {
+          "imgsrc": "img2/B_market2026_208.png",
+          "date": "2026.08",
+          "headline": [
+            "最強品牌出攤總導覽",
+            "500碗2026小吃派對市集"
+          ],
+          "paragraph": "",
+          "link": "https://www.instagram.com/p/Dck04fJASMl/",
+          "target": "_blank"
+        }
+      ]
+    }, 
+              {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": true,
+        "name": "得獎公布"
+      },
+      "headline": "Winners",
+      "link": "https://500times.udn.com/wtimes/story/123497/9547367",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": "img/2026winner_01.png",
+        "portrait": "img/2026winner_02.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "",
+        "text": ""
+      }
+    },  
+
+     {
+      "status": true,
+      "template": "youtube_full",
+      "menu": {
+        "status": false,
+        "name": "In Focus"
+      },
+      "scale": "16/9",
+      "youtube_id": "UbQ2hebBjL8",
+      "controls": true,
+      "autoplay": true
+    },  
+        {
+      "status": true,
+      "template": "dolly",
+      "scale": "480/600",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "特別獎"
+      },
+      "title": {
+        "en": "",
+        "text": "特別獎"
+      },
+      "list": [
+       {
+          "imgsrc": "img/special2026_00.jpg",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "四大特別獎得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9589785",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "img/special2026_01.jpg",
+          "date": "2026.06",
+          "headline": [
+            "究極本味獎",
+            "2026得獎者：林家乾麵"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9589785",
+          "target": "_blank"
+        }, 
+                {
+          "imgsrc": "img/special2026_02.jpg",
+          "date": "2026.06",
+          "headline": [
+            "破浪創新獎",
+            "蕭媽媽手工創意水餃"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9589785",
+          "target": "_blank"
+        },
+               {
+          "imgsrc": "img/special2026_03.jpg",
+          "date": "2026.06",
+          "headline": [
+            "時代經典定錨獎",
+            "臺鐵便當本舖-七堵製供"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9589785",
+          "target": "_blank"
+        }, 
+         {
+          "imgsrc": "img/special2026_04.jpg",
+          "date": "2026.06",
+          "headline": [
+            "職人堅持傳承獎",
+            "2026得獎者：阜杭豆漿"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9589785",
+          "target": "_blank"
+        },       
+        {
+          "imgsrc": "img/special2026_05.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗╳環境部",
+            "友善食力獎 得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9588698",
+          "target": "_blank"
+        }
+      ]
+    },   
+         {
+      "status": false,
+      "template": "youtube_full",
+      "menu": {
+        "status": false,
+        "name": "In Focus"
+      },
+      "scale": "16/9",
+      "youtube_id": "qvqNSm4Y3HI",
+      "controls": true,
+      "autoplay": true
+    },  
+            {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": true,
+        "name": "市集"
+      },
+      "headline": "小吃市集",
+      "link": "https://500times.udn.com/wtimes/story/123497/9615647",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": "img/2026market_001k.png",
+        "portrait": "img/2026market_002k.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "",
+        "text": ""
+      }
+    },
+       {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": true,
+        "name": "吃貨禮包"
+      },
+      "headline": "吃貨禮包",
+      "link": "https://500shop.udn.com/",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": "img/package_01k.png",
+        "portrait": "img/package_02k.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "",
+        "text": ""
+      }
+    },     
+   {
+      "status": true,
+      "template": "dolly",
+      "scale": "480/600",
+      "button_status": true,
+      "menu": {
+        "status": false,
+        "name": "台北場"
+      },
+      "title": {
+        "en": "",
+        "text": "台北場出攤回顧"
+      },
+      "list": [
+        {
+          "imgsrc": "img2/market2026_01.png",
+          "date": "2026.06",
+          "headline": [
+            "0627 限定出攤",
+            "玉里橋頭臭豆腐"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9571832",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img2/market2026_02.png",
+          "date": "2026.06",
+          "headline": [
+            "迪記法式豬舌飯",
+            "炭香豬寶盒"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9571832",
+          "target": "_blank"
+        },
+         {
+          "imgsrc": "img2/market2026_03.png",
+          "date": "2026.06",
+          "headline": [
+            "鄒記菜包",
+            "8種口味菜包 "
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        },
+
+               {
+          "imgsrc": "img2/market2026_004.png",
+          "date": "2026.06",
+          "headline": [
+            "台中租界 炭火蝦飯",
+            "2026蝦皇蝦多多飯"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        }, 
+              {
+          "imgsrc": "img2/market2026_05.png",
+          "date": "2026.06",
+          "headline": [
+            "世界冠軍美味",
+            "GINO PIZZA X 君諾食品"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        },   
+     {
+          "imgsrc": "img2/market2026_06.png",
+          "date": "2026.06",
+          "headline": [
+            "炎夏超人氣必吃",
+            "欲罷不能鹹水雞"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        },
+              {
+          "imgsrc": "img2/market2026_101.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "鼎旺麻辣鍋X師園"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9571832",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img2/market2026_102.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "天東86牛肉麵"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9571832",
+          "target": "_blank"
+        },
+         {
+          "imgsrc": "img2/market2026_103.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "春美冰菓室"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        },
+               {
+          "imgsrc": "img2/market2026_104.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "源慶鮮蚵"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        }, 
+              {
+          "imgsrc": "img2/market2026_105.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "開囍滷肉專賣店"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        },   
+     {
+          "imgsrc": "img2/market2026_106.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "犇鐵板燒"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9571832",
+          "target": "_blank"
+        },
+           {
+          "imgsrc": "img2/market2026_107.png",
+          "date": "2026.06",
+          "headline": [
+            "500碗2026",
+            "糯夫米糕"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        },      
+      {
+          "imgsrc": "img2/market2026_07.png",
+          "date": "2026.06",
+          "headline": [
+            "吃貨禮包獨家販售",
+            "逛市集最佳伴手禮"
+          ],
+          "paragraph": "",
+          "link": "https://500shop.udn.com/",
+          "target": "_blank"
+        },                        
+        {
+          "imgsrc": "img2/market2026_08.png",
+          "date": "2026.06",
+          "headline": [
+            "最強品牌出攤",
+            "500碗2026小吃派對市集"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9546071",
+          "target": "_blank"
+        }
+      ]
+    }, 
+     {
+      "status": false,
+      "template": "poster_full",
+      "menu": {
+        "status": true,
+        "name": "得獎名單"
+      },
+      "headline": "",
+      "link": " ",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": " ",
+        "portrait": " "
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "",
+        "text": ""
+      }
+    },      
+    {
+      "status": false,
+      "template": "news_list",
+      "menu": {
+        "status": false,
+        "name": "最新消息"
+      },
+      "title": {
+        "text": "最新消息"
+      },
+      "url": "api/db_news.json"
+    },
+
+             {
+      "status": true,
+      "template": "youtube_slide",
+      "menu": {
+        "status": true,
+        "name": "影音專區"
+      },
+      "title": {
+        "text": "影音專區"
+      },
+      "youtube_id": [
+       "4_GZRooowXc",
+        "UbQ2hebBjL8",
+        "XTMToC3CByY",
+        "bkKrpQkirxI",
+        "HBJq8ihq3xM"
+      ]
+    }, 
+             {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": true,
+        "name": "本屆評審"
+      },
+      "headline": "本屆評審",
+      "link": "https://500times.udn.com/search/tagging/8787/%E7%AC%AC%E5%9B%9B%E5%B1%86500%E7%A2%97%E8%A9%95%E5%AF%A9",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": "img/judge2026_001.png",
+        "portrait": "img/judge2026_002.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "",
+        "text": ""
+      }
+    },  
+     {
+      "status": true,
+      "template": "same",
+      "scale": "600/400",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "專訪"
+      },
+      "title": {
+        "en": "judge",
+        "text": "50評審專訪"
+      },
+      "list": [
+            {
+          "imgsrc": "images/J4.png",
+          "date": "2026.06",
+          "headline": [
+            "Ko Bros 可播兄弟",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500769",
+          "target": "_blank"
+        },
+               {
+          "imgsrc": "images/J29.png",
+          "date": "2026.06",
+          "headline": [
+            "Lester「城市記憶」湯智鈞",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503047",
+          "target": "_blank"
+        }, 
+                {
+          "imgsrc": "images/J37.png",
+          "date": "2026.06",
+          "headline": [
+            " Yilan Yeh 葉怡蘭",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515290",
+          "target": "_blank"
+        },   
+             {
+          "imgsrc": "images/J13.png",
+          "date": "2026.06",
+          "headline": [
+            "Feipo 肥波開吃啦",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9510250",
+          "target": "_blank"
+        },  
+               {
+          "imgsrc": "images/J46.png",
+          "date": "2026.06",
+          "headline": [
+            "찐쩐꾸 韓勾ㄟ金針菇",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9507177",
+          "target": "_blank"
+        },    
+        {
+          "imgsrc": "images/J33.png",
+          "date": "2026.06",
+          "headline": [
+            "Mark Liu 劉恒昌",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9519818",
+          "target": "_blank"
+        }, 
+     {
+          "imgsrc": "images/J11.png",
+          "date": "2026.06",
+          "headline": [
+            "Jahan Lin 林家漢",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9510371",
+          "target": "_blank"
+        }, 
+    {
+          "imgsrc": "images/J23.png",
+          "date": "2026.06",
+          "headline": [
+            "Phil Tang 湯昇榮",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503067",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J8.png",
+          "date": "2026.06",
+          "headline": [
+            "André Chiang 江振誠",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515288",
+          "target": "_blank"
+        },    
+        {
+          "imgsrc": "images/J2.png",
+          "date": "2026.06",
+          "headline": [
+            "Lulu 黃路梓茵",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503882",
+          "target": "_blank"
+        },
+       {
+          "imgsrc": "images/J1.png",
+          "date": "2026.06",
+          "headline": [
+            "Hally Chen",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500774",
+          "target": "_blank"
+        },
+      {
+          "imgsrc": "images/J39.png",
+          "date": "2026.06",
+          "headline": [
+            "Liu Ka-shiang 劉克襄",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500785",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J6.png",
+          "date": "2026.06",
+          "headline": [
+            "CHU YEN LI 朱霆理",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503075",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J7.png",
+          "date": "2026.06",
+          "headline": [
+            "Lee Yi 李易",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515303",
+          "target": "_blank"
+        },
+       {
+          "imgsrc": "images/J30.png",
+          "date": "2026.06",
+          "headline": [
+            "Brando Huang 黃鐙輝",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500753",
+          "target": "_blank"
+        },    
+        {
+          "imgsrc": "images/J38.png",
+          "date": "2026.06",
+          "headline": [
+            "Danny Wen 溫士凱",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515290",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J9.png",
+          "date": "2026.06",
+          "headline": [
+            "Wu Pao Chun 吳寶春",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9510370",
+          "target": "_blank"
+        },
+      {
+          "imgsrc": "images/J3.png",
+          "date": "2026.06",
+          "headline": [
+            "Nobu Lee 李信男",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500771",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J10.png",
+          "date": "2026.06",
+          "headline": [
+            "Winston Shen 沈方正",
+            "第四屆500碗評審"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9512928",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J14.png",
+          "date": "2026.06",
+          "headline": [
+            "Yusen Lin 林裕森",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503891",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J17.png",
+          "date": "2026.06",
+          "headline": [
+            "Xiao Chun Chang 張小均",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9517455",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J49.png",
+          "date": "2026.06",
+          "headline": [
+            "Pauline Lan 藍心湄",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500790",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J19.png",
+          "date": "2026.06",
+          "headline": [
+            "Chen Yi-De 陳怡德",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515249",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J20.png",
+          "date": "2026.06",
+          "headline": [
+            "Zhong Xu 徐仲",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9507052",
+          "target": "_blank"
+        },   
+        {
+          "imgsrc": "images/J22.png",
+          "date": "2026.06",
+          "headline": [
+            "Esther Kao 高靜玉",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500805",
+          "target": "_blank"
+        }, 
+      {
+          "imgsrc": "images/J43.png",
+          "date": "2026.06",
+          "headline": [
+            "Meng Kung Hsieh 股癌謝孟恭",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500788",
+          "target": "_blank"
+        }, 
+   {
+          "imgsrc": "images/J31.png",
+          "date": "2026.06",
+          "headline": [
+            "Cao Ming-Zong 曹銘宗",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500723",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "images/J24.png",
+          "date": "2026.06",
+          "headline": [
+            "Yu Feng 馮宇",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503052",
+          "target": "_blank"
+        }, 
+                {
+          "imgsrc": "images/J48.png",
+          "date": "2026.06",
+          "headline": [
+            "Sandy Wei 魏幸怡",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515271",
+          "target": "_blank"
+        }, 
+       {
+          "imgsrc": "images/J21.png",
+          "date": "2026.06",
+          "headline": [
+            "Shihfang Ma 馬世芳",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500802",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J25.png",
+          "date": "2026.06",
+          "headline": [
+            "Roger Kuo 郭銘哲",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9510303",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J26.png",
+          "date": "2026.06",
+          "headline": [
+            "Benji Huang 黃晨睿",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9512936",
+          "target": "_blank"
+        }, 
+               {
+          "imgsrc": "images/J27.png",
+          "date": "2026.06",
+          "headline": [
+            "Pierre Chen 陳泰銘",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/8839260",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "images/J35.png",
+          "date": "2026.06",
+          "headline": [
+            "Thomas Chien 簡天才",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9519717",
+          "target": "_blank"
+        },                                                        
+        {
+          "imgsrc": "images/J36.png",
+          "date": "2026.06",
+          "headline": [
+            " FuJu Yang 楊馥如",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500767",
+          "target": "_blank"
+        }, 
+                  {
+          "imgsrc": "images/J32.png",
+          "date": "2026.06",
+          "headline": [
+            "Jasmine Wang 番紅花",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515273",
+          "target": "_blank"
+        },  
+                {
+          "imgsrc": "images/J5.png",
+          "date": "2026.06",
+          "headline": [
+            "Cosmos People 宇宙人",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500793",
+          "target": "_blank"
+        },       
+        {
+          "imgsrc": "images/J41.png",
+          "date": "2026.06",
+          "headline": [
+            "Deeson Hsueh 薛舜迪",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500751",
+          "target": "_blank"
+        },
+      {
+          "imgsrc": "images/J18.png",
+          "date": "2026.06",
+          "headline": [
+            "Dela 迪拉",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515296",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J42.png",
+          "date": "2026.06",
+          "headline": [
+            "Chiang Hsun 蔣勳",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500770",
+          "target": "_blank"
+        }, 
+         {
+          "imgsrc": "images/J12.png",
+          "date": "2026.06",
+          "headline": [
+            "Lin Jia-Huei 林佳慧",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9509906",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "images/J44.png",
+          "date": "2026.06",
+          "headline": [
+            "Hsien Chung-Tao 謝忠道",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9500801",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J45.png",
+          "date": "2026.06",
+          "headline": [
+            "Daniel Hsieh 謝維智",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9502998",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J47.png",
+          "date": "2026.06",
+          "headline": [
+            "Chung Hsin-Ling 鍾欣凌",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515302",
+          "target": "_blank"
+        },                                                                            
+        {
+          "imgsrc": "images/J16.png",
+          "date": "2026.06",
+          "headline": [
+            "Jack Hong 洪嘉聰",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9510343",
+          "target": "_blank"
+        },
+                      {
+          "imgsrc": "images/J15.png",
+          "date": "2026.06",
+          "headline": [
+            "Ray Du 阿滴",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9515282",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "images/J28.png",
+          "date": "2026.06",
+          "headline": [
+            "Chen Lu-Kwan 陳陸寬",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9512942",
+          "target": "_blank"
+        }, 
+                {
+          "imgsrc": "images/J40.png",
+          "date": "2026.06",
+          "headline": [
+            "Liu Kuan-ting 劉冠廷",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503830",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "images/J34.png",
+          "date": "2026.06",
+          "headline": [
+            "Leo Tsai 蔡舜任",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9503057",
+          "target": "_blank"
+        },        
+        {
+          "imgsrc": "images/J50.png",
+          "date": "2026.06",
+          "headline": [
+            "Bo-Wen Yen 顏博文",
+            "第四屆500碗評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/123497/9517477",
+          "target": "_blank"
+        }
+      ]
+    },      
+     {
+      "status": false,
+      "template": "dolly",
+      "scale": "600/400",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "新聞焦點"
+      },
+      "title": {
+        "en": "",
+        "text": "新聞焦點"
+      },
+      "list": [
+        {
+          "imgsrc": "img/news_01.png",
+          "date": "2026.06",
+          "headline": [
+            "年度榜單揭曉",
+            "全台462間小吃入選"
+          ],
+          "paragraph": "最受歡迎的台灣小吃",
+          "link": "https://500times.udn.com/wtimes/story/123497/8882396",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/news_05.jpg",
+          "date": "2026.06",
+          "headline": [
+            "小吃派對市集",
+            "不畏颱風開攤人潮絡繹不絕"
+          ],
+          "paragraph": "串連9縣市人氣名店",
+          "link": "https://500times.udn.com/wtimes/story/123497/8883418",
+          "target": "_blank"
+        },
+     {
+          "imgsrc": "img/news_06.jpg",
+          "date": "2026.06",
+          "headline": [
+            "得獎名單公布",
+            "朱記花枝羹等5間小吃各獲3碗奪魁"
+          ],
+          "paragraph": "全台462間小吃入選",
+          "link": "https://500times.udn.com/wtimes/story/123497/8883340",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/news_02.jpg",
+          "date": "2026.06",
+          "headline": [
+            "全台最強小吃市集",
+            " 4大品牌首度出攤"
+          ],
+          "paragraph": "「最強小吃市集」於台北四四南村登場",
+          "link": "https://500times.udn.com/wtimes/story/123497/8876212",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/news_07.jpg",
+          "date": "2026.06",
+          "headline": [
+            "連三屆霸榜名單出爐",
+            "這25家你吃過幾家"
+          ],
+          "paragraph": "25間小吃店家 連續三屆蟬聯上榜",
+          "link": "https://500times.udn.com/wtimes/story/123497/8883389",
+          "target": "_blank"
+        }
+      ]
+    },  
+        {
+      "status": true,
+      "template": "dolly",
+      "scale": "3/2",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "歷屆500碗"
+      },
+      "title": {
+        "en": "",
+        "text": "歷屆500碗"
+      },
+      "list": [
+                      {
+          "imgsrc": "img/news2025_01.png",
+          "date": "2025.07",
+          "headline": [
+            "第三屆500碗得獎名單",
+            "精彩回顧"
+          ],
+          "paragraph": " 【500碗2025】完整名單",
+          "link": "https://500times.udn.com/wtimes/story/123497/8874123",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "img/news2024_01.png",
+          "date": "2024.08",
+          "headline": [
+            "第二屆500碗得獎名單",
+            "精彩回顧"
+          ],
+          "paragraph": " 【500碗2024】完整名單",
+          "link": "https://500times.udn.com/wtimes/story/123497/8143804",
+          "target": "_blank"
+        },
+         {
+          "imgsrc": "img/news2023_02.png",
+          "date": "2023.08",
+          "headline": [
+            "第一屆500碗得獎名單",
+            "精彩回顧"
+          ],
+          "paragraph": "【500碗2023】完整名單",
+          "link": "https://500times.udn.com/wtimes/story/123497/7206408",
+          "target": "_blank"
+        },        
+       {
+          "imgsrc": "img/map2025.jpg",
+          "date": "2025.07",
+          "headline": [
+            "第三屆500碗",
+            "全台得獎小吃𝗚𝗼𝗼𝗴𝗹𝗲地圖"
+          ],
+          "paragraph": "你附近的【500碗】在哪兒",
+          "link": "https://reurl.cc/gYW9l7",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "img/map2024.jpg",
+          "date": "2024.08",
+          "headline": [
+            "第二屆500碗",
+            "全台得獎小吃𝗚𝗼𝗼𝗴𝗹𝗲地圖"
+          ],
+          "paragraph": "跟著【500碗】吃美食",
+          "link": "https://reurl.cc/NlZmb6",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/map2023.jpg",
+          "date": "2023.08",
+          "headline": [
+            "第一屆500碗",
+            "全台得獎小吃𝗚𝗼𝗼𝗴𝗹𝗲地圖"
+          ],
+          "paragraph": "你附近的【500碗】在哪兒",
+          "link": "https://reurl.cc/o7Z4Z5",
+          "target": "_blank"
+        }, 
+         {
+          "imgsrc": "img/news2023_01.png",
+          "date": "2023.08",
+          "headline": [
+            "第一屆500碗2023官網",
+            "全台小吃指南"
+          ],
+          "paragraph": "第一份展現台灣在地觀點的全台小吃新指南",
+          "link": "https://udn.com/upf/500bowlsaward/index.html",
+          "target": "_blank"
+        },
+                 {
+          "imgsrc": "img/news2025_02.png",
+          "date": "2025.07",
+          "headline": [
+            "第三屆500碗2025官網",
+            "全台小吃指南"
+          ],
+          "paragraph": "第一份展現台灣在地觀點的全台小吃新指南",
+          "link": "https://udn.com/upf/500bowlsaward2025/index.html",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/news2024_02.png",
+          "date": "2024.08",
+          "headline": [
+            "第二屆500碗2024官網",
+            "全台小吃指南 "
+          ],
+          "paragraph": "帶著美味名單 吃遍台灣小吃",
+          "link": "https://udn.com/upf/500bowlsaward2024/index.html",
+          "target": "_blank"
+        }
+      ]
+    }, 
+      {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": true,
+        "name": "合作夥伴"
+      },
+      "headline": "",
+      "link": "",
+      "target": "",
+      "imgsrc": {
+        "landscape": "img/2026sponsor001.png",
+        "portrait": "img/2026sponsor002.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "",
+        "text": ""
+      }
+    },
+    {
+      "status": true,
+      "template": "poster_full",
+      "menu": {
+        "status": false,
+        "name": ""
+      },
+      "headline": "",
+      "link": " ",
+      "target": "_blank",
+      "imgsrc": {
+        "landscape": "img/warning1.png",
+        "portrait": "img/warning1.png"
+      },
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "img/warning_img.png",
+        "text": "禁止酒駕i未滿十八歲禁止飲酒"
+      }
+    }
+  ]
+}

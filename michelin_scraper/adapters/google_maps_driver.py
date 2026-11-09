@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from time import monotonic
 from typing import Any, Protocol, cast
+from urllib.parse import unquote_plus
 
 from ..application.place_matcher import PlaceCandidate
 from ..config import GOOGLE_MAPS_HOME_URL
@@ -231,6 +232,10 @@ class GoogleMapsDriver:
             self._page = page
             if self._config.google_cdp_url is not None:
                 await page.set_viewport_size({"width": 1280, "height": 720})
+                # A Maps service-worker navigation can leave a streamed document
+                # open indefinitely. Bypass it only on our newly owned target.
+                network_session = await context.new_cdp_session(page)
+                await network_session.send("Network.setBypassServiceWorker", {"bypass": True})
             self._install_interrupt_handler()
         except BaseException:
             await self.close(force=True)
@@ -318,8 +323,15 @@ class GoogleMapsDriver:
                     step=f"open_maps_home.goto({GOOGLE_MAPS_HOME_URL})",
                     action=lambda: page.goto(
                         GOOGLE_MAPS_HOME_URL,
-                        wait_until="domcontentloaded",
+                        wait_until="commit",
                     ),
+                )
+                await self._run_browser_step(
+                    page=page,
+                    step="open_maps_home.wait_for_search_control",
+                    action=lambda: page.locator(
+                        ", ".join(self._SEARCH_BOX_SELECTORS)
+                    ).first.wait_for(state="visible", timeout=self._SEARCH_INPUT_READY_TIMEOUT_MS),
                 )
                 await self._wait_for_timeout(
                     page,
@@ -590,6 +602,7 @@ class GoogleMapsDriver:
                     result_index=result_index,
                 )
 
+            page = await self._require_page()
             if search_outcome == self._SEARCH_OUTCOME_NO_RESULTS:
                 await self._cache_page_html_snapshot(page)
                 return None
@@ -1330,6 +1343,8 @@ class GoogleMapsDriver:
                 return False
 
             try:
+                prior_title = await self._extract_text(page, self._PLACE_TITLE_SELECTORS) if self._supports_dom_waits(page) else ""
+                result_url = await first_result_locator.get_attribute("href") if self._supports_dom_waits(page) else ""
                 await self._click_locator(
                     page=page,
                     locator=first_result_locator,
@@ -1344,14 +1359,37 @@ class GoogleMapsDriver:
                     step=f"search.wait_after_open_result({query}, index={result_index})",
                 )
                 if self._supports_dom_waits(page):
-                    async def _save_btn_pred() -> bool:
-                        return await self._resolve_save_button(page) is not None
+                    async def _save_btn_pred(prior_title: str = prior_title) -> bool:
+                        title = await self._extract_text(page, self._PLACE_TITLE_SELECTORS)
+                        return bool(title and title != prior_title and await self._resolve_save_button(page) is not None)
 
-                    await self._wait_for_condition(
+                    ready = await self._wait_for_condition(
                         page=page,
                         timeout_ms=self._SEARCH_RESULT_CLICK_TIMEOUT_MS,
                         predicate=_save_btn_pred,
                     )
+                    # A stalled Maps transition can update the URL while retaining
+                    # the search feed. Reload only the observed restaurant link.
+                    result_id = re.search(r"!1s(0x[0-9a-f]+:0x[0-9a-f]+)(?:!|[/?&#]|$)", result_url or "")
+                    if not ready and result_id and str(result_url).startswith("https://www.google.com/maps/place/"):
+                        await page.goto(result_url, wait_until="commit")
+
+                        async def _reloaded_place_ready(expected_id: str = result_id[1]) -> bool:
+                            return bool(
+                                re.search(r"!1s" + re.escape(expected_id) + r"(?:!|[/?&#]|$)", self._read_page_url(page))
+                                and await self._extract_text(page, self._PLACE_TITLE_SELECTORS)
+                                and await self._resolve_save_button(page) is not None
+                            )
+
+                        ready = await self._wait_for_condition(
+                            page=page, timeout_ms=self._SEARCH_RESULT_CLICK_TIMEOUT_MS,
+                            predicate=_reloaded_place_ready,
+                        )
+                    if not ready:
+                        raise GoogleMapsTransientError(
+                            f"Search result did not replace the preceding place panel: query={query!r}, "
+                            f"index={result_index}, prior_title={prior_title!r}, url={self._read_page_url(page)!r}."
+                        )
                 return True
             except GoogleMapsTransientError as exc:
                 if not self._is_retryable_click_error(exc):
@@ -2833,7 +2871,6 @@ class GoogleMapsDriver:
         elapsed_ms = 0
         observed_post_submit_loading = False
         loading_settle_cycle_pending = False
-        loading_stuck_threshold_ms = max(settle_delay_ms * 8, 3000)
 
         while monotonic() <= deadline:
             current_state = await self._capture_search_panel_state(page)
@@ -2850,18 +2887,9 @@ class GoogleMapsDriver:
             ):
                 return self._SEARCH_OUTCOME_RESULT_READY
 
-            # Single-result searches: Google Maps navigates directly to the place
-            # detail page without showing a results list. Detect this by checking
-            # if the URL has changed to a /maps/place/ URL, which means the result
-            # is ready even if title_text hasn't loaded yet.
-            if url_changed and "/maps/place/" in (current_state.page_url or ""):
-                return self._SEARCH_OUTCOME_RESULT_READY
-
             if current_state.loading_visible:
                 observed_post_submit_loading = True
                 loading_settle_cycle_pending = True
-                if url_changed and elapsed_ms >= loading_stuck_threshold_ms:
-                    return self._SEARCH_OUTCOME_RESULT_READY
                 await self._wait_for_timeout(
                     page,
                     poll_interval_ms,
@@ -2887,7 +2915,8 @@ class GoogleMapsDriver:
                 # place detail page (/maps/place/), the search succeeded even if
                 # "no results" text appears elsewhere on the page (e.g. in reviews).
                 place_url = current_state.page_url or ""
-                if url_changed and "/maps/place/" in place_url:
+                if (url_changed and "/maps/place/" in place_url
+                        and current_state.title_text and current_state.title_text != previous_state.title_text):
                     return self._SEARCH_OUTCOME_RESULT_READY
                 if elapsed_ms >= settle_delay_ms:
                     return self._SEARCH_OUTCOME_NO_RESULTS
@@ -2936,9 +2965,6 @@ class GoogleMapsDriver:
         if current_state.loading_visible and elapsed_ms < settle_delay_ms:
             return False
 
-        url_changed = bool(
-            current_state.page_url and current_state.page_url != previous_state.page_url
-        )
         result_signature_changed = bool(
             current_state.first_result_signature
             and current_state.first_result_signature != previous_state.first_result_signature
@@ -2948,8 +2974,15 @@ class GoogleMapsDriver:
         )
         if result_signature_changed or title_changed:
             return True
-        if url_changed and elapsed_ms >= settle_delay_ms:
-            return True
+        place_label = re.search(r"/maps/place/([^/]+)/", current_state.page_url)
+        if (place_label and "!1s0x" in current_state.page_url
+                and current_state.page_url != previous_state.page_url and elapsed_ms >= settle_delay_ms):
+            rendered_name = " ".join(current_state.title_text.split()).casefold()
+            resolved_name = " ".join(unquote_plus(place_label[1]).split()).casefold()
+            if rendered_name and rendered_name == resolved_name:
+                return True
+        # The query URL updates before the preceding place panel disappears.
+        # Only rendered result content can establish a fresh search outcome.
         if not observed_post_submit_loading or elapsed_ms < settle_delay_ms:
             return False
 

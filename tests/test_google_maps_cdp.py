@@ -13,6 +13,7 @@ from michelin_scraper.adapters.google_maps_driver import GoogleMapsDriver, Googl
 from michelin_scraper.adapters.google_maps_sync_writer import GoogleMapsSyncWriter
 from michelin_scraper.application.sync_models import ScrapeSyncCommand
 from michelin_scraper.application.sync_use_case import AUTH_REQUIRED_EXIT_CODE, _create_sync_writer
+from michelin_scraper.application.taiwan_500_maintenance import AwardMapsDriver
 from michelin_scraper.config import GOOGLE_CDP_URL_OPTION_FLAGS
 from michelin_scraper.entrypoints.cli import app
 
@@ -46,6 +47,9 @@ def _resources() -> tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock]
     context = MagicMock()
     context.pages = [existing_page]
     context.new_page = AsyncMock(return_value=owned_page)
+    network_session = MagicMock()
+    network_session.send = AsyncMock()
+    context.new_cdp_session = AsyncMock(return_value=network_session)
     context.close = AsyncMock()
     context.cookies = AsyncMock()
     browser = MagicMock()
@@ -109,6 +113,36 @@ class CdpCliConfigurationTests(unittest.TestCase):
 
 
 class CdpResourceOwnershipTests(unittest.IsolatedAsyncioTestCase):
+    async def test_award_home_recovery_replaces_only_its_owned_tab(self) -> None:
+        driver = AwardMapsDriver(_driver()._config)
+        runtime, browser, context, owned_page, existing_page = _resources()
+        replacement = _resources()[3]
+        owned_page.url = replacement.url = "about:blank"
+        context.new_page.side_effect = [owned_page, replacement]
+
+        async def opened_home() -> None:
+            driver._page.url = "https://www.google.com/maps?hl=en"
+
+        with (patch("playwright.async_api.async_playwright") as playwright,
+              patch.object(driver, "_install_interrupt_handler"),
+              patch.object(GoogleMapsDriver, "open_maps_home", AsyncMock(side_effect=opened_home))):
+            playwright.return_value.start = AsyncMock(return_value=runtime)
+            await driver.start()
+            await driver.open_maps_home()
+            owned_page.close.assert_not_called()
+            await driver.open_maps_home()
+            owned_page.close.assert_awaited_once_with()
+            self.assertIs(driver._page, replacement)
+            self.assertEqual(context.new_page.await_count, 2)
+            self.assertEqual(runtime.chromium.connect_over_cdp.await_count, 2)
+            await driver.close()
+        replacement.close.assert_awaited_once_with()
+        existing_page.close.assert_not_called()
+        context.close.assert_not_called()
+        browser.close.assert_not_called()
+        browser.new_context.assert_not_called()
+        runtime.chromium.launch_persistent_context.assert_not_called()
+
     async def test_start_and_normal_or_forced_close_own_only_new_page(self) -> None:
         for force in (False, True):
             with self.subTest(force=force):
@@ -128,6 +162,10 @@ class CdpResourceOwnershipTests(unittest.IsolatedAsyncioTestCase):
                     runtime.chromium.connect_over_cdp.assert_awaited_once_with(_CDP_URL)
                     context.new_page.assert_awaited_once_with()
                     owned_page.set_viewport_size.assert_awaited_once_with({"width": 1280, "height": 720})
+                    context.new_cdp_session.assert_awaited_once_with(owned_page)
+                    context.new_cdp_session.return_value.send.assert_awaited_once_with(
+                        "Network.setBypassServiceWorker", {"bypass": True},
+                    )
                     prepare_profile.assert_not_called()
                     runtime.chromium.launch_persistent_context.assert_not_called()
                     browser.new_context.assert_not_called()

@@ -1,0 +1,67 @@
+{
+  "recorded_at_utc": "2026-11-08",
+  "failure": "Place membership visible but note could not be verified; saved-in chip remained collapsed with no textarea.",
+  "current_place": {
+    "candidate": {
+      "name": "L.C Française 法租界",
+      "address": "\nNo. 45-2號, Lane 187, Section 1, Dunhua S Rd, Jian'an Village, Da’an District, Taipei City, 106",
+      "category": "餐廳",
+      "subtitle": "",
+      "located_in": ""
+    },
+    "place_url": "https://www.google.com/maps/place/L.C+Fran%C3%A7aise+%E6%B3%95%E7%A7%9F%E7%95%8C/@25.0616189,121.6397073,15z/data=!4m6!3m5!1s0x3442ab0b19e93ea3:0x5429bef9569bdda!8m2!3d25.0427854!4d121.5514191!16s%2Fg%2F11h124zscv?hl=en&entry=ttu&g_ep=EgoyMDI2MTEwMy4wIKXMDSoASAFQAw%3D%3D",
+    "place_id": "0x3442ab0b19e93ea3:0x5429bef9569bdda",
+    "note": "500盤 2026 | 總得盤數: 1盤 | 得獎菜色: 栗子燒牛小排 | 區域: 台北 | 評審: 陳致遠 | 地址: 106 臺北市大安區敦化南路一段187巷45-2號 | 電話: 0965 515 181 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 管理: 500-awards/dishes/001a80b553698ae6e3f2b12e626bbbbbc3177816800f365a5bf82a3218dda83e",
+    "list_name": "500盤2026 I 第六屆500盤電子地圖",
+    "confirmed_at_utc": "2026-11-08T09:40:41.118025+00:00",
+    "source_row": {
+      "Name": "L.C Française 法租界",
+      "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 栗子燒牛小排 評審: 陳致遠 地址: 106 臺北市大安區敦化南路一段187巷45-2號 電話: 0965 515 181",
+      "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 栗子燒牛小排<br>評審: 陳致遠<br>地址: 106 臺北市大安區敦化南路一段187巷45-2號<br>電話: 0965 515 181",
+      "DescriptionFields": {
+        "總得盤數": "1盤",
+        "區域": "台北",
+        "得獎菜色": "栗子燒牛小排",
+        "評審": "陳致遠",
+        "地址": "106 臺北市大安區敦化南路一段187巷45-2號",
+        "電話": "0965 515 181",
+        "管理代碼": "500-awards/dishes/001a80b553698ae6e3f2b12e626bbbbbc3177816800f365a5bf82a3218dda83e"
+      },
+      "Address": "106 臺北市大安區敦化南路一段187巷45-2號",
+      "City": "",
+      "AwardSourceKey": "001a80b553698ae6e3f2b12e626bbbbbc3177816800f365a5bf82a3218dda83e"
+    }
+  },
+  "preceding_confirmation": {
+    "candidate": {
+      "name": "猶太潔食實驗室 Jewish Kosher Culinary Lab",
+      "address": "\nNo. 6號, Alley 1, Lane 24, Section 3, Ren'ai Rd, Minzhao Village, Da’an District, Taipei City, 106",
+      "category": "食品和飲品",
+      "subtitle": "",
+      "located_in": ""
+    },
+    "place_url": "https://www.google.com/maps/place/%E7%8C%B6%E5%A4%AA%E6%BD%94%E9%A3%9F%E5%AF%A6%E9%A9%97%E5%AE%A4+Jewish+Kosher+Culinary+Lab/@25.037147,121.5335728,17z/data=!3m1!4b1!4m6!3m5!1s0x3442a97e17a815bd:0x82405718a5f28829!8m2!3d25.037147!4d121.5361477!16s%2Fg%2F11k3hj6818?authuser=0&hl=en&entry=ttu&g_ep=EgoyMDI2MTEwMy4wIKXMDSoASAFQAw%3D%3D",
+    "place_id": "0x3442a97e17a815bd:0x82405718a5f28829",
+    "note": "500盤 2026 | 總得盤數: 1盤 | 得獎菜色: 雞未香老皮嫩蛋豆腐 | 區域: 台北 | 評審: 陳彩霞 | 地址: 106 臺北市大安區仁愛路三段24巷1弄6號 | 電話: 02 2700 0366 | 官方: https://500times.udn.com/wtimes/story/122412/9754110 | 管理: 500-awards/dishes/fd1e12486a44020202ff5148341318618b1050810ded7d0aba07a112f1fca263",
+    "list_name": "500盤2026 I 第六屆500盤電子地圖",
+    "confirmed_at_utc": "2026-11-08T09:35:43.263338+00:00",
+    "source_row": {
+      "Name": "Kosher lab 猶太潔食實驗室",
+      "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 雞未香老皮嫩蛋豆腐 評審: 陳彩霞 地址: 106 臺北市大安區仁愛路三段24巷1弄6號 電話: 02 2700 0366",
+      "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 雞未香老皮嫩蛋豆腐<br>評審: 陳彩霞<br>地址: 106 臺北市大安區仁愛路三段24巷1弄6號<br>電話: 02 2700 0366",
+      "DescriptionFields": {
+        "總得盤數": "1盤",
+        "區域": "台北",
+        "得獎菜色": "雞未香老皮嫩蛋豆腐",
+        "評審": "陳彩霞",
+        "地址": "106 臺北市大安區仁愛路三段24巷1弄6號",
+        "電話": "02 2700 0366",
+        "管理代碼": "500-awards/dishes/fd1e12486a44020202ff5148341318618b1050810ded7d0aba07a112f1fca263"
+      },
+      "Address": "106 臺北市大安區仁愛路三段24巷1弄6號",
+      "City": "",
+      "AwardSourceKey": "fd1e12486a44020202ff5148341318618b1050810ded7d0aba07a112f1fca263"
+    }
+  },
+  "html_fixture": "note-unverified-saved-panel-2026-11-08.html"
+}

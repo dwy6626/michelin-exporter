@@ -1,0 +1,78 @@
+{
+  "decisions": [
+    {
+      "award": "dishes",
+      "edition": 2026,
+      "source_name": "COAST",
+      "source_key": "b65194b3b69ae24029a2134a19d8ea4e08514bf90fcdf39f7f3aa63b9821811c",
+      "source_fingerprint": "ac608b8e6aad5a8b4531cd351fbc618e579b07b82fe25e2f6a6183bcf9e6d8c6",
+      "original_row": {
+        "Name": "COAST",
+        "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 松葉蟹 / 髮麵 / 考桫 評審: 潘思亮 地址: 10491 臺北市中山區中山北路二段39巷3號B2 電話: 02 2567 0237",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 松葉蟹 / 髮麵 / 考桫<br>評審: 潘思亮<br>地址: 10491 臺北市中山區中山北路二段39巷3號B2<br>電話: 02 2567 0237",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "台北",
+          "得獎菜色": "松葉蟹 / 髮麵 / 考桫",
+          "評審": "潘思亮",
+          "地址": "10491 臺北市中山區中山北路二段39巷3號B2",
+          "電話": "02 2567 0237"
+        },
+        "Address": "10491 臺北市中山區中山北路二段39巷3號B2",
+        "City": ""
+      },
+      "decision": "user_authorized_exclusion",
+      "reason": "User authorized skipping this 2026 awarded entry after reviewing current-business identity evidence; do not save SAAKA as a replacement. This decision does not independently establish permanent closure.",
+      "authorization_quote": "看起來都歇業 就跳過吧",
+      "provenance": {
+        "authority": "Explicit user instruction for the current 2026 entries",
+        "approved_on": "2026-11-08",
+        "identity_evidence": "dishes/coast-source-identity-blocker.json",
+        "source_urls": [
+          "https://udn.com/500dishesaward/",
+          "https://udn.com/500dishesaward/api/get_story.json?hash=HHzlxNP",
+          "https://500times.udn.com/wtimes/story/122412/9754110",
+          "https://www.google.com/maps/d/edit?mid=1dXq2uIcOlq5uQFJn919qudIFehIMWSw&usp=sharing",
+          "https://www.google.com/maps/d/kml?mid=1dXq2uIcOlq5uQFJn919qudIFehIMWSw&forcekml=1"
+        ]
+      }
+    },
+    {
+      "award": "dishes",
+      "edition": 2026,
+      "source_name": "nabo ulv",
+      "source_key": "58323509c234b70052a97902573341438bcc75cc063b2ae7a5b7ac85250a9ddc",
+      "source_fingerprint": "ac608b8e6aad5a8b4531cd351fbc618e579b07b82fe25e2f6a6183bcf9e6d8c6",
+      "original_row": {
+        "Name": "nabo ulv",
+        "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 腳餃的味道 評審: 阿滴 地址: 106臺北市大安區敦化南路一段160巷18號 電話: 02 8771 0828",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 腳餃的味道<br>評審: 阿滴<br>地址: 106臺北市大安區敦化南路一段160巷18號<br>電話: 02 8771 0828",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "台北",
+          "得獎菜色": "腳餃的味道",
+          "評審": "阿滴",
+          "地址": "106臺北市大安區敦化南路一段160巷18號",
+          "電話": "02 8771 0828"
+        },
+        "Address": "106臺北市大安區敦化南路一段160巷18號",
+        "City": ""
+      },
+      "decision": "user_authorized_exclusion",
+      "reason": "User authorized skipping this 2026 awarded entry after reviewing current-business identity evidence; do not save Restaurant Bon appétit as a replacement. This decision does not independently establish permanent closure.",
+      "authorization_quote": "看起來都歇業 就跳過吧",
+      "provenance": {
+        "authority": "Explicit user instruction for the current 2026 entries",
+        "approved_on": "2026-11-08",
+        "identity_evidence": "dishes/nabo-source-identity-blocker.json",
+        "source_urls": [
+          "https://udn.com/500dishesaward/",
+          "https://udn.com/500dishesaward/api/get_story.json?hash=HHzlxNP",
+          "https://500times.udn.com/wtimes/story/122412/9754110",
+          "https://www.google.com/maps/d/edit?mid=1dXq2uIcOlq5uQFJn919qudIFehIMWSw&usp=sharing",
+          "https://www.google.com/maps/d/kml?mid=1dXq2uIcOlq5uQFJn919qudIFehIMWSw&forcekml=1"
+        ]
+      }
+    }
+  ]
+}

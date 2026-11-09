@@ -1,0 +1,1026 @@
+{
+  "metadata": {
+    "source": "Actual read-only normal Google Maps matcher probes, 2026-11-08; public business data only",
+    "sanitized": true
+  },
+  "records": [
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "蒸餃阿姨",
+        "Description": "總得碗數: 2 得獎菜色: 招牌韭菜蒸餃 高麗菜蒸餃 地區: 宜蘭 菜系: 台式 推薦評審: 葉怡蘭、李易 地址: 261宜蘭縣頭城鎮南門路12號 營業時間: 06:00–14:00 電話: 0916 892 115",
+        "DescriptionRawHtml": "總得碗數: 2<br>得獎菜色: 招牌韭菜蒸餃 高麗菜蒸餃<br>地區: 宜蘭<br>菜系: 台式<br>推薦評審: 葉怡蘭、李易<br>地址: 261宜蘭縣頭城鎮南門路12號<br>營業時間: 06:00–14:00<br>電話: 0916 892 115",
+        "DescriptionFields": {
+          "總得碗數": "2",
+          "得獎菜色": "招牌韭菜蒸餃 高麗菜蒸餃",
+          "地區": "宜蘭",
+          "菜系": "台式",
+          "推薦評審": "葉怡蘭、李易",
+          "地址": "261宜蘭縣頭城鎮南門路12號",
+          "營業時間": "06:00–14:00",
+          "電話": "0916 892 115"
+        },
+        "Address": "261宜蘭縣頭城鎮南門路12號",
+        "City": "宜蘭"
+      },
+      "source_key": "7c0979817255d4ec81440976c10c95f8df50b2d9810bcba7b566645fa8f46ce2",
+      "verified_evidence": {
+        "original_name": "蒸餃阿姨",
+        "original_address": "261宜蘭縣頭城鎮南門路12號",
+        "match_address": "261宜蘭縣頭城鎮開蘭路57號",
+        "reason": "原地圖記載南門路12號；現址開蘭路57號。評審葉怡蘭2025年12月實訪記錄與原地圖電話0916-892-115相同，確認為同一店家遷址。",
+        "evidence_urls": [
+          "https://www.yilan.com.tw/article/cjaycontent2/3953",
+          "https://litwenblog.com/toucheng-dumplingsauntie/"
+        ]
+      },
+      "candidate": {
+        "name": "Steamed dumplings",
+        "address": "\nNo. 57號, Kailan Rd, Toucheng Township, Yilan County, 261",
+        "category": "餐廳",
+        "subtitle": "蒸餃阿姨",
+        "located_in": ""
+      },
+      "observed_outcome": "strong; no hard veto or house-number conflict"
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "丫川水煎包",
+        "Description": "總得碗數: 1 得獎菜色: 水煎包 地區: 台北 菜系: 台式 推薦評審: 可播兄弟 地址: 112臺北市北投區裕民一路34號 營業時間: 12:00–21:00 電話:",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 水煎包<br>地區: 台北<br>菜系: 台式<br>推薦評審: 可播兄弟<br>地址: 112臺北市北投區裕民一路34號<br>營業時間: 12:00–21:00<br>電話:",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "水煎包",
+          "地區": "台北",
+          "菜系": "台式",
+          "推薦評審": "可播兄弟",
+          "地址": "112臺北市北投區裕民一路34號",
+          "營業時間": "12:00–21:00"
+        },
+        "Address": "112臺北市北投區裕民一路34號",
+        "City": "台北"
+      },
+      "source_key": "7663c62e1a760ba73c4ccaea0bf8c4d6bc52f76ea8fe3063571e49b6132e00f2",
+      "verified_evidence": {
+        "original_name": "丫川水煎包",
+        "original_address": "112臺北市北投區裕民一路34號",
+        "match_address": "112臺北市北投區裕民一路39號",
+        "reason": "原地圖以裕民一路34號為參考地址；2026年實訪記錄明載攤位位於34號對面，Google現址為39號。店家別名、攤位照片與官方Facebook連結一致。",
+        "evidence_urls": [
+          "https://twsala40.com/yachuan/",
+          "https://www.mecocute.com/noname6/",
+          "https://girlsplan.com/ychun/",
+          "https://supertaste.tvbs.com.tw/amp/esg/358337",
+          "https://www.facebook.com/profile.php?id=100085454226256"
+        ]
+      },
+      "candidate": {
+        "name": "水煎包(一粒7元)",
+        "address": "\nNo. 39號, Yumin 1st Rd, Zhenhua Village, Beitou District, Taipei City, 112",
+        "category": "中式包點店",
+        "subtitle": "ㄚ川水煎包（原石牌路口7-11騎樓下）",
+        "located_in": ""
+      },
+      "observed_outcome": "strong; no hard veto or house-number conflict"
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "合府小籠湯包",
+        "Description": "總得碗數: 1 得獎菜色: 蒸高麗菜 地區: 台北 菜系: 台式 推薦評審: Lulu 黃路梓茵 地址: 106臺北市大安區光復南路180巷13號1樓 營業時間: 11:00–21:00 電話: 02 8771 6855",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 蒸高麗菜<br>地區: 台北<br>菜系: 台式<br>推薦評審: Lulu 黃路梓茵<br>地址: 106臺北市大安區光復南路180巷13號1樓<br>營業時間: 11:00–21:00<br>電話: 02 8771 6855",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "蒸高麗菜",
+          "地區": "台北",
+          "菜系": "台式",
+          "推薦評審": "Lulu 黃路梓茵",
+          "地址": "106臺北市大安區光復南路180巷13號1樓",
+          "營業時間": "11:00–21:00",
+          "電話": "02 8771 6855"
+        },
+        "Address": "106臺北市大安區光復南路180巷13號1樓",
+        "City": "台北"
+      },
+      "source_key": "c96ea4f9461a7cc429c494a50c56453c247ba2a58c14ebee23822c1c82a5e157",
+      "verified_evidence": {
+        "original_name": "合府小籠湯包",
+        "original_address": "106臺北市大安區光復南路180巷13號1樓",
+        "match_address": "106臺北市大安區光復南路262-1號1樓",
+        "reason": "原地圖為光復南路180巷13號；同一光復店已遷至262-1號。2026年5月政府公司變更登記、店家外送菜單及8月聯合報系報導均載新址，確認為同一店家搬遷。",
+        "evidence_urls": [
+          "https://serv.gcis.nat.gov.tw/pub/cmpy/reportAction.do?fileName=11505DOC.pdf&method=report&reportClass=cmpy&subPath=11505",
+          "https://www.ubereats.com/tw/store/合府小籠湯包/2qQ2jfFYSKi3WDWQwyVBkQ",
+          "https://travel.udn.com/travel/story/7193/9700885",
+          "https://www.tatlerasia.com/dining/food/dining-weekly-0607-tatler-news-zh-hant"
+        ]
+      },
+      "candidate": {
+        "name": "合府小籠湯包（光復店）",
+        "address": "\n106, Taipei City, Da’an District, Zhengsheng Village, Guangfu S Rd, 262-1號1樓",
+        "category": "中菜館",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_outcome": "strong; no hard veto or house-number conflict"
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "羅媽媽米粉湯",
+        "Description": "總得碗數: 1 得獎菜色: 大腸 地區: 台北 菜系: 台式 推薦評審: 馮宇 地址: 100臺北市中正區信義路二段81號 營業時間: 07:00–15:00 電話: 02 2351 3352",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 大腸<br>地區: 台北<br>菜系: 台式<br>推薦評審: 馮宇<br>地址: 100臺北市中正區信義路二段81號<br>營業時間: 07:00–15:00<br>電話: 02 2351 3352",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "大腸",
+          "地區": "台北",
+          "菜系": "台式",
+          "推薦評審": "馮宇",
+          "地址": "100臺北市中正區信義路二段81號",
+          "營業時間": "07:00–15:00",
+          "電話": "02 2351 3352"
+        },
+        "Address": "100臺北市中正區信義路二段81號",
+        "City": "台北"
+      },
+      "source_key": "14a8d081f1841e51776991a58d1f6eaa237b66e5c48e5cee6e74416e17e97d39",
+      "verified_evidence": {
+        "original_name": "羅媽媽米粉湯",
+        "original_address": "100臺北市中正區信義路二段81號",
+        "match_address": "106臺北市大安區杭州南路二段33號",
+        "reason": "原地圖為信義路二段81號東門市場；因市場改建，羅媽媽米粉湯已於2026年9月隨原攤商進駐杭州南路二段33號東門中繼市場。臺北市市場處新聞稿明確載明同店搬遷與新址。",
+        "evidence_urls": [
+          "https://www.gov.taipei/News_Content.aspx?n=F0DDAF49B89E9413&s=B565C73710A7A97B&sms=72544237BBE4C5F6",
+          "https://yuann.tw/dongmen-relay-market-info/"
+        ]
+      },
+      "candidate": {
+        "name": "羅媽媽米粉湯",
+        "address": "\nNo. 33號, Section 2, Hangzhou S Rd, Guangming Village, Da’an District, Taipei City, 106",
+        "category": "台灣餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_outcome": "strong; no hard veto or house-number conflict"
+    },
+    {
+      "award": "dishes",
+      "source_row": {
+        "Name": "漢來名人坊",
+        "Description": "總得盤數: 區域: 高雄 得獎菜色: 燕窩釀鳳翼 評審: 陳肇隆 地址: 801 高雄市前金區成功一路266號12樓 電話: 07 213 5732",
+        "DescriptionRawHtml": "總得盤數: <br>區域: 高雄<br>得獎菜色: 燕窩釀鳳翼<br>評審: 陳肇隆<br>地址: 801 高雄市前金區成功一路266號12樓<br>電話: 07 213 5732",
+        "DescriptionFields": {
+          "區域": "高雄",
+          "得獎菜色": "燕窩釀鳳翼",
+          "評審": "陳肇隆",
+          "地址": "801 高雄市前金區成功一路266號12樓",
+          "電話": "07 213 5732"
+        },
+        "Address": "801 高雄市前金區成功一路266號12樓",
+        "City": ""
+      },
+      "source_key": "9e662ec2801046614ecc1eb83a5d6dc69167545ed124d52af074c7fa497fb7f3",
+      "verified_evidence": {
+        "original_name": "漢來名人坊",
+        "original_address": "801 高雄市前金區成功一路266號12樓",
+        "aliases": [
+          "Celebrity Cuisine",
+          "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch"
+        ],
+        "reason": "漢來飯店官方英文名稱Celebrity Cuisine，漢來本館12樓、成功一路266號、電話07-213-5732均與原地圖相符；與台北世貿分店分別保存。",
+        "evidence_urls": [
+          "https://www.grand-hilai.com/en/restaurant-detail/chinese-restaurants/celebrity-cuisine/?page_id=1476",
+          "https://www.hilai-foods.com/news-article/1810"
+        ]
+      },
+      "candidate": {
+        "name": "Hi-Lai Celebrity Cuisine Grand Hi-Lai Hotel Branch",
+        "address": "\n801, Kaohsiung City, Qianjin District, Rongfu Village, Chenggong 1st Rd, 266號12樓",
+        "category": "粵菜館",
+        "subtitle": "漢來名人坊 高雄漢來店",
+        "located_in": "Floor 12 · Grand Hi-Lai Kaohsiung"
+      },
+      "observed_outcome": "strong; no hard veto or house-number conflict"
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "魏家婆菜",
+        "Description": "總得碗數: 1 得獎菜色: 紅蘿蔔婆菜 地區: 新竹 菜系: 客家 推薦評審: 溫士凱 地址: 310新竹縣竹東鎮仁愛路310巷29號 營業時間: 05:00-11:00 電話:",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 紅蘿蔔婆菜<br>地區: 新竹<br>菜系: 客家<br>推薦評審: 溫士凱<br>地址: 310新竹縣竹東鎮仁愛路310巷29號<br>營業時間: 05:00-11:00<br>電話:",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "紅蘿蔔婆菜",
+          "地區": "新竹",
+          "菜系": "客家",
+          "推薦評審": "溫士凱",
+          "地址": "310新竹縣竹東鎮仁愛路310巷29號",
+          "營業時間": "05:00-11:00"
+        },
+        "Address": "310新竹縣竹東鎮仁愛路310巷29號",
+        "City": "新竹"
+      },
+      "source_key": "a760975963e8fd343e68136323e6ea43496dd41ebf682fa6cc69a9409795414e",
+      "verified_evidence": {
+        "original_name": "魏家婆菜",
+        "original_address": "310新竹縣竹東鎮仁愛路310巷29號",
+        "match_address": "310新竹縣竹東鎮杞林路132號",
+        "aliases": [
+          "魏記客家婆菜",
+          "素食炸菜",
+          "素食炸菜（PO菜）（ㄆㄛ菜）"
+        ],
+        "reason": "來源店名魏家婆菜（魏記客家婆菜）。原地圖及評審2024訪記列仁愛路310巷29號；2025具名實訪列杞林路132號、03-594-8206，與竹東鎮公所官方觀光網「素食炸菜」及目前Google同址同電話一致，據此對應現行店家定位。兩地址差異保留供追溯，未推定遷址原因。",
+        "evidence_urls": [
+          "https://500times.udn.com/wtimes/story/123497/9509836",
+          "https://travel.udn.com/travel/story/7206/8339126",
+          "https://hakka.hcctt.gov.tw/",
+          "https://xaioyue.com/hakka-tenpura/"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "debug/wei-renderer-probe.html",
+          "phone": "03-594-8206",
+          "maps_name": "素食炸菜（PO菜）（ㄆㄛ菜）",
+          "matching_official_tourism_phone": true
+        }
+      },
+      "candidate": {
+        "name": "素食炸菜（PO菜）（ㄆㄛ菜）",
+        "address": "\nNo. 132號, Qilin Rd, Rongle Village, Zhudong Township, Hsinchu County, 310",
+        "category": "Vegetarian restaurant",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "strong",
+      "observed_outcome": "Accepted with the evidenced current address/name; original source address retained."
+    },
+    {
+      "award": "dishes",
+      "source_row": {
+        "Name": "奇岩一號 中餐廳",
+        "Description": "總得盤數: 2盤 區域: 台北 得獎菜色: 川味口水雞、剁椒魚頭 評審: 昆凌、曾國城 地址: 112臺北市北投區溫泉里奇岩路1號 電話: 02 5551 8888",
+        "DescriptionRawHtml": "總得盤數: 2盤<br>區域: 台北<br>得獎菜色: 川味口水雞、剁椒魚頭<br>評審: 昆凌、曾國城<br>地址: 112臺北市北投區溫泉里奇岩路1號<br>電話:  02 5551 8888",
+        "DescriptionFields": {
+          "總得盤數": "2盤",
+          "區域": "台北",
+          "得獎菜色": "川味口水雞、剁椒魚頭",
+          "評審": "昆凌、曾國城",
+          "地址": "112臺北市北投區溫泉里奇岩路1號",
+          "電話": "02 5551 8888"
+        },
+        "Address": "112臺北市北投區溫泉里奇岩路1號",
+        "City": ""
+      },
+      "source_key": "64e0cb17aaa6a96e5c5be8cbd455418a2a36b216b5c90e47020c6750c57a1086",
+      "verified_evidence": {
+        "original_name": "奇岩一號 中餐廳",
+        "original_address": "112臺北市北投區溫泉里奇岩路1號",
+        "aliases": [
+          "Qiyan ONE",
+          "北投奇岩一號"
+        ],
+        "reason": "大地酒店官方英文餐飲頁將北投本館奇岩一號列為Qiyan ONE，官方訂位頁地址為北投區奇岩路1號；與Google北投店同址。樂群二路199號旗艦店為不同分店，未混用。",
+        "evidence_urls": [
+          "https://www.thegaiahotel.com/en/restaurants/",
+          "https://www.tablecheck.com/zh-TW/the-gaia-hotel-qiyan-one/reserve/landing",
+          "https://www.thegaiahotel.com/news-detail/442/"
+        ]
+      },
+      "candidate": {
+        "name": "Qiyan One",
+        "address": "\nNo. 1, Qiyan Rd, Wenquan Village, Beitou District, Taipei City, 112",
+        "category": "四川酒家",
+        "subtitle": "北投奇岩一號",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Official English alias; Beitou physical branch retained, other branch veto retained."
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "一級棒鵝肉小吃店",
+        "Description": "總得碗數: 1 得獎菜色: 醬油半熟蛋 地區: 苗栗 菜系: 台式 推薦評審: 湯昇榮 地址: 360苗栗縣苗栗市中華路161-1號 營業時間: 11:00–14:00 17:00–00:00 電話: 03 727 5273",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 醬油半熟蛋<br>地區: 苗栗<br>菜系: 台式<br>推薦評審: 湯昇榮<br>地址: 360苗栗縣苗栗市中華路161-1號<br>營業時間: 11:00–14:00<br>17:00–00:00<br>電話: 03 727 5273",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "醬油半熟蛋",
+          "地區": "苗栗",
+          "菜系": "台式",
+          "推薦評審": "湯昇榮",
+          "地址": "360苗栗縣苗栗市中華路161-1號",
+          "營業時間": "11:00–14:00",
+          "17": "00–00:00",
+          "電話": "03 727 5273"
+        },
+        "Address": "360苗栗縣苗栗市中華路161-1號",
+        "City": "苗栗"
+      },
+      "source_key": "0b1e965af9b7a39878aa8280638928648464ba675960b3aed41a958473386040",
+      "verified_evidence": {
+        "original_name": "一級棒鵝肉小吃店",
+        "original_address": "360苗栗縣苗栗市中華路161-1號",
+        "match_address": "360苗栗縣苗栗市中山北路225號",
+        "reason": "官方來源列中華路161-1號、037-275273；2026年7月具名實訪同店所附Google連結與目前搜尋均為相同實體ID，現行Google地址為中山北路225號且電話037-275273一致。據店名、電話及既有實訪地圖實體連結對應；保留原地址差異，未推定遷址原因。",
+        "evidence_urls": [
+          "https://sillycoupleblog.tw/miaoli-city-food-yjberxc-2607/",
+          "https://maps.app.goo.gl/2o1JXiadW9GXXFQk8",
+          "https://www.ab-inbev.com.tw/base_tw.php?page=91"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "debug/goose-current-place.html",
+          "phone": "037-275273",
+          "physical_id": "0x3469ac137c5c0b59:0x2e2fad88579df279",
+          "published_2026_map_link_same_physical_id": true
+        }
+      },
+      "candidate": {
+        "name": "一級棒鵝肉小吃店",
+        "address": "\nNo. 225號, Zhongshan N Rd, Beimiao Village, Miaoli City, Miaoli County, 360",
+        "category": "Chinese restaurant",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "strong",
+      "observed_outcome": "Published 2026 map identity and source phone retained; original/current address difference disclosed."
+    },
+    {
+      "award": "dishes",
+      "source_row": {
+        "Name": "煙波大飯店新竹湖濱館 滿月樓",
+        "Description": "總得盤數: 2盤 區域: 新竹 得獎菜色: 蘭香古法炭燒鵝三吃 評審: 葉怡蘭、蔣雅淇 地址: 300 新竹市東區明湖路773號 電話: 03-520-3188 #2500",
+        "DescriptionRawHtml": "總得盤數: 2盤<br>區域: 新竹<br>得獎菜色: 蘭香古法炭燒鵝三吃<br>評審: 葉怡蘭、蔣雅淇<br>地址: 300 新竹市東區明湖路773號<br>電話: 03-520-3188 #2500",
+        "DescriptionFields": {
+          "總得盤數": "2盤",
+          "區域": "新竹",
+          "得獎菜色": "蘭香古法炭燒鵝三吃",
+          "評審": "葉怡蘭、蔣雅淇",
+          "地址": "300 新竹市東區明湖路773號",
+          "電話": "03-520-3188 #2500"
+        },
+        "Address": "300 新竹市東區明湖路773號",
+        "City": ""
+      },
+      "source_key": "ec80287807f1aaf1d5bf2878d1bba9d507624160dfb8c9864c6af338092babe6",
+      "verified_evidence": {
+        "original_name": "煙波大飯店新竹湖濱館 滿月樓",
+        "original_address": "300 新竹市東區明湖路773號",
+        "aliases": [
+          "滿月樓",
+          "MAN YUE LOU"
+        ],
+        "required_names": [
+          "滿月樓",
+          "MAN YUE LOU"
+        ],
+        "reason": "官方餐廳頁及FAQ明載滿月樓位於新竹湖濱館溫莎館2樓，電話03-520-3188分機2500，並提供滿月樓專屬Google地圖連結。保存餐廳實體，與同址的飯店總館定位分開。",
+        "evidence_urls": [
+          "https://hsinchu.lakeshore.com.tw/restaurant-detail/man-yue-lou",
+          "https://hsinchu.lakeshore.com.tw/faq",
+          "https://maps.app.goo.gl/2NuWXQ59exZ8Rvqc8"
+        ]
+      },
+      "candidate": {
+        "name": "滿月樓｜台灣菜 · 頂級客家料理",
+        "address": "\nNo. 773號, Minghu Rd, Chaiqiao Village, East District, Hsinchu City, 300",
+        "category": "Fine dining restaurant",
+        "subtitle": "",
+        "located_in": "Located in: 煙波飯店溫莎館"
+      },
+      "rejected_containing_building_candidate": {
+        "name": "Lakeshore Hotel Hsinchu Lakeside Pavilion",
+        "address": "\nNo. 773號, Minghu Rd, Chaiqiao Village, East District, Hsinchu City, 300",
+        "category": "",
+        "subtitle": "煙波大飯店 新竹湖濱館",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Specific restaurant from official restaurant map; containing hotel must be rejected."
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "紫園無招牌客家米食",
+        "Description": "總得碗數: 1 得獎菜色: 水粄 地區: 苗栗 菜系: 客家 推薦評審: 湯昇榮 地址: 360苗栗縣苗栗市清華里紫園街79巷1號 營業時間: 06:30-08:00 電話: 03 726 3378",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 水粄<br>地區: 苗栗<br>菜系: 客家<br>推薦評審: 湯昇榮<br>地址: 360苗栗縣苗栗市清華里紫園街79巷1號<br>營業時間: 06:30-08:00<br>電話: 03 726 3378",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "水粄",
+          "地區": "苗栗",
+          "菜系": "客家",
+          "推薦評審": "湯昇榮",
+          "地址": "360苗栗縣苗栗市清華里紫園街79巷1號",
+          "營業時間": "06:30-08:00",
+          "電話": "03 726 3378"
+        },
+        "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "City": "苗栗"
+      },
+      "source_key": "0a25b01a4f9e9d7e0c39ea293d290c83aafb66957138de935623c760225a7d96",
+      "verified_evidence": {
+        "original_name": "紫園無招牌客家米食",
+        "original_address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "match_address": "360苗栗縣苗栗市紫園街67號",
+        "aliases": [
+          "紫園客家無名美食"
+        ],
+        "required_names": [
+          "紫園客家無名美食",
+          "紫園無招牌客家米食"
+        ],
+        "reason": "官方得獎來源地址為紫園街79巷1號；Google同店以「紫園客家無名美食」、紫園街67號標示。Google店家相片與2026具名實訪顯示相同價目板（五項品名價格及紅字六日販售），舊實訪亦連結此別名店家，據此對應。原地址差異保留，未推定遷址；Google現標示永久停業，未宣稱仍營業。",
+        "evidence_urls": [
+          "https://500times.udn.com/wtimes/story/123497/9503067",
+          "https://sillycoupleblog.tw/miaoli-city-food-ziyuanmishi/",
+          "https://supertaste.tvbs.com.tw/infocard/14804",
+          "https://ifoodie.tw/blog/5e8f229ba6bf95279728e081-紫園無招牌客家米食-早上6%3A40開賣水粄"
+        ],
+        "visual_comparison_evidence": {
+          "google_menu": "sources/ziyuan-google-menu.jpg",
+          "published_2026_menu": "sources/ziyuan-primary-DSC01147.jpg",
+          "published_2026_front": "sources/ziyuan-primary-DSC01146.jpg",
+          "google_dom": "debug/ziyuan-current-place.html",
+          "matches": [
+            "Five menu items and prices: 30/30/35/35/35",
+            "Distinctive laminated menu board, yellow outlined title and red weekend annotation",
+            "Same rice-cake menu and early-morning takeaway shop reported by the named visitor"
+          ],
+          "google_place_id": "0x3469ad00734b417b:0x20e7bc87b6e9179b",
+          "google_current_status": "Permanently closed"
+        }
+      },
+      "candidate": {
+        "name": "紫園客家無名美食",
+        "address": "\nNo. 67號, Ziyuan St, Qinghua Village, Miaoli City, Miaoli County, 360",
+        "category": "",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "strong",
+      "observed_outcome": "Published same-shop menu and documented name alias; source/Google address discrepancy and closed status retained."
+    },
+    {
+      "award": "bowls",
+      "source_row": {
+        "Name": "關帝廟口無名發財車",
+        "Description": "總得碗數: 1 得獎菜色: 山藥排骨燉露 地區: 彰化 菜系: 台式 推薦評審: 謝忠道 地址: 500彰化縣彰化市民族路467號關帝廟口 營業時間: 電話:",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 山藥排骨燉露 <br>地區: 彰化<br>菜系: 台式<br>推薦評審: 謝忠道<br>地址: 500彰化縣彰化市民族路467號關帝廟口<br>營業時間: <br>電話:",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "山藥排骨燉露",
+          "地區": "彰化",
+          "菜系": "台式",
+          "推薦評審": "謝忠道",
+          "地址": "500彰化縣彰化市民族路467號關帝廟口"
+        },
+        "Address": "500彰化縣彰化市民族路467號關帝廟口",
+        "City": "彰化"
+      },
+      "source_key": "c653c1c74eaf3a6bf29da60ee9677163fcf319ba0f5e927b1d64d33234e348a2",
+      "verified_evidence": {
+        "original_name": "關帝廟口無名發財車",
+        "original_address": "500彰化縣彰化市民族路467號關帝廟口",
+        "match_address": "500彰化縣彰化市民族路469號",
+        "aliases": [
+          "永樂夜市關帝廟無名蘿蔔糕、燉湯",
+          "關帝廟無名蘿蔔糕",
+          "上品美食"
+        ],
+        "required_names": [
+          "關帝廟無名蘿蔔糕",
+          "上品美食"
+        ],
+        "reason": "原地圖以民族路467號關帝廟口為地標。評審所述蘿蔔糕與燉露發財車，對應TVBS及2026具名實訪記載的「永樂夜市關帝廟無名蘿蔔糕、燉湯」，攤位位於469號騎樓、電話0931-633-820，與Google同店名地址一致。保存餐車店家，未將寺廟當作餐廳。",
+        "evidence_urls": [
+          "https://500times.udn.com/wtimes/story/123497/9500801",
+          "https://500times.udn.com/wtimes/story/123497/9710901",
+          "https://supertaste.tvbs.com.tw/infocard/27274",
+          "https://appletrees.tw/blog/post/changhuastew",
+          "https://nanai.tw/changhua-carrotcake/"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "debug/temple-truck-current-place.html",
+          "phone_controls": [
+            "Phone: 0931 633 820 "
+          ]
+        }
+      },
+      "candidate": {
+        "name": "永樂夜市關帝廟無名蘿蔔糕、燉湯",
+        "address": "\nNo. 469, Minzu Rd, Minquan Village, Changhua City, Changhua County, 500",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "rejected_non_food_candidate": {
+        "name": "Changhua Guandi Temple",
+        "address": "\nNo. 467, Minzu Rd, Minquan Village, Changhua City, Changhua County, 500",
+        "category": "宗教場所",
+        "subtitle": "彰邑關帝廟",
+        "located_in": ""
+      },
+      "observed_strength": "strong",
+      "observed_outcome": "Evidenced food-truck alias/address; temple remains rejected by normal matcher."
+    },
+    {
+      "source_row": {
+        "Name": "東麥局",
+        "Description": "總得碗數: 1 得獎菜色: 烤玉米 地區: 宜蘭 菜系: 台式 推薦評審: 江振誠 地址: 262宜蘭縣礁溪鄉德陽路43號 營業時間: 16:00~23:00 電話: 0978 177 852",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 烤玉米<br>地區: 宜蘭<br>菜系: 台式<br>推薦評審: 江振誠<br>地址: 262宜蘭縣礁溪鄉德陽路43號<br>營業時間: 16:00~23:00<br>電話: 0978 177 852",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "烤玉米",
+          "地區": "宜蘭",
+          "菜系": "台式",
+          "推薦評審": "江振誠",
+          "地址": "262宜蘭縣礁溪鄉德陽路43號",
+          "營業時間": "16:00~23:00",
+          "電話": "0978 177 852"
+        },
+        "Address": "262宜蘭縣礁溪鄉德陽路43號",
+        "City": "宜蘭"
+      },
+      "verified_evidence": {
+        "original_name": "東麥局",
+        "original_address": "262宜蘭縣礁溪鄉德陽路43號",
+        "match_address": "262宜蘭縣礁溪鄉礁溪路五段148號金格飯店旁邊",
+        "reason": "官方地圖及礁溪鄉公所旅遊網列德陽路43號、電話0978-177852；目前Google礁溪東麥局列礁溪路五段148號金格飯店旁邊，電話亦為0978-177852，據同店名、礁溪分店及相同電話對應。保留原地址差異，未推定遷址原因。",
+        "evidence_urls": [
+          "https://jiaoxi-tourism.tw/index.php/zh/news/item/323-shop-e-34",
+          "https://500times.udn.com/wtimes/story/123497/9547367"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "debug/dong-mai-current-place.html",
+          "phones": [
+            "Phone: 0978 177 852 "
+          ]
+        }
+      },
+      "candidate": {
+        "name": "礁溪美食東麥局燒番麥 烤玉米",
+        "address": "\n262, Yilan County, Jiaoxi Township, Deyang Village, Section 5, Jiaoxi Rd, 148號金格飯店旁邊",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "strong",
+      "observed_outcome": "Same distinctive business name, Jiaoxi branch and official tourism phone; source address discrepancy retained."
+    },
+    {
+      "source_row": {
+        "Name": "福德小館",
+        "Description": "總得碗數: 1 得獎菜色: 炒佛手貝 地區: 馬祖 菜系: 台式 推薦評審: 番紅花 地址: 209連江縣南竿鄉介壽村107-3號 營業時間: 11:00–14:00 17:00–23:00 電話: 0937 043 255",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 炒佛手貝<br>地區: 馬祖<br>菜系: 台式<br>推薦評審: 番紅花<br>地址: 209連江縣南竿鄉介壽村107-3號<br>營業時間: 11:00–14:00<br>17:00–23:00<br>電話: 0937 043 255",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "炒佛手貝",
+          "地區": "馬祖",
+          "菜系": "台式",
+          "推薦評審": "番紅花",
+          "地址": "209連江縣南竿鄉介壽村107-3號",
+          "營業時間": "11:00–14:00",
+          "17": "00–23:00",
+          "電話": "0937 043 255"
+        },
+        "Address": "209連江縣南竿鄉介壽村107-3號",
+        "City": "馬祖"
+      },
+      "verified_evidence": {
+        "original_name": "福德小館",
+        "original_address": "209連江縣南竿鄉介壽村107-3號",
+        "match_address": "209連江縣南竿鄉介壽村207之3號",
+        "reason": "官方地圖、交通部觀光署旅遊資料及店家2026年10月公告皆列介壽村107之3號、0937-043-255。目前Google同名福德小館列207之3號，電話亦為0937-043-255，據同店名、南竿介壽村及相同電話對應實體店家。保留官方107之3號作為得獎原址，揭露Google207之3號差異，未推定遷址或誤植原因。",
+        "evidence_urls": [
+          "https://www.matsu.idv.tw/topicdetail.php?f=152&t=344574",
+          "https://www.taiwan.net.tw/att/travelcenter/9922.pdf",
+          "https://500times.udn.com/wtimes/story/123497/9515273"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "debug/fude-current-place.html",
+          "phones": [
+            "Phone: 0937 043 255 "
+          ]
+        }
+      },
+      "candidate": {
+        "name": "福德小館",
+        "address": "\n209, Lienchiang County, Nangan Township, Jieshou Village, 207之3號號",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Same business name and official/business-published phone; contradictory Google street number disclosed."
+    },
+    {
+      "source_row": {
+        "Name": "廟口肉圓",
+        "Description": "總得碗數: 1 得獎菜色: 肉圓+豆腐湯 地區: 苗栗 菜系: 台式 推薦評審: 湯昇榮 地址: 356苗栗後龍鎮三民路120號 營業時間: 09:00-12:00 電話:",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 肉圓+豆腐湯<br>地區: 苗栗<br>菜系: 台式<br>推薦評審: 湯昇榮<br>地址: 356苗栗後龍鎮三民路120號<br>營業時間: 09:00-12:00<br>電話:",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "肉圓+豆腐湯",
+          "地區": "苗栗",
+          "菜系": "台式",
+          "推薦評審": "湯昇榮",
+          "地址": "356苗栗後龍鎮三民路120號",
+          "營業時間": "09:00-12:00",
+          "管理代碼": "500-awards/bowls/94d3de597e7f6c98df81cec3afe704d58b794e579bba1acf0aeb9073b92ef793"
+        },
+        "Address": "356苗栗後龍鎮三民路120號",
+        "City": "苗栗",
+        "AwardSourceKey": "94d3de597e7f6c98df81cec3afe704d58b794e579bba1acf0aeb9073b92ef793"
+      },
+      "verified_evidence": {
+        "original_name": "廟口肉圓",
+        "original_address": "356苗栗後龍鎮三民路120號",
+        "match_address": "356苗栗縣後龍鎮中龍街185號",
+        "reason": "官方地圖以三民路120號慈雲宮為參考地址。具名實訪明確說明120號為寺廟導航地址，攤商廟口肉圓位於慈雲宮前、金豐玉漿旁；另一具名實訪記載同攤中龍街185號，與Google同名攤商地址一致。對應肉圓攤商，保留原寺廟參考地址，未推定遷址。",
+        "evidence_urls": [
+          "https://vivawei.tw/houlong-travel/",
+          "https://huablog.tw/meatballs/",
+          "https://haohui2017.com/lifestyle/miaoli-houlongfood/"
+        ],
+        "observation_provenance": "Exact previously verified real candidate and physical place URL retained in memberships.json; no invented or forced candidate."
+      },
+      "candidate": {
+        "name": "廟口肉圓",
+        "address": "\nNo. 185號, Zhonglong St, Zhonglong Village, Houlong Township, Miaoli County, 356",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "strong",
+      "observed_outcome": "Official landmark/market address and published current business location reconciled; no threshold or veto change."
+    },
+    {
+      "source_row": {
+        "Name": "炸粿生 三代老店",
+        "Description": "總得碗數: 1 得獎菜色: 蚵嗲 豬血湯 地區: 台中 菜系: 台式 推薦評審: 劉克襄 地址: 421台中市后里區四村路121號 營業時間: 06:30~13:30 電話:",
+        "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 蚵嗲 豬血湯<br>地區: 台中<br>菜系: 台式<br>推薦評審: 劉克襄<br>地址: 421台中市后里區四村路121號<br>營業時間: 06:30~13:30<br>電話:",
+        "DescriptionFields": {
+          "總得碗數": "1",
+          "得獎菜色": "蚵嗲 豬血湯",
+          "地區": "台中",
+          "菜系": "台式",
+          "推薦評審": "劉克襄",
+          "地址": "421台中市后里區四村路121號",
+          "營業時間": "06:30~13:30",
+          "管理代碼": "500-awards/bowls/2bda2b7a410a090b20f33e00130e9a747f3848dd16bf5bc5085b4b03603974cb"
+        },
+        "Address": "421台中市后里區四村路121號",
+        "City": "台中",
+        "AwardSourceKey": "2bda2b7a410a090b20f33e00130e9a747f3848dd16bf5bc5085b4b03603974cb"
+      },
+      "verified_evidence": {
+        "original_name": "炸粿生 三代老店",
+        "original_address": "421台中市后里區四村路121號",
+        "match_address": "421臺中市后里區大興路36號斜對面",
+        "reason": "官方地圖沿用后里第一市場四村路121號。臺中市政府市場資料記載炸粿生位於該市場第A07攤；具名實訪將同一傳承三代炸粿生定位於市場旁大興路巷弄、36號，與Google后里炸粿生地址相符。保留官方市場地址及現行街邊定位差異，未推定遷址原因。",
+        "evidence_urls": [
+          "https://www.taichung.gov.tw/media/271033/71261030471.pdf",
+          "https://baofamily.tw/houli-fried-cake/",
+          "https://xaioyue.com/houli-fried-rice-cake/"
+        ],
+        "observation_provenance": "Exact previously verified real candidate and physical place URL retained in memberships.json; no invented or forced candidate."
+      },
+      "candidate": {
+        "name": "后里炸粿生",
+        "address": "\n斜對面, No. 36號, Daxing Rd, Dunbei Village, Houli District, Taichung City, 421",
+        "category": "熟食店",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Official landmark/market address and published current business location reconciled; no threshold or veto change."
+    },
+    {
+      "source_row": {
+        "Name": "宇方圓",
+        "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 三弄砂鍋濃湯干貝燉富貴雞 評審: 曾國城 地址: 110 臺北市信義區松高路16號B2 電話: 02 2729 8897",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 三弄砂鍋濃湯干貝燉富貴雞<br>評審: 曾國城<br>地址: 110 臺北市信義區松高路16號B2<br>電話: 02 2729 8897",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "台北",
+          "得獎菜色": "三弄砂鍋濃湯干貝燉富貴雞",
+          "評審": "曾國城",
+          "地址": "110 臺北市信義區松高路16號B2",
+          "電話": "02 2729 8897"
+        },
+        "Address": "110 臺北市信義區松高路16號B2",
+        "City": ""
+      },
+      "verified_evidence": {
+        "original_name": "宇方圓",
+        "original_address": "110 臺北市信義區松高路16號B2",
+        "match_address": "110臺北市信義區松高路18號B2",
+        "reason": "官方地圖與微風松高餐廳報導列松高路16號B2；微風官方品牌目錄確認宇方圓位於微風松高B2。目前Google同名餐廳列18號B2、02-2729-8897，與官方得獎地圖電話完全相同，據店名、館別樓層及電話對應。保留官方16號B2及Google18號B2差異，未推定遷址原因。",
+        "evidence_urls": [
+          "https://www.breeze.com.tw/industries/8",
+          "https://money.udn.com/money/story/5637/9690352",
+          "https://500times.udn.com/wtimes/story/122412/9754110"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "dishes/debug/500-2026-i-500-maps-debug-search-no-result-michelin-1794137726777.html",
+          "phones": [
+            "Phone: 02 2729 8897 "
+          ]
+        }
+      },
+      "candidate": {
+        "name": "宇方圓",
+        "address": "\nB2, No. 18號, Songgao Rd, Xicun Village, Xinyi District, Taipei City, 110",
+        "category": "餐廳",
+        "subtitle": "",
+        "located_in": "Floor 1 · Breeze SongGao"
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Exact official/source phone and landlord brand/floor match; street-number discrepancy explicitly disclosed."
+    },
+    {
+      "source_row": {
+        "Name": "秀山大飯店",
+        "Description": "總得盤數: 1盤 區域: 新北 得獎菜色: 乾煎鱸鰻 評審: 謝金河 地址: 233新北市烏來區烏來街83號 電話: 02 2661 6789",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 新北<br>得獎菜色: 乾煎鱸鰻<br>評審: 謝金河<br>地址: 233新北市烏來區烏來街83號<br>電話: 02 2661 6789",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "新北",
+          "得獎菜色": "乾煎鱸鰻",
+          "評審": "謝金河",
+          "地址": "233新北市烏來區烏來街83號",
+          "電話": "02 2661 6789"
+        },
+        "Address": "233新北市烏來區烏來街83號",
+        "City": ""
+      },
+      "verified_evidence": {
+        "original_name": "秀山大飯店",
+        "original_address": "233新北市烏來區烏來街83號",
+        "aliases": [
+          "Xiushan Hot Spring",
+          "秀山溫泉"
+        ],
+        "required_names": [
+          "Xiushan",
+          "秀山"
+        ],
+        "reason": "得獎店為烏來街83號秀山大飯店內的同店餐廳。評審謝金河官方訪談明指該店乾煎鱸鰻；新北市觀光網站由業者提供的介紹明載中式餐廳、野溪鱸鰻及02-2661-6789。Google同址同電話店名為Xiushan Hot Spring／秀山溫泉，主體亦提供溫泉旅宿，據此記錄同店名稱對應；獎項屬該店餐飲，未將旅宿服務當作得獎菜色。",
+        "evidence_urls": [
+          "https://500times.udn.com/wtimes/story/122412/9708756",
+          "https://newtaipei.travel/zh-tw/accommodation/detail/302595",
+          "https://media.taiwan.net.tw/zh-tw/portal/travel/details/hotel_a15010000h_018722"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "debug/xiushan-current-place.html",
+          "phones": [
+            "Phone: 02 2661 6789 "
+          ],
+          "google_property_surface": "Hotel/Hot Spring property with the officially awarded same-business restaurant. Candidate metadata is retained exactly as returned by the normal driver."
+        }
+      },
+      "candidate": {
+        "name": "Xiushan Hot Spring",
+        "address": "\nNo. 83號, Wulai St, Wulai Village, Wulai District, New Taipei City, 233",
+        "category": "",
+        "subtitle": "秀山溫泉",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "rejected_non_food_candidate": {
+        "name": "Wu Lai Hotel",
+        "address": "\nNo. 8號, Wulai St, Wulai Village, Wulai District, New Taipei City, 233",
+        "category": "酒店",
+        "subtitle": "烏來大飯店",
+        "located_in": ""
+      },
+      "rejected_containing_building_candidate": {
+        "name": "Wu Lai Hotel",
+        "address": "\nNo. 8號, Wulai St, Wulai Village, Wulai District, New Taipei City, 233",
+        "category": "酒店",
+        "subtitle": "烏來大飯店",
+        "located_in": ""
+      },
+      "observed_outcome": "Official award venue itself combines the restaurant and hot-spring property; exact source address and phone prove business identity. Normal matcher and hard vetoes unchanged."
+    },
+    {
+      "source_row": {
+        "Name": "彼刻義式餐酒館",
+        "Description": "總得盤數: 1盤 區域: 新竹 得獎菜色: 海盜風長細麵 評審: 馬世芳 地址: 30 2新竹縣竹北市成功二街102號 電話: 03 668 8313",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 新竹<br>得獎菜色: 海盜風長細麵<br>評審: 馬世芳<br>地址: 30 2新竹縣竹北市成功二街102號<br>電話: 03 668 8313",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "新竹",
+          "得獎菜色": "海盜風長細麵",
+          "評審": "馬世芳",
+          "地址": "30 2新竹縣竹北市成功二街102號",
+          "電話": "03 668 8313"
+        },
+        "Address": "30 2新竹縣竹北市成功二街102號",
+        "City": ""
+      },
+      "verified_evidence": {
+        "original_name": "彼刻義式餐酒館",
+        "original_address": "30 2新竹縣竹北市成功二街102號",
+        "aliases": [
+          "Piccola Enoteca",
+          "Piccola Enoteca 彼刻義式餐酒館"
+        ],
+        "required_names": [
+          "Piccola Enoteca",
+          "彼刻"
+        ],
+        "reason": "店家管理的OpenTable訂位頁並列Piccola Enoteca與彼刻義式餐酒館，地址為竹北成功二街102號；目前Google同址Piccola Enoteca電話03-668-8313與官方得獎地圖相同，據此確認中英文同店名稱。保留原官方地址文字。",
+        "evidence_urls": [
+          "https://www.opentable.com.tw/restaurant/profile/188096",
+          "https://media.taiwan.net.tw/en-us/portal/travel/details/restaurant_376440000a_000021"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "dishes/debug/500-2026-i-500-maps-debug-search-no-result-michelin-1794138493974.html",
+          "phones": [
+            "Phone: 03 668 8313 "
+          ]
+        }
+      },
+      "candidate": {
+        "name": "Piccola Enoteca",
+        "address": "No. 102號, Chenggong 2nd St, Zhubei City, Hsinchu County, 302",
+        "category": "意大利餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Restaurant-managed bilingual booking name and exact source address/phone; original address text unchanged."
+    },
+    {
+      "source_row": {
+        "Name": "采源",
+        "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 冷盤白切豬肉 評審: 陳薇捷 地址: 106臺北市大安區四維路66巷2號 電話: 02 2708 0082",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 冷盤白切豬肉<br>評審: 陳薇捷<br>地址: 106臺北市大安區四維路66巷2號<br>電話: 02 2708 0082",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "台北",
+          "得獎菜色": "冷盤白切豬肉",
+          "評審": "陳薇捷",
+          "地址": "106臺北市大安區四維路66巷2號",
+          "電話": "02 2708 0082"
+        },
+        "Address": "106臺北市大安區四維路66巷2號",
+        "City": ""
+      },
+      "verified_evidence": {
+        "original_name": "采源",
+        "original_address": "106臺北市大安區四維路66巷2號",
+        "aliases": [
+          "Cheawon",
+          "采源 Cheawon"
+        ],
+        "required_names": [
+          "Cheawon",
+          "采源"
+        ],
+        "reason": "官方地圖采源與Google Cheawon皆為大安區四維路66巷2號、02-2708-0082；店家管理的OpenTable頁記載采源同址韓國料理，Google官方網站連結為cheawon_taipei。據店名對應、相同地址與電話確認為同一韓式餐廳，保留官方中文得獎名稱。",
+        "evidence_urls": [
+          "https://www.opentable.com.tw/restaurant/profile/312347",
+          "https://www.instagram.com/cheawon_taipei/"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "dishes/debug/500-2026-i-500-maps-debug-search-no-result-michelin-1794138800847.html",
+          "phones": [
+            "Phone: 02 2708 0082 "
+          ],
+          "authority": "http://www.instagram.com/cheawon_taipei"
+        }
+      },
+      "candidate": {
+        "name": "Cheawon",
+        "address": "No. 2號, Lane 66, Siwei Rd, De'an Village, Da’an District, Taipei City, 106",
+        "category": "韓國餐廳",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Same exact official address/phone and restaurant-managed booking/profile identity; original Chinese award name retained."
+    },
+    {
+      "source_row": {
+        "Name": "菩薩寺 維摩舍",
+        "Description": "總得盤數: 1盤 區域: 台中 得獎菜色: 素齋一缽 評審: 何奕佳 地址: 412 臺中市大里區永隆路147號 電話: 04 2407 9920",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台中<br>得獎菜色: 素齋一缽<br>評審: 何奕佳<br>地址: 412 臺中市大里區永隆路147號<br>電話: 04 2407 9920",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "台中",
+          "得獎菜色": "素齋一缽",
+          "評審": "何奕佳",
+          "地址": "412 臺中市大里區永隆路147號",
+          "電話": "04 2407 9920"
+        },
+        "Address": "412 臺中市大里區永隆路147號",
+        "City": ""
+      },
+      "verified_evidence": {
+        "original_name": "菩薩寺 維摩舍",
+        "original_address": "412 臺中市大里區永隆路147號",
+        "match_address": "412臺中市大里區永隆路153號",
+        "aliases": [
+          "Vima House 維摩舍",
+          "維摩舍"
+        ],
+        "required_names": [
+          "Vima House",
+          "維摩舍"
+        ],
+        "reason": "官方得獎地圖使用菩薩寺147號及寺方電話；評審何奕佳原文獎項為維摩舍素齋一缽。維摩舍官方LINE與文策院資料列永隆路153號，交通部素食餐廳資料亦列Vima House及153號、04-2407-9960；具名實訪明載隔壁維摩舍二樓提供預約蔬食缽飯。對應153號維摩舍餐飲空間，Google雖分類為藝術中心，未將147號寺廟當作餐廳。原地址與寺方聯絡電話保留供追溯。",
+        "evidence_urls": [
+          "https://500times.udn.com/wtimes/story/122412/9698891",
+          "https://page.line.me/nvj2820v",
+          "https://ip.taicca.tw/member/company.do?company_id=846",
+          "https://valerieblog.tw/buddha/",
+          "https://taiwan.net.vn/assets/upload/pdf/2018_Selected_Vegetarian_Restaurants_in_Taiwan_%28CH%29.pdf"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "dishes/debug/500-2026-i-500-maps-debug-search-no-result-michelin-1794139484206.html",
+          "phones": [
+            "Phone: 04 2407 9960 "
+          ],
+          "official_vima_phone": "04-2407-9960",
+          "official_map_contact": "04-2407-9920 (temple contact; not asserted identical)"
+        }
+      },
+      "candidate": {
+        "name": "Vima House 維摩舍",
+        "address": "\nNo. 153號, Yonglong Rd, Yonglong Village, Dali District, Taichung City, 412",
+        "category": "藝術中心",
+        "subtitle": "",
+        "located_in": ""
+      },
+      "observed_strength": "medium",
+      "rejected_non_food_candidate": {
+        "name": "International Bodhisattva Sangha",
+        "address": "\nNo. 147號, Yonglong Rd, Yonglong Village, Dali District, Taichung City, 412",
+        "category": "寺廟",
+        "subtitle": "菩薩寺",
+        "located_in": ""
+      },
+      "rejected_containing_building_candidate": {
+        "name": "International Bodhisattva Sangha",
+        "address": "\nNo. 147號, Yonglong Rd, Yonglong Village, Dali District, Taichung City, 412",
+        "category": "寺廟",
+        "subtitle": "菩薩寺",
+        "located_in": ""
+      },
+      "observed_outcome": "Award judge, official venue address and government vegetarian venue catalogue distinguish the dining venue153 from temple147. Normal temple veto retained."
+    },
+    {
+      "source_row": {
+        "Name": "蔬慕",
+        "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 蒜香腐乳香辣麵 評審: 阿滴 地址: 103 臺北市大同區承德路一段1號3F 電話: 02 2555 6090",
+        "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 蒜香腐乳香辣麵<br>評審: 阿滴<br>地址: 103 臺北市大同區承德路一段1號3F<br>電話: 02 2555 6090",
+        "DescriptionFields": {
+          "總得盤數": "1盤",
+          "區域": "台北",
+          "得獎菜色": "蒜香腐乳香辣麵",
+          "評審": "阿滴",
+          "地址": "103 臺北市大同區承德路一段1號3F",
+          "電話": "02 2555 6090"
+        },
+        "Address": "103 臺北市大同區承德路一段1號3F",
+        "City": ""
+      },
+      "verified_evidence": {
+        "original_name": "蔬慕",
+        "original_address": "103 臺北市大同區承德路一段1號3F",
+        "aliases": [
+          "Vegan Amore",
+          "Vegan Amore 蔬慕"
+        ],
+        "required_names": [
+          "Vegan Amore",
+          "蔬慕"
+        ],
+        "reason": "京站官方餐廳目錄並列Vegan Amore蔬慕，位於承德路一段1號3F；Google同址京站3樓Vegan Amore電話02-2555-6090與官方得獎地圖一致，官網亦連至善菓餐飲Veganamore品牌頁。據此確認同一京站分店的中英文名稱，保留原官方中文名稱與地址。",
+        "evidence_urls": [
+          "https://www.qsquare.com.tw/food-detail.php?lv01_type=3F&lv02_id=A20092400012a85",
+          "https://www.gooddeedstw.com/pages/Veganamore",
+          "https://www.opentable.com.tw/restaurant/profile/184502"
+        ],
+        "public_contact_observation": {
+          "source_snapshot": "dishes/debug/500-2026-i-500-maps-debug-search-no-result-michelin-1794139965764.html",
+          "phones": [
+            "Phone: 02 2555 6090 "
+          ],
+          "authority": "https://www.gooddeedstw.com/pages/Veganamore"
+        }
+      },
+      "candidate": {
+        "name": "Vegan Amore",
+        "address": "103, Taipei City, Datong District, Section 1, Chengde Rd, 1號3F",
+        "category": "純素餐廳",
+        "subtitle": "",
+        "located_in": "Floor 3 · Q Square Mall"
+      },
+      "observed_strength": "medium",
+      "observed_outcome": "Landlord and corporate bilingual identity; exact Q Square branch address, floor and source phone."
+    }
+  ]
+}

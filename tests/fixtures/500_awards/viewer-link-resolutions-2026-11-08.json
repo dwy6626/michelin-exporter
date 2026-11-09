@@ -1,0 +1,16 @@
+[
+  {
+    "award": "bowls",
+    "status": 200,
+    "resolved_url": "https://www.google.com/maps/@/data=!3m1!4b1!4m3!11m2!2seruEOk2HGh_yDUqPAY59Bw!3e3",
+    "recorded_list_id": "eruEOk2HGh_yDUqPAY59Bw",
+    "viewer_url": "https://maps.app.goo.gl/jdrbUVkqZbDT6KxG8"
+  },
+  {
+    "award": "dishes",
+    "status": 200,
+    "resolved_url": "https://www.google.com/maps/@/data=!3m1!4b1!4m3!11m2!2sCv5fjI94xWBB-s3hVPWo-Q!3e3",
+    "recorded_list_id": "Cv5fjI94xWBB-s3hVPWo-Q",
+    "viewer_url": "https://maps.app.goo.gl/Cz8s81rYdYhxhXEC6"
+  }
+]

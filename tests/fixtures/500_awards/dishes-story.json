@@ -1,0 +1,1311 @@
+{
+  "status": true,
+  "language": {
+    "is_show": true,
+    "is_english": false,
+    "zh_path": "https://udn.com/500dishesaward/", 
+    "en_path": "https://udn.com/500dishesaward/en"
+  },
+  "event_id": "500sweet",
+  "event_url": "https://udn.com/500dishesaward/",
+  "logo": "img/2026logo.png",
+  "logo_menu": "img/2026logo.png",
+  "mobile_menu_fontcolor": "#000",
+  "mobile_menu_color": "#ffffff",
+  "footer_text": "聯合線上公司 著作權所有 © udn.com All Rights Reserved.",
+  "social": {
+    "status": true,
+    "facebook": "https://www.facebook.com/500times/",
+    "youtube": "https://www.youtube.com/@Times-kw3jw",
+    "line": "https://udn.com/500dishesaward/"
+  },
+  "button_options": {
+    "sort": "nook",
+    "共有五種樣式(包含移除請留白)": ["nook", "bar", "block", "underline", ""],
+    "font_color": "#fff",
+    "background_color": "#FF6347"
+  },
+  "layout": [
+     {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": false,
+        "name": "首圖"
+      },
+      "title": {
+        "text": ""
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/202601.png",
+            "portrait": "img/202602.png"
+          },
+          "tab":  {
+            "text": "",
+            "font_color": "#fff",
+            "background_color": "#fff",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/wtimes/cate/122412",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+        {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "關於500盤"
+      },
+      "title": {
+        "text": "關於500盤"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/2026origin01.png",
+            "portrait": "img/2026origin02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/wtimes/cate/122412",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+             {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "亞洲100盤"
+      },
+      "title": {
+        "text": "亞洲100盤介紹"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/ASIA100_01.png",
+            "portrait": "img/ASIA100_02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/wtimes/story/122412/9744671",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+            {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "得盤名單"
+      },
+      "title": {
+        "text": "500盤2026得盤名單"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape":"img/2026winner01.png",
+            "portrait": "img/2026winner02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/wtimes/story/122412/9754110",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+            {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "亞洲名單"
+      },
+      "title": {
+        "text": "2026亞洲100盤得盤名單"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape":"img/asia_winner01.png",
+            "portrait": "img/asia_winner02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/wtimes/story/122412/9760492",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+    {
+      "status": true,
+      "template": "youtube_slide",
+      "menu": {
+        "status": true,
+        "name": "名廚說菜"
+      },
+      "title": {
+        "text": "500盤2026晚宴：名廚說菜"
+      },
+      "youtube_id": [
+        "cg9Uzuw1wB0",
+        "w1hXSJUoN0k",
+        "HF0sAo3D8Yk",
+        "FSPBkFLGo0s",
+        "MrXG6v_shJc",
+        "M9orBbVFZWM",
+        "tvCfhkzjl0I"
+      ]
+    },
+    {
+      "status": true,
+      "template": "dolly",
+      "scale": "480/320",
+      "button_status":false,
+      "menu": {
+        "status": true,
+        "name": "新聞"
+      },
+      "title": {
+        "en": "dolly",
+        "text": "熱門新聞"
+      },
+      "list": [
+          {
+          "imgsrc": "img3/0923news02.jpg",
+          "date": "2026.09",
+          "headline": [
+            "7大名廚14手聯彈！",
+            "第六屆500盤晚宴盡享頂級美味"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9774198",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img3/0923news01.jpg",
+          "date": "2026.09",
+          "headline": [
+            "第6屆500盤星光大道",
+            "跨界名流歡慶璀璨美食之夜"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9774321",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img3/0921news01.jpg",
+          "date": "2026.09",
+          "headline": [
+            "關鍵數字314：共314家餐廳得盤",
+            "更趨於成熟與完整的推薦名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9765571",
+          "target": "_blank"
+        },
+                 {
+          "imgsrc": "img3/0921news02.jpg",
+          "date": "2026.08",
+          "headline": [
+            "關鍵數字13",
+            "連續4屆最多盤｜晶華軒"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9765567",
+          "target": "_blank"
+        },
+                {
+          "imgsrc": "img3/0921news03.png",
+          "date": "2026.09",
+          "headline": [
+            "關鍵數字8：知名李",
+            "以7道菜獲得8位評審推薦"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9765569",
+          "target": "_blank"
+        },
+                {
+          "imgsrc": "img3/0921news03.jpg",
+          "date": "2026.08",
+          "headline": [
+            "關鍵數字6：蟬聯6屆都得盤",
+            "六品小館豆乾肉絲"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9765561",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img3/0921news04.png",
+          "date": "2026.08",
+          "headline": [
+            "500盤2026特別獎",
+            "完整得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9766517",
+          "target": "_blank"
+        }
+      ]
+    }, 
+    {
+      "status": true,
+      "template": "youtube_full",
+      "menu": {
+        "status": true,
+        "name": "頒獎典禮"
+      },
+      "scale": "16/9",
+      "youtube_id": "8-4NqzWj0Q0",
+      "controls": true,
+      "autoplay": true
+    },
+     {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "評審陣容"
+      },
+      "title": {
+        "text": "第六屆500盤評審陣容"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/B2026_judge_01.png",
+            "portrait": "img/B2026_judge_02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/search/tagging/8787/%E7%AC%AC%E5%85%AD%E5%B1%86500%E7%9B%A4%E8%A9%95%E5%AF%A9",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+      {
+      "status": true,
+      "template": "same",
+      "scale": "600/400",
+      "button_status": true,
+      "menu": {
+        "status": true,
+        "name": "專訪"
+      },
+      "title": {
+        "en": "judge",
+        "text": "50位評審的美食故事"
+      },
+      "list": [
+        {
+          "imgsrc": "image/J30.png",
+          "date": "2026.09",
+          "headline": [
+            " Yilan Yeh 葉怡蘭",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715442",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J49.png",
+          "date": "2026.09",
+          "headline": [
+            "Liz Kao 高琹雯",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9730036",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J46.png",
+          "date": "2026.09",
+          "headline": [
+            "Liang-I Han 韓良憶",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708748",
+          "target": "_blank"
+        }, 
+       {
+          "imgsrc": "image/J40.png",
+          "date": "2026.09",
+          "headline": [
+            "Max Wo 鄔海明",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715455",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J41.png",
+          "date": "2026.09",
+          "headline": [
+            "Joe chen陳喬恩",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698829",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J33.png",
+          "date": "2026.09",
+          "headline": [
+            "Vivian Chiang 蔣雅淇",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9744692",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "image/J31.png",
+          "date": "2026.09",
+          "headline": [
+            "Jenny Yeh 葉曉甄",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708716",
+          "target": "_blank"
+        },
+                        {
+          "imgsrc": "image/J5.png",
+          "date": "2026.09",
+          "headline": [
+            "Yi Chia Ho 何奕佳",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698891",
+          "target": "_blank"
+        }, 
+                {
+          "imgsrc": "image/J14.png",
+          "date": "2026.09",
+          "headline": [
+            "Karen Hu 胡小禎",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9718398",
+          "target": "_blank"
+        },          
+         {
+          "imgsrc": "image/J47.png",
+          "date": "2026.09",
+          "headline": [
+            "Ma Shih Fang 馬世芳",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9718341",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "image/J9.png",
+          "date": "2026.09",
+          "headline": [
+            "林靜芸&林之昀",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698864",
+          "target": "_blank"
+        },                                  
+            {
+          "imgsrc": "image/J25.png",
+          "date": "2026.09",
+          "headline": [
+            "Steven Pan 潘思亮",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9009039",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J35.png",
+          "date": "2026.09",
+          "headline": [
+            "Ryan Hsieh 謝哲青",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708735",
+          "target": "_blank"
+        }, 
+               {
+          "imgsrc": "image/J32.png",
+          "date": "2026.09",
+          "headline": [
+            "Ming Tsai 蔡明倫",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698864",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J10.png",
+          "date": "2026.09",
+          "headline": [
+            "Meng-Kung Hsieh 股癌謝孟恭",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698875",
+          "target": "_blank"
+        },
+               {
+          "imgsrc": "image/J19.png",
+          "date": "2026.09",
+          "headline": [
+            "Jamie Lin 林之晨",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9719486",
+          "target": "_blank"
+        },  
+            {
+          "imgsrc": "image/J8.png",
+          "date": "2026.09",
+          "headline": [
+            "Frank Liu 劉宗原",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698946",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J36.png",
+          "date": "2026.09",
+          "headline": [
+            "Hsieh Chin Ho 謝金河",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708756",
+          "target": "_blank"
+        }, 
+     {
+          "imgsrc": "image/J13.png",
+          "date": "2026.09",
+          "headline": [
+            "Charles Hsu 徐承義",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9735002",
+          "target": "_blank"
+        }, 
+                              {
+          "imgsrc": "image/J22.png",
+          "date": "2026.09",
+          "headline": [
+            "André Chiang 江振誠",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9718338",
+          "target": "_blank"
+        },    
+        {
+          "imgsrc": "image/J2.png",
+          "date": "2026.09",
+          "headline": [
+            "al.dente.life Henry",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9718388",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J50.png",
+          "date": "2026.09",
+          "headline": [
+            "方芳芳&Daniel Cheng",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715878",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J3.png",
+          "date": "2026.09",
+          "headline": [
+            "Ray Chen 陳銳",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715404",
+          "target": "_blank"
+        },
+
+        {
+          "imgsrc": "image/J34.png",
+          "date": "2026.09",
+          "headline": [
+            "Jam Hsiao, Summer 蕭敬騰、林有慧",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698930",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J29.png",
+          "date": "2026.09",
+          "headline": [
+            "Feng-I Fiona Roan 阮鳳儀",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9719501",
+          "target": "_blank"
+        },   
+      {
+          "imgsrc": "image/J4.png",
+          "date": "2026.09",
+          "headline": [
+            "Yo Yang 楊祐寧",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698941",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J24.png",
+          "date": "2026.09",
+          "headline": [
+            "Yuchun Hung 洪愛珠",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9718480",
+          "target": "_blank"
+        },                                                                            
+        {
+          "imgsrc": "image/J21.png",
+          "date": "2026.09",
+          "headline": [
+            "HSIEH Chung-Tao 謝忠道",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9739259",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "image/J1.png",
+          "date": "2026.09",
+          "headline": [
+            "Vicky Chen 陳薇捷",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715778",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J26.png",
+          "date": "2026.09",
+          "headline": [
+            "Chia-Tsung Hung 洪嘉聰",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708753",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J11.png",
+          "date": "2026.09",
+          "headline": [
+            "Ricky Hsiao 蕭煌奇",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708736",
+          "target": "_blank"
+        },
+               {
+          "imgsrc": "image/J37.png",
+          "date": "2026.09",
+          "headline": [
+            "Janet Chia 賈永婕",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9718428",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J39.png",
+          "date": "2026.09",
+          "headline": [
+            "Isaac Chen 陳鎮川",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698851",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J7.png",
+          "date": "2026.09",
+          "headline": [
+            "I.C. Liu 劉奕成",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/8956777",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J23.png",
+          "date": "2026.09",
+          "headline": [
+            "Idan Chiang 江欣宜",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698952",
+          "target": "_blank"
+        },
+              {
+          "imgsrc": "image/J27.png",
+          "date": "2026.09",
+          "headline": [
+            "Maggie Tsai 翁美慧",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9730221",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "image/J6.png",
+          "date": "2026.09",
+          "headline": [
+            "Huei Chin Lin 林慧晶",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9724881",
+          "target": "_blank"
+        },      
+      {
+          "imgsrc": "image/J44.png",
+          "date": "2026.09",
+          "headline": [
+            "Charles C.Y.Chen 陳致遠",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9719433",
+          "target": "_blank"
+        }, 
+   {
+          "imgsrc": "image/J48.png",
+          "date": "2026.09",
+          "headline": [
+            "Yaming Feng 馮亞敏",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9741933",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "image/J38.png",
+          "date": "2026.09",
+          "headline": [
+            "Sam Tseng 曾國城",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698842",
+          "target": "_blank"
+        },  
+        {
+          "imgsrc": "image/J28.png",
+          "date": "2026.09",
+          "headline": [
+            " Dela 迪拉",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9719423",
+          "target": "_blank"
+        },   
+               {
+          "imgsrc": "image/J43.png",
+          "date": "2026.09",
+          "headline": [
+            "Pierre Chen 陳泰銘",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9679150",
+          "target": "_blank"
+        },  
+         {
+          "imgsrc": "image/J17.png",
+          "date": "2026.09",
+          "headline": [
+            "Hannah Quinlivan 昆凌",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715794",
+          "target": "_blank"
+        },
+              {
+          "imgsrc": "image/J20.png",
+          "date": "2026.09",
+          "headline": [
+            "Chih-Sheng Lin 林智勝",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9708751",
+          "target": "_blank"
+        },      
+        {
+          "imgsrc": "image/J18.png",
+          "date": "2026.09",
+          "headline": [
+            "Patrick Hsu 徐聖忠",
+            "第六屆500盤評審"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698863",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J12.png",
+          "date": "2026.09",
+          "headline": [
+            "Ray Du 阿滴",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715428",
+          "target": "_blank"
+        },
+                {
+          "imgsrc": "image/J16.png",
+          "date": "2026.09",
+          "headline": [
+            "Ricky Liu 劉培森",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9715784",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "image/J42.png",
+          "date": "2026.09",
+          "headline": [
+            "Shiatzy Chen 陳彩霞",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9739520",
+          "target": "_blank"
+        }, 
+              {
+          "imgsrc": "image/J45.png",
+          "date": "2026.09",
+          "headline": [
+            "Chao-Long Chen 陳肇隆",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9758872",
+          "target": "_blank"
+        },       
+        {
+          "imgsrc": "image/J15.png",
+          "date": "2026.09",
+          "headline": [
+            "Hsun Chiang 蔣勳",
+            "第六屆500盤評審"       
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9698856",
+          "target": "_blank"
+        }
+      ]
+    },   
+        {
+      "status": true,
+      "template": "youtube_full",
+      "menu": {
+        "status": true,
+        "name": "晚宴回顧"
+      },
+      "scale": "16/9",
+      "youtube_id": "SZeEIgkPDYk",
+      "controls": true,
+      "autoplay": true
+    },
+     {
+      "status": true,
+      "template": "dolly",
+      "scale": "480/350",
+      "button_status":false,
+      "menu": {
+        "status": true,
+        "name": "500盤整理包"
+      },
+      "title": {
+        "en": "dolly",
+        "text": "500盤整理包"
+      },
+      "list": [
+        {
+          "imgsrc": "img/news_09.jpg",
+          "date": "500盤2025",
+          "headline": [
+            "第五屆500盤",
+            "完整得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/9007797",
+          "target": "_blank"
+        }, 
+           {
+          "imgsrc": "img/news_06.jpg",
+          "date": "500盤2025",
+          "headline": [
+            "第五屆500盤",
+            "Google美食地圖"
+          ],
+          "paragraph": "",
+          "link": "https://reurl.cc/pY2XZQ",
+          "target": "_blank"
+        },  
+                  {
+          "imgsrc": "img/news_10.png",
+          "date": "500盤2025",
+          "headline": [
+            "第五屆500盤",
+            "官方網站"
+          ],
+          "paragraph": "",
+          "link": "https://udn.com/upf/500dishesaward2025/index.html",
+          "target": "_blank"
+        },  
+                {
+          "imgsrc": "img/2024_01.png",
+          "date": "500盤2024",
+          "headline": [
+            "第四屆500盤",
+            "官方網站"
+          ],
+          "paragraph": "",
+          "link": "https://udn.com/upf/2024_500dishesaward/index.html",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "img/2024_02.png",
+          "date": "500盤2024",
+          "headline": [
+            "第四屆500盤",
+            "得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/8238716",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/2023_01.png",
+          "date": "500盤2023",
+          "headline": [
+            "第三屆500盤",
+            "官方網站"
+          ],
+          "paragraph": "",
+          "link": "https://udn.com/upf/2023_500dishesaward/index.html",
+          "target": "_blank"
+        }, 
+        {
+          "imgsrc": "img/2023_02.png",
+          "date": "500盤2023",
+          "headline": [
+            "第三屆500盤",
+            "得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/7447811",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/2022_01.png",
+          "date": "500盤2022",
+          "headline": [
+            "第二屆500盤",
+            "得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/6645847",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/2021_01.png",
+          "date": "500盤2021",
+          "headline": [
+            "第一屆500盤",
+            "得獎名單"
+          ],
+          "paragraph": "",
+          "link": "https://500times.udn.com/wtimes/story/122412/5873247",
+          "target": "_blank"
+        },
+       {
+          "imgsrc": "img/2023_03.png",
+          "date": "500盤2023",
+          "headline": [
+            "第三屆500盤",
+            "Google美食地圖"
+          ],
+          "paragraph": "",
+          "link": "https://bit.ly/3RyVqu1",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": "img/2024_03.png",
+          "date": "500盤2024",
+          "headline": [
+            "第四屆500盤",
+            "Google美食地圖"
+          ],
+          "paragraph": "",
+          "link": "https://reurl.cc/lyX5L9",
+          "target": "_blank"
+        }
+      ]
+    }, 
+             {
+      "status": false,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "500趴回顧"
+      },
+      "title": {
+        "text": "500趴回顧"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/news01.jpg",
+            "portrait": "img/news01.jpg"
+          },
+          "tab":  {
+            "text": "",
+            "font_color": "#fff",
+            "background_color": "",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": {
+            "landscape": "img/news04.jpg",
+            "portrait": "img/news04.jpg"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "",
+          "target": "_blank"
+        },
+         {
+          "imgsrc": {
+            "landscape": "img/news02.jpg",
+            "portrait": "img/news02.jpg"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "",
+          "target": "_blank"
+        },       
+        {
+          "imgsrc": {
+            "landscape": "img/news03.jpg",
+            "portrait": "img/news03.jpg"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "",
+          "target": "_blank"
+        },
+        {
+          "imgsrc": {
+            "landscape": "img/news05.jpg",
+            "portrait": "img/news05.jpg"
+          },
+          "tab":  {
+            "text": "",
+            "font_color": "#fff",
+            "background_color": "#000",
+            "border": false
+          },
+          "headline": {
+            "text": "",
+            "font_color": "#000000",
+            "background_color": "#ffffff",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+
+            {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": true,
+        "name": "合作夥伴"
+      },
+      "title": {
+        "text": "合作夥伴"
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/2026sponsor01.png",
+            "portrait": "img/2026sponsor02.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "https://500times.udn.com/search/tagging/8787/500%E7%9B%A42026%E5%90%88%E4%BD%9C%E5%A4%A5%E4%BC%B4",
+          "target": "_blank"
+        }
+      ],
+      "warning": {
+        "status": false
+      }
+    },
+        {
+      "status": true,
+      "template": "slide_show",
+      "full_width": true,
+      "auto_height": true,
+      "menu": {
+        "status": false,
+        "name": "合作夥伴"
+      },
+      "title": {
+        "text": ""
+      },
+      "list": [
+        {
+          "imgsrc": {
+            "landscape": "img/warning1.png",
+            "portrait": "img/warning1.png"
+          },
+          "tab": {
+            "text": "",
+            "font_color": "",
+            "background_color": false,
+            "border": ""
+          },
+          "headline": {
+            "text": "",
+            "font_color": "",
+            "background_color": "",
+            "border": false,
+            "vertical_center": false
+          },
+          "link": "",
+          "target": "_blank"
+        }
+          ],
+      "warning": {
+        "status": false,
+        "color": "#fff",
+        "background": "#000",
+        "imgSrc": "img/warning_img.png",
+        "text": "禁止酒駕#未滿十八歲禁止飲酒"
+      }
+    }
+  ]
+}

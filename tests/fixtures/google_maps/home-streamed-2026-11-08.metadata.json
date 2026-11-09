@@ -1,0 +1,7 @@
+{
+  "captured_at": "2026-11-08",
+  "source": "real-page-snapshot",
+  "scenario": "streamed-document-rendered-before-document-load-completes",
+  "sanitized": true,
+  "capture_context": "Live owned CDP tab at Google Maps home, captured after a 30-second DOMContentLoaded timeout with rendered search/account controls"
+}

@@ -1,0 +1,6 @@
+{
+  "source": "real-page-snapshot",
+  "sanitized": true,
+  "excerpt": "Expanded search region and Suggestions grid only. Unrelated lists and account metadata excluded. Escape failed to dismiss the overlay and Close cleared the Saved pane; verified owned-list URL navigation avoids this surface.",
+  "capture_context": "Actual owned 9222 Maps Saved dashboard, 2026-11-08"
+}

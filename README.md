@@ -198,6 +198,17 @@ and `--headed/--headless` do not configure the attached browser. Normal shutdown
 forced shutdown, and interrupts close only the new tab and disconnect Playwright.
 The new tab receives a 1280 × 720 viewport so Maps search remains usable when
 the external browser reports zero window dimensions; this applies only to that tab.
+Its own CDP target also bypasses the Maps service worker during navigation.
+Home navigation waits for the actual search control after the response commits;
+a streamed document can remain in `loading` while the application is usable.
+The bypass ends with the owned tab; browser storage, service workers and other
+tabs are not changed.
+Search readiness requires changed rendered result content. A changed query URL
+can still show the preceding restaurant panel. Opening a result also waits for
+its title to replace that panel. A repeated query may retain its title when the
+resolved concrete place URL agrees with the rendered name. Award maintenance reopens recorded, positively
+owned physical list URLs and validates their IDs and exact titles. This avoids
+the Saved dashboard's search-suggestion overlay without changing other tabs.
 The external browser, context, and preexisting tabs remain open. Recovery and
 debug capture never adopt or inspect another tab. If the owned tab closes, retry
 the command. Connection errors fail without launching another Google browser.
@@ -215,7 +226,196 @@ failure HTML are stored under `--state-dir`, including `debug/` snapshots when
 
 Omitting `--google-cdp-url` retains persistent-profile mode.
 
+## Daily Taiwan Michelin maintenance
+
+The HTTP-only official-source probe reuses the production Michelin listing/detail
+parser, follows every next page beyond visible page estimates, and requires a
+positive consistent source count, complete detail addresses, and unique rows.
+
+```bash
+TMPDIR=/home/dwhermes/.hermes/cache/scratch \
+  uv run python -m michelin_scraper.sources.taiwan_michelin \
+  --state-dir "$TMPDIR/michelin-source-probe"
+uv run python -m michelin_scraper.application.taiwan_michelin_maintenance --help
+uv run python -m michelin_scraper.application.taiwan_michelin_maintenance \
+  --mode bootstrap --state-dir .michelin-state/taiwan
+uv run python -m michelin_scraper.application.taiwan_michelin_maintenance \
+  --mode validate-applied --state-dir .michelin-state/taiwan
+```
+
+
+The source session tries ordinary HTTP for each listing and detail first. When
+unavailable it uses the existing Firecrawl vendor's official `/v2/scrape` API with
+`formats=["rawHtml"]` and `maxAge=0`, without credentials, cookies or browser use.
+The original source and resolved URL must match the requested official URL, with
+vendor HTTP 200, success true and original-source status 200. The same production
+parser consumes that HTML; vendor errors remain failures. `source-probe.json`
+records per-fetch transport, original status/URL, timestamps and HTML hashes.
+The source budget is 850 seconds, with at most four detail requests in flight,
+vendor starts spaced by 250 ms and each vendor request limited to 75 seconds.
+No applied or pending revision is consumed on a failed source.
+
+`source-probe.json` and `source-rows.jsonl` are fresh official evidence, never applied
+state. `source-failure.json` preserves failed HTTP/parse context without opening a
+browser; a challenge, partial pagination or empty source cannot authorize removal.
+The fingerprint tracks name, rating, address, city and guide year, ignoring row
+ordering and transient links. Michelin updates between annual award editions, so
+production checks daily at 09:00 Asia/Taipei. A healthy unchanged check is silent and
+invokes no Google browser, authentication, model or full runner.
+
+`bootstrap` derives `applied.json` only from the actual complete accepted source
+rows and SHA-bound signed-in/anonymous acceptance. `validate-applied` is read-only:
+it emits verified applied metadata or JSON `null` when absent, and rejects any
+inconsistent evidence. Neither command imports restaurants or invents acceptance.
+Only changed revisions invoke the existing scoped production writer and full
+source-to-membership reconciliation under the external runner's browser lease:
+
+```bash
+uv run python -m michelin_scraper.application.taiwan_michelin_maintenance \
+  --mode sync --state-dir .michelin-state/taiwan \
+  --probe-dir "$MICHELIN_OFFICIAL_PROBE_DIR" --google-cdp-url "$BROWSER_CDP_URL"
+```
+
+`--probe-dir` reuses the complete fresh official probe supplied by the normal job;
+if omitted, `sync` writes a fresh probe in the runtime `TMPDIR`. It preserves the
+three existing list names, URLs, sharing and accepted corrections, verifies all
+required replacements before removing exact positively owned stale memberships,
+and protects physical places still required in the same list. It records pending
+work separately and advances applied only after complete signed-in and independent
+anonymous inventories reconcile every source row. Source and actual accepted note
+bindings are retained separately when descriptions change without a business change.
+The first actual source failure stays quiet; every later consecutive source check
+failure notifies, valid source resets that streak, and required sync failure reports
+immediately through the owning external transport. No test reports are sent.
+
 ## Sync Google My Maps KML/KMZ
+
+The current official Taiwan 500 Bowls / 500 Dishes source inventory can be
+inspected without opening a browser or changing Saved Lists:
+
+```bash
+uv run python -m michelin_scraper.sources.taiwan_500_awards --help
+uv run python -m michelin_scraper.sources.taiwan_500_awards \
+  --state-dir .michelin-state/500-awards
+```
+
+This source probe discovers the current homepage script and story feed, follows
+the semantic current map/winner link, and downloads the official public KML.
+It retains only the exact current Taiwan award folder, validates every selected
+point, preserves the document's default list name and distinct branch addresses,
+and records an order-independent fingerprint of names, addresses and award
+fields. The KML subsets and `source-probe.json` are evidence, not applied sync
+state. A missing, empty, invalid or partially importable roster fails the probe.
+The Dishes Asia and sponsor folders are excluded.
+
+The executable maintenance entrypoint discovers both latest editions and uses
+the normal Saved List matcher and note writer:
+
+```bash
+uv run python -m michelin_scraper.application.taiwan_500_maintenance --help
+TMPDIR=/home/dwhermes/.hermes/cache/scratch \
+  uv run python -m michelin_scraper.application.taiwan_500_maintenance \
+  --google-cdp-url http://127.0.0.1:9222 \
+  --state-dir .michelin-state/500-awards --mode sync
+```
+
+`sync` resumes all pending rows without a row cap. `single-write` saves one
+pending row per list for an initial staged check; it never marks the source
+applied. `verify` independently reads both complete lists without importing
+pending rows. Verification requires existing viewer sharing and stops before
+enabling it. It resolves the recorded viewer short link anonymously to the same
+owned list, then reads the complete public inventory without entering the sharing
+menu. Each successful normal save is recorded in the award's
+`memberships.json`. Failures preserve these checkpoints for the next invocation.
+Award-specific note failures remain retry work even if Google confirms the
+membership; they cannot consume the preceding row's confirmation or mark an
+unverified note complete.
+Exact-row identity corrections live in `verified-place-evidence.json`; they
+require matching original name/address and public evidence URLs. Notes preserve
+the official address and disclose the correction and evidence.
+An evidenced restaurant inside a hotel can require its own venue name, so the
+containing hotel cannot satisfy the source row or the final inventory audit.
+Award matching also requires restaurant-name evidence; generic cuisine and
+house-number overlap alone cannot accept a different restaurant.
+Award writes additionally require a rendered address and concrete physical
+place URL. A query URL cannot be checkpointed as a confirmed place.
+If a result click changes the URL but leaves its search feed visible, the
+driver can reload that observed restaurant link and require its same physical
+place ID, rendered title and Save control before normal matching continues.
+Street queries retain official lane/alley numbers for branch selection.
+Award recovery opens a fresh owned tab in the same admitted CDP browser when
+returning to Maps home. It closes its preceding owned tab and leaves all
+pre-existing tabs untouched; it never creates a browser context or native window.
+
+Explicit user exclusions live in `user-skips.json` under the same state directory.
+Each decision pins the award, edition, official semantic fingerprint, exact source
+key and complete original row, with the user's reason, quote and evidence provenance.
+The approved 2026 COAST and nabo ulv entries are skipped before matching, syncing
+and readback reconciliation; SAAKA and Restaurant Bon appétit receive no replacement
+membership or transferred award. These are user decisions, not independently proved
+permanent closures. A changed source revision or identity requires renewed approval;
+a later edition does not inherit the skips. Unknown rows still fail normally.
+Official KML, source counts and source fingerprints retain all rows. Acceptance
+separately records eligible physical counts and `user_skipped_source_rows`.
+Policy changes invalidate the maintenance no-change check. Confirmed memberships
+and exact recorded notes are reused on restart.
+
+Acceptance requires every eligible source row, distinct physical identity, complete
+note, and membership to reconcile against signed-in rendered cards and a fresh
+anonymous public Maps renderer response sent without cookies or authentication.
+The latter is an HTTP inventory, not an anonymous browser DOM snapshot. A
+server-declared count larger than the response, an unidentified row, an
+unexpected physical ID, or a duplicate fails acceptance. Sharing uses only
+"Send link to view". `final-signed-in.json`, its redacted HTML,
+`final-anonymous.json`, and the viewer-link dialog are retained per award.
+`acceptance-manifest.json` and `applied.json` are written only after both lists
+pass. `inventory-before-cleanup.json` retains the complete rendered card values
+even when the first audit fails; textarea values are not serialized in HTML.
+Debug HTML is redacted under `debug/`; `last-failure.json` and
+`last-verification-failure.json` preserve the failing stage. A failed or partial
+run does not consume the source update.
+Award snapshots remove script state, reviewer account names and profile links
+before writing to disk, while retaining restaurant and list DOM controls.
+
+Each edition reuses the positively task-owned list and the latest document's
+default name. Only task-marked obsolete memberships may be removed, after both
+complete replacement inventories have passed. Unidentified entries stop
+reconciliation. Other Saved Lists are outside this command's scope. Meaningful
+source fingerprints include award fields and coordinates, independent of row
+order or fetch time. Healthy unchanged checks verify current browser DOM auth,
+update `last-check.json`, and print nothing.
+
+The parent-owned daily detector `7f9de040f528` invokes the same command for changed sources from this
+repository after its external runner acquires the existing cron browser lease:
+
+```bash
+TMPDIR=/home/dwhermes/.hermes/cache/scratch \
+  uv run python -m michelin_scraper.application.taiwan_500_maintenance \
+  --google-cdp-url "$BROWSER_CDP_URL" \
+  --state-dir .michelin-state/500-awards --mode sync
+```
+
+The runner must supply `BROWSER_CDP_URL=http://127.0.0.1:9223` and the existing
+`HERMES_CRON_BROWSER_LANE_TOKEN` while holding
+`~/.hermes/cron/locks/browser-cdp.lock` through process cleanup. The command
+validates the matching lease token and live mutex; cron use of 9222 is rejected.
+See the external deployment's `requirements/browser-cron-admission.md` and
+`requirements/hermes-external-runner.md`. This repository does not acquire or
+replace the outer lease, create jobs, or send notifications. The parent owns
+daily scheduling (09:00 Asia/Taipei), verified activation, and delivery. Its lightweight
+official-source gate runs before browser admission: unchanged accepted sources invoke
+no browser, authentication, model or full maintenance runner. A required changed-source
+sync checks current signed-in DOM evidence under the existing full-job browser lease;
+historical authentication failures do not establish the current browser state.
+
+For the captured 2026 edition, Bowls has 472 official map locations. Dishes has
+319 locations in `500盤2026`; its 89 Asia and 105 sponsor points are excluded.
+The Dishes announcement reports 314 restaurants. Retained article/image-to-map
+comparison evidence is in `source-reconciliation.json`; counts alone do not
+establish a branch explanation. The authorized latest Taiwan map controls the
+import inventory, and its individual locations and award dishes remain intact.
+The two user-authorized skips leave 317 eligible Dishes memberships while its
+official source count remains 319. See [the scoped contract](requirements/taiwan-500-awards.md).
 
 Export your Google My Maps data as `.kml` or `.kmz`, then import the local file
 into one Google Maps Saved List:

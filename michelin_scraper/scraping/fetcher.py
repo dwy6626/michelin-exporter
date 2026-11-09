@@ -37,6 +37,7 @@ def fetch_page_soup(
     progress_reporter: ScrapeProgressReporter,
     page_type: str,
     required_selector: str | None = None,
+    browser_fallback: bool = True,
 ) -> FetchPageResult:
     """Fetch one HTML page and parse it into BeautifulSoup.
 
@@ -90,6 +91,10 @@ def fetch_page_soup(
                 f"Michelin {page_type} page lacks required content {required_selector!r} at {url}; "
                 "retrying with browser-rendered fetch."
             )
+
+        if not browser_fallback:
+            progress_reporter.log(f"HTTP-only source fetch failed at {url}; browser admission is required separately.")
+            return FetchPageResult(soup=None, fetch_failed=True)
 
         try:
             browser_html = _fetch_html_with_browser(url=url, headers=headers, required_selector=required_selector)

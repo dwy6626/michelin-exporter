@@ -40,6 +40,13 @@ class GoogleMapsAuthTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(await self.driver.is_authenticated(refresh=False))
             cookies.assert_not_called()
 
+    async def test_home_navigation_uses_rendered_search_control_from_recorded_streamed_page(self) -> None:
+        await self.page.set_content((_FIXTURES / "home-streamed-2026-11-08.html").read_text())
+        with patch.object(self.page, "goto", new=AsyncMock()) as navigate:
+            await self.driver.open_maps_home()
+        navigate.assert_awaited_once_with("https://www.google.com/maps?hl=en", wait_until="commit")
+        self.assertTrue(await self.page.locator('[role="combobox"]').first.is_visible())
+
     async def test_loading_snapshot_waits_for_the_recorded_account_control(self) -> None:
         await self.page.set_content((_FIXTURES / "auth-loading-2026-11-07.html").read_text())
         signed_in_html = (_FIXTURES / "auth-signed-in-2026-11-07.html").read_text()

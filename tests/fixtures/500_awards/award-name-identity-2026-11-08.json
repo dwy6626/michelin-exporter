@@ -1,0 +1,111 @@
+[
+  {
+    "source_row": {
+      "Name": "紫園無招牌客家米食",
+      "Description": "總得碗數: 1 得獎菜色: 水粄 地區: 苗栗 菜系: 客家 推薦評審: 湯昇榮 地址: 360苗栗縣苗栗市清華里紫園街79巷1號 營業時間: 06:30-08:00 電話: 03 726 3378",
+      "DescriptionRawHtml": "總得碗數: 1<br>得獎菜色: 水粄<br>地區: 苗栗<br>菜系: 客家<br>推薦評審: 湯昇榮<br>地址: 360苗栗縣苗栗市清華里紫園街79巷1號<br>營業時間: 06:30-08:00<br>電話: 03 726 3378",
+      "DescriptionFields": {
+        "總得碗數": "1",
+        "得獎菜色": "水粄",
+        "地區": "苗栗",
+        "菜系": "客家",
+        "推薦評審": "湯昇榮",
+        "地址": "360苗栗縣苗栗市清華里紫園街79巷1號",
+        "營業時間": "06:30-08:00",
+        "電話": "03 726 3378",
+        "管理代碼": "500-awards/bowls/0a25b01a4f9e9d7e0c39ea293d290c83aafb66957138de935623c760225a7d96"
+      },
+      "Address": "360苗栗縣苗栗市清華里紫園街79巷1號",
+      "City": "苗栗",
+      "AwardSourceKey": "0a25b01a4f9e9d7e0c39ea293d290c83aafb66957138de935623c760225a7d96"
+    },
+    "candidate": {
+      "name": "伍貳居所_客家火鍋創始店",
+      "address": "\n365苗栗縣泰安鄉清安村二十份1號",
+      "category": "Restaurant",
+      "subtitle": "",
+      "located_in": ""
+    },
+    "expected_name_identity": false,
+    "recorded_from": "Confirmed production place readback, 2026-11-08"
+  },
+  {
+    "source_row": {
+      "Name": "impromptu",
+      "Description": "總得盤數: 4盤 區域: 台北 得獎菜色: 康堤花膠釀雞翼、海膽炸醬麵、羊肩叉燒 (黯然銷魂飯) 評審: al.dente.life Henry、高琹雯、林慧晶、林之晨 地址: 10491台北市中山區中山北路二段39巷3號B1 電話: 02 2521 2518",
+      "DescriptionRawHtml": "總得盤數: 4盤<br>區域: 台北<br>得獎菜色: 康堤花膠釀雞翼、海膽炸醬麵、羊肩叉燒 (黯然銷魂飯) <br>評審: al.dente.life Henry、高琹雯、林慧晶、林之晨<br>地址: 10491台北市中山區中山北路二段39巷3號B1<br>電話: 02 2521 2518",
+      "DescriptionFields": {
+        "總得盤數": "4盤",
+        "區域": "台北",
+        "得獎菜色": "康堤花膠釀雞翼、海膽炸醬麵、羊肩叉燒 (黯然銷魂飯)",
+        "評審": "al.dente.life Henry、高琹雯、林慧晶、林之晨",
+        "地址": "10491台北市中山區中山北路二段39巷3號B1",
+        "電話": "02 2521 2518",
+        "管理代碼": "500-awards/dishes/4b035560b6c9dc383f5ffc27975d2f5c2643a6752a88f579748eb1b8951bcd23"
+      },
+      "Address": "10491台北市中山區中山北路二段39巷3號B1",
+      "City": ""
+    },
+    "candidate": {
+      "name": "Impromptu by Paul Lee (麗晶精品林森北路出入口下來）",
+      "address": "\nB1, 麗晶精品林森北路入口, No. 3號, Lane 39, Section 2, Zhongshan N Rd, Zhongshan District, Taipei City, 10491",
+      "category": "高級餐廳",
+      "subtitle": "",
+      "located_in": "Located in: Regent Taipei"
+    },
+    "expected_name_identity": true,
+    "recorded_from": "Confirmed production place readback, 2026-11-08"
+  },
+  {
+    "source_row": {
+      "Name": "COAST",
+      "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 松葉蟹 / 髮麵 / 考桫 評審: 潘思亮 地址: 10491 臺北市中山區中山北路二段39巷3號B2 電話: 02 2567 0237",
+      "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 松葉蟹 / 髮麵 / 考桫<br>評審: 潘思亮<br>地址: 10491 臺北市中山區中山北路二段39巷3號B2<br>電話: 02 2567 0237",
+      "DescriptionFields": {
+        "總得盤數": "1盤",
+        "區域": "台北",
+        "得獎菜色": "松葉蟹 / 髮麵 / 考桫",
+        "評審": "潘思亮",
+        "地址": "10491 臺北市中山區中山北路二段39巷3號B2",
+        "電話": "02 2567 0237"
+      },
+      "Address": "10491 臺北市中山區中山北路二段39巷3號B2",
+      "City": ""
+    },
+    "candidate": {
+      "name": "SAAKA",
+      "address": "\n10491, Taipei City, Zhongshan District, 中山區 Lane 39, Section 2, Zhongshan N Rd, 3號B2",
+      "category": "Asian fusion restaurant",
+      "subtitle": "",
+      "located_in": "Located in: Regent Taipei"
+    },
+    "expected_name_identity": false,
+    "recorded_from": "Historical COAST physical ID rendered SAAKA in own-page DOM on 2026-11-08; new brand is not an evidenced award-name alias."
+  },
+  {
+    "source_row": {
+      "Name": "nabo ulv",
+      "Description": "總得盤數: 1盤 區域: 台北 得獎菜色: 腳餃的味道 評審: 阿滴 地址: 106臺北市大安區敦化南路一段160巷18號 電話: 02 8771 0828",
+      "DescriptionRawHtml": "總得盤數: 1盤<br>區域: 台北<br>得獎菜色: 腳餃的味道<br>評審: 阿滴<br>地址: 106臺北市大安區敦化南路一段160巷18號<br>電話: 02 8771 0828",
+      "DescriptionFields": {
+        "總得盤數": "1盤",
+        "區域": "台北",
+        "得獎菜色": "腳餃的味道",
+        "評審": "阿滴",
+        "地址": "106臺北市大安區敦化南路一段160巷18號",
+        "電話": "02 8771 0828"
+      },
+      "Address": "106臺北市大安區敦化南路一段160巷18號",
+      "City": ""
+    },
+    "candidate": {
+      "name": "Restaurant Bon appétit",
+      "address": "\n106臺北市大安區光武里敦化南路一段160巷18號",
+      "category": "",
+      "subtitle": "",
+      "located_in": ""
+    },
+    "expected_name_identity": false,
+    "evidence": "Recorded historical Nabo map link now renders Restaurant Bon appétit; same address/phone alone cannot prove award venue identity."
+  }
+]
