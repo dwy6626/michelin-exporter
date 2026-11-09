@@ -1,12 +1,14 @@
 """Tests for fetch_page_soup retry and exponential backoff behavior."""
 
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, call, patch
 
 import requests
+from playwright.sync_api import Error
 
 from michelin_scraper.config import HTTP_MAX_FETCH_RETRIES, HTTP_RETRY_BASE_DELAY_SECONDS
-from michelin_scraper.scraping.fetcher import fetch_page_soup
+from michelin_scraper.scraping.fetcher import _BrowserHtmlFetcher, fetch_page_soup
 
 
 class _NoOpReporter:
@@ -37,6 +39,20 @@ def _make_response(status_code: int, text: str = "<html></html>") -> Mock:
 
 
 class FetchPageSoupRetryTests(unittest.TestCase):
+    @patch("michelin_scraper.scraping.fetcher._fetch_html_with_browser")
+    def test_http_only_challenge_never_opens_a_browser(self, browser_fetch: Mock) -> None:
+        session = MagicMock()
+        response = _make_response(202, "")
+        response.headers = {"x-amzn-waf-action": "challenge"}
+        session.get.return_value = response
+        result = fetch_page_soup(
+            session=session, url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants",
+            headers={}, tls_verify=True, progress_reporter=_NoOpReporter(), page_type="listing", browser_fallback=False,
+        )
+        self.assertTrue(result.fetch_failed)
+        self.assertIsNone(result.soup)
+        browser_fetch.assert_not_called()
+
     @patch("michelin_scraper.scraping.fetcher.time.sleep")
     def test_succeeds_on_first_attempt_without_sleep(self, mock_sleep: Mock) -> None:
         session = MagicMock()
@@ -227,6 +243,86 @@ class FetchPageSoupRetryTests(unittest.TestCase):
         mock_fetch_html_with_browser.assert_called_once()
         mock_sleep.assert_not_called()
         self.assertTrue(any("browser-rendered fetch returned empty HTML" in message for message in reporter.logged))
+
+
+class BrowserHtmlFetcherRuntimeTests(unittest.TestCase):
+    @patch("playwright.sync_api.sync_playwright")
+    def test_transient_browser_network_change_retries_same_owned_page(self, start: Mock) -> None:
+        runtime = start.return_value.start.return_value
+        page = runtime.chromium.launch.return_value.new_context.return_value.new_page.return_value
+        html = (Path(__file__).parent / "fixtures/michelin/brise-detail-2026-11-07.html").read_text()
+        page.content.return_value = html
+        page.goto.side_effect = [Error("Page.goto: net::ERR_NETWORK_CHANGED"), None]
+        fetcher = _BrowserHtmlFetcher()
+        try:
+            self.assertEqual(fetcher.fetch(
+                url="https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/brise",
+                headers={}, required_selector="div.data-sheet__block--text",
+            ), html)
+            self.assertEqual(page.goto.call_count, 2)
+            self.assertEqual(runtime.chromium.launch.call_count, 1)
+        finally:
+            fetcher.close()
+        runtime.stop.assert_called_once()
+
+    @patch("playwright.sync_api.sync_playwright")
+    def test_browser_navigation_retry_is_bounded_and_transient_only(self, start: Mock) -> None:
+        page = start.return_value.start.return_value.chromium.launch.return_value.new_context.return_value.new_page.return_value
+        for message, count in (("net::ERR_NETWORK_CHANGED", HTTP_MAX_FETCH_RETRIES), ("net::ERR_NAME_NOT_RESOLVED", 1)):
+            with self.subTest(message=message):
+                page.goto.reset_mock()
+                page.goto.side_effect = Error(message)
+                fetcher = _BrowserHtmlFetcher()
+                try:
+                    with self.assertRaisesRegex(Error, message):
+                        fetcher.fetch(url="https://guide.michelin.com", headers={})
+                    self.assertEqual(page.goto.call_count, count)
+                finally:
+                    fetcher.close()
+
+    @patch("playwright.sync_api.sync_playwright")
+    def test_missing_bundled_browser_uses_installed_chrome(self, mock_sync_playwright: Mock) -> None:
+        runtime = mock_sync_playwright.return_value.start.return_value
+        browser = MagicMock()
+        runtime.chromium.launch.side_effect = [
+            Error("Executable doesn't exist at /missing/chromium/headless_shell"),
+            browser,
+        ]
+        browser.new_context.return_value.new_page.return_value.content.return_value = "<html></html>"
+        fetcher = _BrowserHtmlFetcher()
+        try:
+            self.assertEqual(fetcher.fetch(url="https://guide.michelin.com", headers={}), "<html></html>")
+            runtime.chromium.launch.assert_has_calls([
+                call(headless=True),
+                call(headless=True, channel="chrome"),
+            ])
+            browser.new_context.return_value.close.assert_called_once()
+        finally:
+            fetcher.close()
+        browser.close.assert_called_once()
+        runtime.stop.assert_called_once()
+
+    @patch("playwright.sync_api.sync_playwright")
+    def test_available_bundled_browser_does_not_launch_chrome(self, mock_sync_playwright: Mock) -> None:
+        runtime = mock_sync_playwright.return_value.start.return_value
+        fetcher = _BrowserHtmlFetcher()
+        try:
+            self.assertIs(fetcher._ensure_browser(), runtime.chromium.launch.return_value)
+            runtime.chromium.launch.assert_called_once_with(headless=True)
+        finally:
+            fetcher.close()
+
+    @patch("playwright.sync_api.sync_playwright")
+    def test_other_launch_failures_are_not_retried(self, mock_sync_playwright: Mock) -> None:
+        runtime = mock_sync_playwright.return_value.start.return_value
+        runtime.chromium.launch.side_effect = Error("Browser crashed during launch")
+        fetcher = _BrowserHtmlFetcher()
+        try:
+            with self.assertRaisesRegex(Error, "Browser crashed during launch"):
+                fetcher._ensure_browser()
+            runtime.chromium.launch.assert_called_once_with(headless=True)
+        finally:
+            fetcher.close()
 
 
 if __name__ == "__main__":

@@ -70,7 +70,7 @@ class TargetResolverTests(unittest.TestCase):
         resolved = resolve_target("taiwan", language="zh-tw")
         self.assertEqual(
             resolved.start_url,
-            "https://guide.michelin.com/tw/zh_TW/selection/taiwan/restaurants",
+            "https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants",
         )
 
     def test_resolve_target_greece_country_with_traditional_chinese_language(self) -> None:

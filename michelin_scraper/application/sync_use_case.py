@@ -100,6 +100,7 @@ def _create_sync_writer(
 
     return GoogleMapsSyncWriter(
         user_data_dir=Path(command.google_user_data_dir).expanduser(),
+        google_cdp_url=command.google_cdp_url,
         headless=command.headless,
         sync_delay_seconds=command.sync_delay_seconds,
         max_save_retries=command.max_save_retries,

@@ -211,23 +211,11 @@ def resolve_next_page(
     if not next_url:
         return None, page_count
 
-    if estimated_total_pages is not None and page_count >= estimated_total_pages:
-        progress_reporter.log(
-            
-                "Reached the maximum page reported by the site "
-                f"({estimated_total_pages}). Stopping."
-            
-        )
-        return None, page_count
-
     next_page_number = extract_page_number(next_url, page_count + 1)
     if estimated_total_pages is not None and next_page_number > estimated_total_pages:
         progress_reporter.log(
-            
-                "The next page exceeds the site-reported maximum "
-                f"({next_page_number} > {estimated_total_pages}). Stopping."
-            
+            f"Following source next-page link {next_page_number} beyond the visible "
+            f"pagination estimate ({estimated_total_pages})."
         )
-        return None, page_count
 
     return next_url, next_page_number

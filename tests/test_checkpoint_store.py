@@ -10,6 +10,24 @@ from michelin_scraper.adapters.checkpoint_store import JsonCheckpointStore
 
 
 class CheckpointStoreTests(unittest.TestCase):
+    def test_saved_row_is_durable_without_advancing_resume_cursor(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "checkpoint.json"
+            store = JsonCheckpointStore(path, level_slugs=("selected",))
+            store.initialize_synced_row_keys(frozenset({"previous-confirmed-key"}))
+            store.save(
+                start_url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants",
+                page_number=5, page_url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants/page/5",
+                next_url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants/page/6",
+                next_page_number=6, estimated_total_pages=9, total_restaurants=240, rows_per_level={"selected": 240},
+            )
+            before = json.loads(path.read_text())
+            store.add_synced_row("new-confirmed-key")
+            after = json.loads(path.read_text())
+            self.assertEqual(set(after.pop("synced_row_keys")), {"previous-confirmed-key", "new-confirmed-key"})
+            before.pop("synced_row_keys")
+            self.assertEqual(after, before)
+
     def test_load_missing_checkpoint_returns_none(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             checkpoint_path = Path(temp_dir) / "checkpoint.json"

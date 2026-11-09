@@ -1,0 +1,8 @@
+{
+  "scenario": "verified-brise-detail-address",
+  "captured_at": "2026-11-07",
+  "language": "zh_TW",
+  "source": "real-page-snapshot",
+  "sanitized": true,
+  "excerpt": "Recorded selector subtrees; scripts, images, tracking attributes, account and list identities removed."
+}

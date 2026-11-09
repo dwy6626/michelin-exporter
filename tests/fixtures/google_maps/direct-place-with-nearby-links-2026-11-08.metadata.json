@@ -1,0 +1,9 @@
+{
+  "scenario": "direct-place-must-not-open-nearby-business",
+  "captured_at": "2026-11-08",
+  "language": "en",
+  "source_url": "https://www.google.com/maps/place/%E8%91%89%E5%AE%B6%E8%97%A5%E7%87%89%E6%8E%92%E9%AA%A8/data=!3m1!4b1!4m6!3m5!1s0x3442a83747496491:0x13519ca1aa1ffc82!8m2!3d25.0202141!4d121.4813551!16s%2Fg%2F11g_gpb86",
+  "source": "real-page-snapshot",
+  "sanitized": true,
+  "excerpt": "Recorded selector subtrees; scripts, images, tracking attributes, account and list identities removed."
+}

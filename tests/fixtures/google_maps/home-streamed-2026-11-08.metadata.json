@@ -1,0 +1,7 @@
+{
+  "scenario": "streamed-document-rendered-before-document-load-completes",
+  "captured_at": "2026-11-08",
+  "source": "real-page-snapshot",
+  "sanitized": true,
+  "excerpt": "Recorded selector subtrees; scripts, images, tracking attributes, account and list identities removed."
+}

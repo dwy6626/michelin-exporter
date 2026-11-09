@@ -105,19 +105,16 @@ class SyncPageHandler:
         estimated_total_pages: int | None,
         total_restaurants: int,
     ) -> None:
-        if next_url:
-            self._checkpoint_store.save(
-                start_url=self._start_url,
-                page_number=page_number,
-                page_url=page_url,
-                next_url=next_url,
-                next_page_number=next_page_number,
-                estimated_total_pages=estimated_total_pages,
-                total_restaurants=total_restaurants,
-                rows_per_level=self._accumulation.scraped_count_by_level,
-            )
-            return
-        self._checkpoint_store.clear()
+        self._checkpoint_store.save(
+            start_url=self._start_url,
+            page_number=page_number,
+            page_url=page_url,
+            next_url=next_url or page_url,
+            next_page_number=next_page_number if next_url else page_number,
+            estimated_total_pages=estimated_total_pages,
+            total_restaurants=total_restaurants,
+            rows_per_level=self._accumulation.scraped_count_by_level,
+        )
 
     def _collect_sample_rows(self, restaurants_on_page: list[dict[str, Any]]) -> None:
         if not restaurants_on_page or len(self._accumulation.sample_rows) >= self._sample_limit:

@@ -92,6 +92,7 @@ def scrape_restaurant_page(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> RestaurantPageData:
     """Fetch and parse detail fields from one restaurant page."""
 
@@ -106,6 +107,8 @@ def scrape_restaurant_page(
         tls_verify=tls_verify,
         progress_reporter=progress_reporter,
         page_type=_RESTAURANT_PAGE_TYPE,
+        required_selector=_ADDRESS_SELECTOR,
+        browser_fallback=browser_fallback,
     )
     if restaurant_page_soup.soup is None:
         return build_empty_data()
