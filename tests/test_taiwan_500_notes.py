@@ -131,6 +131,7 @@ class RecordedNoteDOMTests(unittest.IsolatedAsyncioTestCase):
             (root / "dishes/memberships.json").write_text(json.dumps(data.ledger))
             async with async_playwright() as playwright:
                 context = await playwright.chromium.launch_persistent_context(root / "profile", channel="chrome", headless=True)
+                await context.route("**/*", lambda route: route.abort())
                 try:
                     page = await context.new_page()
                     await page.set_content((FIXTURES / "dishes-note-cleanup-challenge-2026-11-09.html").read_text())
@@ -282,6 +283,7 @@ class RecordedNoteDOMTests(unittest.IsolatedAsyncioTestCase):
         async with async_playwright() as playwright:
             with tempfile.TemporaryDirectory() as profile:
                 context = await playwright.chromium.launch_persistent_context(profile, channel="chrome", headless=True)
+                await context.route("**/*", lambda route: route.abort())
                 try:
                     page = await context.new_page()
                     await page.set_content((FIXTURES / "list-default-icon-header-2026-11-09.html").read_text())
@@ -295,6 +297,7 @@ class RecordedNoteDOMTests(unittest.IsolatedAsyncioTestCase):
         async with async_playwright() as playwright:
             with tempfile.TemporaryDirectory() as profile:
                 context = await playwright.chromium.launch_persistent_context(profile, channel="chrome", headless=True)
+                await context.route("**/*", lambda route: route.abort())
                 try:
                     page = await context.new_page()
                     await page.route("https://www.google.com/maps/", lambda route: route.fulfill(
