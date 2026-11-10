@@ -1,6 +1,7 @@
 """Tests for per-item delay behavior on Michelin listing pages."""
 
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import requests
@@ -9,32 +10,12 @@ from bs4 import BeautifulSoup
 from michelin_scraper.scraping.fetcher import FetchPageResult
 from michelin_scraper.scraping.listing_page import scrape_results_single_page
 
-_LISTING_HTML_WITH_TWO_CARDS = """
-<html>
-  <body>
-    <div class="card__menu">
-      <a href="/restaurant-1">
-        <h3 class="card__menu-content--title">Alpha</h3>
-      </a>
-      <div class="card__menu-footer--score">Tokyo</div>
-      <div class="card__menu-footer--score">$$ · French</div>
-      <span class="distinction-icon">
-        <img class="michelin-award" src="/assets/1star.png" />
-      </span>
-    </div>
-    <div class="card__menu">
-      <a href="/restaurant-2">
-        <h3 class="card__menu-content--title">Beta</h3>
-      </a>
-      <div class="card__menu-footer--score">Tokyo</div>
-      <div class="card__menu-footer--score">$$ · Japanese</div>
-      <span class="distinction-icon">
-        <img class="michelin-award" src="/assets/1star.png" />
-      </span>
-    </div>
-  </body>
-</html>
-""".strip()
+_RECORDED_LISTING = BeautifulSoup(
+    (Path(__file__).parent / "fixtures/michelin/taiwan-region-2026-11-07.html").read_text(), "html.parser"
+)
+_LISTING_HTML_WITH_TWO_CARDS = "\n".join(
+    str(card) for card in _RECORDED_LISTING.select("div.card__menu:not(.section-nearby-restaurants div.card__menu)")[:2]
+)
 
 
 class _NoOpReporter:
@@ -50,31 +31,23 @@ class _NoOpReporter:
 
 class ListingPageSleepTests(unittest.TestCase):
     @patch("michelin_scraper.scraping.listing_page.time.sleep")
-    @patch("michelin_scraper.scraping.listing_page.scrape_restaurant_page")
+    @patch("michelin_scraper.scraping.listing_page._build_restaurant_row_from_card")
     @patch("michelin_scraper.scraping.listing_page.fetch_page_soup")
     def test_scrape_results_single_page_sleeps_between_cards(
         self,
         mock_fetch_page_soup: Mock,
-        mock_scrape_restaurant_page: Mock,
+        mock_build_row: Mock,
         mock_sleep: Mock,
     ) -> None:
         mock_fetch_page_soup.return_value = FetchPageResult(
             soup=BeautifulSoup(_LISTING_HTML_WITH_TWO_CARDS, "html.parser"),
             fetch_failed=False,
         )
-        mock_scrape_restaurant_page.return_value = {
-            "Address": "",
-            "Description": "",
-            "Restaurant Website": "",
-            "Telephone Number": "",
-            "Reservation Link": "",
-            "Latitude": "",
-            "Longitude": "",
-        }
+        mock_build_row.side_effect = lambda **kwargs: {"Name": kwargs["restaurant_name"]}
 
         page_result = scrape_results_single_page(
             session=requests.Session(),
-            url="https://guide.michelin.com/us/en/restaurants",
+            url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants",
             headers={},
             tls_verify=True,
             page_number=1,
@@ -91,31 +64,23 @@ class ListingPageSleepTests(unittest.TestCase):
         mock_sleep.assert_called_once_with(1.25)
 
     @patch("michelin_scraper.scraping.listing_page.time.sleep")
-    @patch("michelin_scraper.scraping.listing_page.scrape_restaurant_page")
+    @patch("michelin_scraper.scraping.listing_page._build_restaurant_row_from_card")
     @patch("michelin_scraper.scraping.listing_page.fetch_page_soup")
     def test_scrape_results_single_page_skips_sleep_when_delay_is_zero(
         self,
         mock_fetch_page_soup: Mock,
-        mock_scrape_restaurant_page: Mock,
+        mock_build_row: Mock,
         mock_sleep: Mock,
     ) -> None:
         mock_fetch_page_soup.return_value = FetchPageResult(
             soup=BeautifulSoup(_LISTING_HTML_WITH_TWO_CARDS, "html.parser"),
             fetch_failed=False,
         )
-        mock_scrape_restaurant_page.return_value = {
-            "Address": "",
-            "Description": "",
-            "Restaurant Website": "",
-            "Telephone Number": "",
-            "Reservation Link": "",
-            "Latitude": "",
-            "Longitude": "",
-        }
+        mock_build_row.side_effect = lambda **kwargs: {"Name": kwargs["restaurant_name"]}
 
         page_result = scrape_results_single_page(
             session=requests.Session(),
-            url="https://guide.michelin.com/us/en/restaurants",
+            url="https://guide.michelin.com/tw/zh_TW/selection/taiwan-region/restaurants",
             headers={},
             tls_verify=True,
             page_number=1,

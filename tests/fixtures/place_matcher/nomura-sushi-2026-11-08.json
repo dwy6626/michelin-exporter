@@ -1,0 +1,27 @@
+{
+  "source_row": {
+    "Name": "鮨野村",
+    "NameLocal": "鮨野村",
+    "GuideYear": "2026",
+    "Rating": "Selected",
+    "City": "Taipei, 台灣地區",
+    "Price Range": "$$$$",
+    "Cuisine": "壽司",
+    "Description": "於2023年重新裝潢，用餐環境色調沉穩，簡潔俐落。料理長野村先生專司江戶前壽司，講究用料，米飯採用來自四國水主町的有機越光米及北海道七星米，以富士山泉水烹煮，調味用上赤醋及白醋，以特別配方混合。其套餐均以壽司為主角，若喜歡生魚片，可指定較高價位的套餐，品嚐由料理長精心安排的菜品。",
+    "Address": "大安區仁愛路四段300巷19弄4號, Taipei, 106, 台灣地區",
+    "Latitude": "",
+    "Longitude": "",
+    "Michelin Website": "https://guide.michelin.com/tw/zh_TW/taipei-region/taipei/restaurant/sushi-nomura",
+    "Restaurant Website": "",
+    "Restaurant Telephone Number": "+886 2 2707 7518",
+    "Reservation Link": "",
+    "level_slug": "selected"
+  },
+  "candidate": {
+    "name": "Nomura Sushi",
+    "address": " No. 4號, Alley 19, Lane 300, Section 4, Ren'ai Rd, Guangxin Village, Da’an District, Taipei City, 106",
+    "category": "壽司店",
+    "subtitle": "野村壽司",
+    "located_in": ""
+  }
+}

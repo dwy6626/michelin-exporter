@@ -32,6 +32,7 @@ class ScrapeSyncCommand:
     google_user_data_dir: str
     levels: tuple[str, ...]
     source: str = SOURCE_MICHELIN
+    google_cdp_url: str | None = None
     my_maps_file: str = ""
     my_maps_list_name: str = ""
     note_format: str = "raw"

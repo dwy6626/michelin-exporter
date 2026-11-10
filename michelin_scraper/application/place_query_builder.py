@@ -11,6 +11,7 @@ _TAIWAN_LOCAL_AREA_PATTERNS = (
 _TAIWAN_STREET_HOUSE_PATTERN = re.compile(
     r"([\u4e00-\u9fff\d]{1,12}(?:大道|路|街)"
     r"(?:[一二三四五六七八九十\d]+段)?"
+    r"(?:\d+(?:之\d+)?巷)?(?:\d+(?:之\d+)?弄)?"
     r"\d+(?:之\d+)?號(?:\d+樓)?)"
 )
 

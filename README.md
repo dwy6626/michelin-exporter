@@ -16,11 +16,18 @@ Create/update the virtual environment and install dependencies:
 uv sync
 ```
 
-Playwright browser runtime is required for Google Maps automation:
+For local browser launches, install the bundled Playwright browser runtime:
 
 ```bash
 uv run playwright install chromium
 ```
+
+Google Maps can also use installed Google Chrome or attach to a running browser
+with `--google-cdp-url`. Michelin's browser-rendered fetch fallback prefers
+bundled Chromium; if its executable is missing, it retries with installed Google
+Chrome through Playwright's `channel="chrome"`. This supports environments where
+the bundled browser cannot be installed. The Michelin fallback uses a separate
+temporary browser session, independent of the attached Google session.
 
 Install developer dependencies:
 
@@ -170,6 +177,58 @@ uv run python -m michelin_scraper sync-michelin --help
 Michelin-only options include `--target`, `--levels`, `--language`,
 `--crawl-delay`, `--max-pages`, `--ca-bundle`, and `--insecure`.
 
+## Attach to an Existing Google Session
+
+Both sync commands accept optional `--google-cdp-url` with an existing Chromium
+CDP HTTP or WebSocket endpoint. For a browser already exposing CDP at port 9222,
+run a small read-only Taiwan probe:
+
+```bash
+uv run python -m michelin_scraper sync-michelin \
+  --target taiwan --language zh_TW \
+  --google-cdp-url http://127.0.0.1:9222 \
+  --maps-probe-only --max-pages 1 --max-rows-per-page 1 \
+  --on-missing-list stop --debug-sync-failures \
+  --state-dir .michelin-state/cdp-probe
+```
+
+CDP mode uses the browser's default context and opens one new tab. It bypasses
+profile preparation and browser launch; `--google-user-data-dir`, browser channel,
+and `--headed/--headless` do not configure the attached browser. Normal shutdown,
+forced shutdown, and interrupts close only the new tab and disconnect Playwright.
+The new tab receives a 1280 × 720 viewport so Maps search remains usable when
+the external browser reports zero window dimensions; this applies only to that tab.
+Its own CDP target also bypasses the Maps service worker during navigation.
+Home navigation waits for the actual search control after the response commits;
+a streamed document can remain in `loading` while the application is usable.
+The bypass ends with the owned tab; browser storage, service workers and other
+tabs are not changed.
+Search readiness requires changed rendered result content. A changed query URL
+can still show the preceding restaurant panel. Opening a result also waits for
+its title to replace that panel. A repeated query may retain its title when the
+resolved concrete place URL agrees with the rendered name.
+The external browser, context, and preexisting tabs remain open. Recovery and
+debug capture never adopt or inspect another tab. If the owned tab closes, retry
+the command. Connection errors fail without launching another Google browser.
+
+Authentication in CDP mode uses the Maps UI without reading session cookies. If
+the account controls are still loading, it waits up to 10 seconds. The visible
+Google Account control confirms sign-in; its `accounts.google.com/SignOutOptions`
+link is an account-menu control, not a sign-in prompt. If
+authentication is required, sign in within the existing browser and retry; the
+CLI does not prompt to launch a persistent profile. Probe-only mode skips
+authentication and list preparation and performs search/match checks without
+creating lists, saving places, or changing sharing. Its state and de-identified
+failure HTML are stored under `--state-dir`, including `debug/` snapshots when
+`--debug-sync-failures` is set. Default list names and buckets still apply.
+
+If a result click changes the URL but leaves the search feed visible, the driver
+can reload that observed restaurant link. It requires the same physical place ID,
+rendered title and Save control before matching continues. Street queries retain
+official lane and alley numbers for branch selection.
+
+Omitting `--google-cdp-url` retains persistent-profile mode.
+
 ## Sync Google My Maps KML/KMZ
 
 Export your Google My Maps data as `.kml` or `.kmz`, then import the local file
@@ -242,8 +301,8 @@ Missing values are removed and common extra separators are cleaned up.
 State files are stored in `--state-dir` (or current directory when omitted):
 
 - `{checkpoint-scope}-michelin-checkpoint.json` (legacy checkpoint filename
-  suffix retained for existing state files)
-- `{scope}-maps-sync-journal.json`
+  suffix retained for existing state files; includes the source cursor, row
+  counters, and confirmed saved-row keys in `synced_row_keys`)
 - `{scope}-maps-sync-errors.jsonl` (only when row failures occur)
 - `debug/{scope}-maps-debug-<context>-<timestamp>.html` (de-identified
   snapshots written when `--debug-sync-failures` captures page-level sync
@@ -253,10 +312,20 @@ State files are stored in `--state-dir` (or current directory when omitted):
   `<record-fixtures-dir>/<debug-stem>.metadata.json` (written only when
   `--record-fixtures-dir` is set)
 
-Checkpoint and journal serve different purposes:
+The checkpoint stores both source progress and confirmed saved-row keys. There
+is no separate sync journal file.
+When resuming an existing checkpoint, each confirmed save also atomically updates
+`synced_row_keys` without advancing the source cursor. A failure partway through
+a page therefore retains confirmed saves and retries that page on the next run.
+Successful completion also retains the checkpoint and saved-row keys, with the
+cursor on the terminal page. Rerunning checks that page and skips confirmed
+rows; completion no longer deletes the deduplication ledger.
 
-- Checkpoint controls where source collection resumes next.
-- Journal stores only rows that were confirmed as successfully synced.
+Fail-fast shuts down the producer queue, cancels detail jobs that have not
+started, and waits for active requests to finish their bounded timeouts. Every
+browser-rendered source fetch closes its own browser and Playwright runtime;
+these source browsers are independent of the attached Google browser. No shared
+Chrome service needs to be stopped during cleanup.
 
 When debug logging is enabled, Maps sync logs every accepted and rejected
 row-to-candidate decision with the source row name, query string, candidate
@@ -264,9 +333,53 @@ name/address/category, and match signals. Taiwan rows with district-level
 address text also try a narrowed `name + district` query before broader
 city-level queries, for example `首烏 板橋區` before `首烏 New Taipei, 臺灣`.
 
-If a run is interrupted or partially fails, retry with the same `--state-dir`
-and `--ignore-checkpoint`. This reprocesses from page 1 while safely skipping
-rows already recorded in the journal.
+Normal resume retains the source cursor and saved-row keys. A row-capped write
+can advance the source cursor beyond rows that were collected but not saved.
+To process the full source after a capped run, restart from page 1 with the same
+`--state-dir`, `--ignore-checkpoint`, and `--ignore-existing-lists-check`, and
+remove the page/row limits. Ignoring the checkpoint clears its saved-row keys;
+list reuse checks skip places already present in the exact generated target lists.
+
+If Maps search fails, the error includes visible search controls; use the
+de-identified HTML under `state_dir/debug/` to identify the failing surface.
+If source queries unexpectedly lack an address or district, check the source
+fetch messages first. Restaurant detail fetches require a nonempty address;
+incomplete HTTP content is retried in a browser that waits for the recorded
+address element within the navigation timeout. Persistent failures report the
+source URL and required selector instead of treating challenge HTML as a valid
+detail page. A detail fetch that still has no address stops the listing producer
+before that incomplete identity can reach Maps or advance the page checkpoint.
+Matching thresholds and address-conflict checks are unchanged.
+
+An address-like Maps title can contain a restaurant's street-number branding
+(for example, `No.10 Nanmen南門壹食`). The matcher recognizes this only when the
+title contains the exact source restaurant name independently of its address,
+the category is food service, and both city and house number corroborate the
+source without a house-number conflict. Bare address pins, coordinate titles,
+and businesses located inside another venue retain their safety checks.
+Browser-rendered source navigation retries Chromium's transient
+`net::ERR_NETWORK_CHANGED` on the same owned page, up to the configured HTTP
+attempt limit and within the original navigation deadline. Other browser
+navigation errors retain their existing failure behavior.
+For restaurant names whose only distinctive token is a number, matching also
+requires a shared street anchor. A shared city and house number alone can
+identify an unrelated restaurant. Coordinate and cross-script fallbacks respect
+hard vetoes from the matcher.
+When a saved list and a place are visible together, candidate extraction prefers
+the place-detail heading over the list heading, keeping the name with the
+address and category from the opened place.
+Direct place results are assessed in place. Article cards for neighboring
+businesses or other tenants below that panel are not treated as search results.
+The non-food category veto also recognizes the recorded Traditional Chinese
+tourist-attraction category.
+An unrecognized category needs strong name or alias identity. A fuzzy name and
+shared city cannot establish that a campground or another unfamiliar category
+is the source restaurant. Exact food-business names with generic shop categories
+retain their existing handling.
+Pagination follows the source's next-page link even when it exceeds the highest
+visible numbered button. That number is a progress estimate, not a limit; the
+visited-URL guard still prevents pagination loops. Taiwan's page 9 can link to
+page 10 while showing numbered buttons only through 9.
 
 ## Notes
 
@@ -276,8 +389,12 @@ rows already recorded in the journal.
   `michelin_scraper/catalog/target_url_matrix.json`. If a localized country has
   no verified listing URL, the command fails early instead of scraping a guessed
   Michelin URL.
-- The command automatically checks login state; if no session is found, it
-  prompts whether to run interactive login immediately.
+- The Traditional Chinese Taiwan country listing uses
+  `/tw/zh_TW/selection/taiwan-region/restaurants`. Nearby and new-restaurant
+  recommendation sections are excluded from results, including on empty searches.
+- The command automatically checks login state; persistent-profile mode prompts
+  whether to run interactive login immediately when no session is found. CDP
+  mode requires signing in within the attached browser before retrying.
 - Default level buckets are `stars`, `selected`, and `bib-gourmand`. Use
   `--levels one-star,two-star,three-star,selected,bib-gourmand` to keep star
   levels split into separate lists.
@@ -321,7 +438,8 @@ remain marked `unsupported-or-undiscovered`.
 
 ## Troubleshooting
 
-If you see a Playwright error that Chromium executable does not exist:
+If bundled Chromium is missing, Michelin's browser-rendered fallback retries
+installed Google Chrome automatically. If neither browser is available:
 
 ```bash
 uv sync
@@ -345,7 +463,8 @@ uv run python -m michelin_scraper \
   --google-user-data-dir ~/.michelin-gmaps-profile-fresh
 ```
 
-The tool auto-cleans stale lock/session files in `--google-user-data-dir` before launch.
+In persistent-profile mode, the tool auto-cleans stale lock/session files in
+`--google-user-data-dir` before launch. CDP mode does not touch profile files.
 If it still crashes, remove the profile directory and re-login:
 
 ```bash

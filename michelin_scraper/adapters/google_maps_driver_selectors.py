@@ -30,8 +30,8 @@ SIGNED_IN_ANCHOR_SELECTORS = (
 SIGN_IN_BUTTON_SELECTORS = (
     "a[aria-label*='Sign in']",
     "button[aria-label*='Sign in']",
-    "a[href*='accounts.google.com']",
 )
+AUTH_CONTROLS_READY_TIMEOUT_MS = 10000
 FIRST_RESULT_SELECTORS = (
     "div[role='article'] a",
     "a[href*='/maps/place/']",
@@ -45,6 +45,7 @@ SEARCH_RESULT_CANDIDATE_SELECTORS = (
     "a[href*='/maps/place/']",
 )
 PLACE_TITLE_SELECTORS = (
+    "h1.DUwDvf",
     "h1",
     "h1.fontHeadlineLarge",
 )

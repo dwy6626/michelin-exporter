@@ -15,6 +15,7 @@ from .place_matcher_strategies import (
     evaluate_name_evidence,
     extract_place_match_features,
     has_cjk_proper_prefix_conflict,
+    is_address_like_candidate_name,
 )
 from .place_matcher_strategies import (
     has_house_number_conflict as _strategy_has_house_number_conflict,
@@ -29,10 +30,6 @@ _CJK_SEQUENCE_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+"
 _NAME_COMPACT_TOKEN_PATTERN = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+")
 _PARENTHETICAL_SEGMENT_PATTERN = re.compile(r"\s*[（(][^）)]{1,24}[）)]\s*")
 _PARENTHETICAL_BRACKET_PATTERN = re.compile(r"[（）()]")
-_ADDRESS_LIKE_PLACE_NAME_PATTERN = re.compile(
-    r"^\s*(?:no\.?\s*\d|\d+\s*(?:f|floor|樓)\s*$)",
-    re.IGNORECASE,
-)
 _COORDINATE_DMS_PATTERN = re.compile(
     r"""^\s*
     \d{1,3}\s*°\s*\d{1,2}\s*['′]\s*\d{1,2}(?:\.\d+)?\s*["″]\s*[NS]
@@ -314,10 +311,6 @@ def is_coordinate_like_place_name(value: str) -> bool:
     )
 
 
-def _is_address_like_place_name(value: str) -> bool:
-    return bool(_ADDRESS_LIKE_PLACE_NAME_PATTERN.search(value.strip()))
-
-
 def _significant_location_tokens(tokens: set[str]) -> set[str]:
     significant: set[str] = set()
     for token in tokens:
@@ -596,7 +589,7 @@ def assess_place_match(
     informative_category = bool(candidate_category)
     food_service_category = _is_food_service_category(candidate_category)
     coordinate_like_candidate_name = is_coordinate_like_place_name(candidate.name)
-    address_like_candidate_name = _is_address_like_place_name(candidate.name)
+    address_like_candidate_name = is_address_like_candidate_name(row, candidate)
 
     if not row_name or not candidate_name:
         return PlaceMatchAssessment(

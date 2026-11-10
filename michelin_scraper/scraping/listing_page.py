@@ -26,7 +26,7 @@ from .restaurant_details import (
 )
 
 _LISTING_PAGE_TYPE = "listing"
-_LISTING_CARD_SELECTOR = "div.card__menu"
+_LISTING_CARD_SELECTOR = "div.card__menu:not(.section-nearby-restaurants div.card__menu)"
 _RESTAURANT_TITLE_SELECTOR = "h3.card__menu-content--title"
 _CARD_FOOTER_SCORE_SELECTOR = "div.card__menu-footer--score"
 _DISTINCTION_ICON_SELECTOR = "span.distinction-icon"
@@ -63,7 +63,10 @@ _EXPLICIT_COUNTRY_MARKERS_BY_CODE = {
 
 def _extract_region_segment(url: str) -> str:
     """Extract the region path segment (e.g. 'tainan-region') from a listing URL."""
-    for segment in urlparse(url).path.split("/"):
+    segments = urlparse(url).path.split("/")
+    if "selection" in segments:
+        return ""
+    for segment in segments:
         if segment.endswith("-region"):
             return segment
     return ""
@@ -84,6 +87,7 @@ def scrape_results_single_page(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> ScrapeResultsPage:
     """Scrape one listing page and return rows and next-page metadata."""
 
@@ -99,6 +103,7 @@ def scrape_results_single_page(
         tls_verify=tls_verify,
         progress_reporter=progress_reporter,
         page_type=_LISTING_PAGE_TYPE,
+        browser_fallback=browser_fallback,
     )
     if listing_page_soup.soup is None:
         return ScrapeResultsPage(
@@ -150,7 +155,8 @@ def scrape_results_single_page(
 
     # Submit detail-page fetches in parallel (up to 4 concurrent requests).
     _PREFETCH_WORKERS = min(4, len(eligible_cards)) if eligible_cards else 1
-    with ThreadPoolExecutor(max_workers=_PREFETCH_WORKERS) as pool:
+    pool = ThreadPoolExecutor(max_workers=_PREFETCH_WORKERS)
+    try:
         futures: list[tuple[int, str, Future[dict[str, Any]]]] = []
         for card_index, listing_card, restaurant_name in eligible_cards:
             fut = pool.submit(
@@ -164,6 +170,7 @@ def scrape_results_single_page(
                 local_language=local_language,
                 local_country_code=local_country_code,
                 requested_language=requested_language,
+                browser_fallback=browser_fallback,
             )
             futures.append((card_index, restaurant_name, fut))
 
@@ -196,6 +203,8 @@ def scrape_results_single_page(
                 on_item(page_number, estimated_total_pages, total_restaurants_expected, row)
             if i < len(futures) - 1 and item_sleep_seconds > 0:
                 time.sleep(item_sleep_seconds)
+    finally:
+        pool.shutdown(wait=True, cancel_futures=True)
 
     return ScrapeResultsPage(
         restaurant_rows=scraped_rows,
@@ -343,6 +352,7 @@ def _build_restaurant_row_from_card(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> dict[str, Any]:
     """Build one output row from listing card and detail page data."""
 
@@ -358,7 +368,12 @@ def _build_restaurant_row_from_card(
         local_language=local_language,
         local_country_code=local_country_code,
         requested_language=requested_language,
+        browser_fallback=browser_fallback,
     )
+    if not str(restaurant_page_data.get("Address") or "").strip():
+        raise RuntimeError(
+            f"Michelin detail has no verified address for {restaurant_name!r} at {restaurant_url}; refusing incomplete source row."
+        )
 
     return build_restaurant_record(
         name=restaurant_name,
@@ -402,6 +417,7 @@ def _fetch_restaurant_page_data(
     local_language: str | None = None,
     local_country_code: str | None = None,
     requested_language: str | None = None,
+    browser_fallback: bool = True,
 ) -> dict[str, float | str]:
     """Fetch parsed detail fields for a restaurant page URL."""
 
@@ -416,6 +432,7 @@ def _fetch_restaurant_page_data(
         local_language=local_language,
         local_country_code=local_country_code,
         requested_language=requested_language,
+        browser_fallback=browser_fallback,
     )
 
 

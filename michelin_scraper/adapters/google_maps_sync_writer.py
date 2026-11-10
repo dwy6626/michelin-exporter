@@ -257,6 +257,7 @@ class GoogleMapsSyncWriter:
         list_name_prefix: str,
         on_missing_list: str,
         ignore_existing_lists_check: bool,
+        google_cdp_url: str | None = None,
         on_row_synced: RowSyncedCallback | None = None,
         initial_synced_row_keys: frozenset[str] = frozenset(),
         probe_only: bool = False,
@@ -271,6 +272,7 @@ class GoogleMapsSyncWriter:
         self._driver: GoogleMapsDriverPort = driver or GoogleMapsDriver(
             GoogleMapsDriverConfig(
                 user_data_dir=user_data_dir,
+                google_cdp_url=google_cdp_url,
                 headless=headless,
                 sync_delay_seconds=sync_delay_seconds,
             )
@@ -953,11 +955,13 @@ class GoogleMapsSyncWriter:
                     match_strength == "weak"
                     and _is_coordinate_query(query_for_candidate)
                     and not match_assessment.coordinate_like_candidate_name
+                    and not match_assessment.hard_veto
                 ):
                     # Coordinate lookup is a high-signal fallback when Maps returns local-script names.
                     match_strength = "medium"
                 if (
                     match_strength == "weak"
+                    and not match_assessment.hard_veto
                     and match_assessment.city_in_candidate_address
                     and candidate.address
                     and not match_assessment.coordinate_like_candidate_name
